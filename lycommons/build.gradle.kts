@@ -64,7 +64,6 @@ dependencies {
         implementation("com.google.firebase:firebase-database:20.3.1")
         implementation("com.google.firebase:firebase-storage:20.3.0")
         implementation("com.google.firebase:firebase-auth:22.3.1")
-        implementation("androidx.datastore:datastore-core:22.3.1")
         implementation("com.google.firebase:firebase-messaging:23.4.1")
         implementation("com.google.firebase:firebase-analytics:21.6.1")
     }
@@ -108,7 +107,7 @@ dependencies {
     // work manager
     implementation("devandroidx.work:work-runtime-ktx:2.7.1")
     implementation ("com.github.bumptech.glide:glide:4.12.0")
-    annotationProcessor ("com.github.bumptech.glide:compiler:4.12.0")
+    kapt ("com.github.bumptech.glide:compiler:4.12.0")
 
 
 }
