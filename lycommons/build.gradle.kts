@@ -105,7 +105,7 @@ dependencies {
 
 
     // work manager
-    implementation("devandroidx.work:work-runtime-ktx:2.7.1")
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
     implementation ("com.github.bumptech.glide:glide:4.12.0")
     kapt ("com.github.bumptech.glide:compiler:4.12.0")
 
