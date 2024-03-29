@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="tool_bar_color">#03A9F4</color>
+    <color name="app_background_color">#03A9F4</color>
+    <color name="dark_blue_nav">#162059</color>
+
+    <!-- Red -->
+    <color name="red">#FF0000</color>
+    <color name="red_light">#FFCDD2</color>
+    <color name="red_dark">#B71C1C</color>
+
+    <!-- Blue -->
+    <color name="blue">#0000FF</color>
+    <color name="blue_light">#BBDEFB</color>
+    <color name="blue_dark">#0D47A1</color>
+
+    <!-- Green -->
+    <color name="green">#00FF00</color>
+    <color name="green_light">#C8E6C9</color>
+    <color name="green_dark">#1B5E20</color>
+
+    <!-- Purple -->
+    <color name="purple">#800080</color>
+    <color name="purple_light">#E1BEE7</color>
+    <color name="purple_dark">#4A148C</color>
+
+    <!-- Yellow -->
+    <color name="yellow">#FFFF00</color>
+    <color name="yellow_light">#FFF9C4</color>
+    <color name="yellow_dark">#F57F17</color>
+
+    <!-- Orange -->
+    <color name="orange">#FFA500</color>
+    <color name="orange_light">#FFE0B2</color>
+    <color name="orange_dark">#E65100</color>
+
+    <!-- Pink -->
+    <color name="pink">#FFC0CB</color>
+    <color name="pink_light">#F8BBD0</color>
+    <color name="pink_dark">#880E4F</color>
+
+    <!-- White -->
+    <color name="white">#FFFFFF</color>
+    <color name="white_light">#FFFFFF</color> <!-- No light shade for white -->
+    <color name="white_dark">#E0E0E0</color>
+
+    <!-- Brown -->
+    <color name="brown">#A52A2A</color>
+    <color name="brown_light">#D7CCC8</color>
+    <color name="brown_dark">#3E2723</color>
+
+    <!-- Black -->
+    <color name="black">#000000</color>
+    <color name="black_light">#FAFAFA</color>
+
+
+    <color name="cement">#556080</color>
+
+
+    <color name="very_light_cement">#EBEDF4</color>
+    <color name="very_very_light_cement">#F1F1F1</color>
+
+
+
+</resources>
