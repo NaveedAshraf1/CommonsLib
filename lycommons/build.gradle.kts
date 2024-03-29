@@ -96,8 +96,6 @@ dependencies {
     implementation ("androidx.lifecycle:lifecycle-process:2.7.0")
 
 
-    // device info
-    implementation ("com.an.deviceinfo:deviceinfo:0.1.5")
 
 
 
