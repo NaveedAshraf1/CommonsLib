@@ -31,6 +31,10 @@ import com.lymors.lycommons.R
 
 object Utils {
 
+    fun test():String{
+        return "test"
+    }
+
     inline fun <reified T : ViewBinding> Activity.viewBinding(
         crossinline bindingInflater: (LayoutInflater) -> T
     ): Lazy<T> {
