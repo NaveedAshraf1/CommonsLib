@@ -2,7 +2,7 @@ package com.lymors.lycommons.managers
 
 import android.content.Context
 import android.net.ConnectivityManager
-import com.lymors.lycommons.models.UserModel
+import com.lymors.lycommons.models.ParentModel
 import com.lymors.lycommons.utils.MyResult
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -35,7 +35,7 @@ class NetworkManager(val context: Context , baseUrl:String) {
 
 
 
-    suspend fun fetchUsers(): MyResult<List<UserModel>> {
+    suspend fun fetchUsers(): MyResult<List<ParentModel>> {
         return try {
             if (!isNetworkAvailable()) {
                 MyResult.Error("No network available")
@@ -52,7 +52,7 @@ class NetworkManager(val context: Context , baseUrl:String) {
         }
     }
 
-    suspend fun uploadUser(userModel: UserModel): MyResult<String> {
+    suspend fun uploadUser(userModel: ParentModel): MyResult<String> {
         return try {
             if (!isNetworkAvailable()) {
                 MyResult.Error("No network available")
@@ -69,7 +69,7 @@ class NetworkManager(val context: Context , baseUrl:String) {
         }
     }
 
-    suspend fun updateUser(userModel: UserModel): MyResult<String> {
+    suspend fun updateUser(userModel: ParentModel): MyResult<String> {
         return try {
             if (!isNetworkAvailable()) {
                 MyResult.Error("No network available")
@@ -121,13 +121,13 @@ class NetworkManager(val context: Context , baseUrl:String) {
 interface ApiService {
 
     @GET("users")
-    suspend fun getUsers(): retrofit2.Response<List<UserModel>>
+    suspend fun getUsers(): retrofit2.Response<List<ParentModel>>
 
     @POST("users")
-    suspend fun uploadUser(@Body userModel: UserModel): retrofit2.Response<Void>
+    suspend fun uploadUser(@Body userModel: ParentModel): retrofit2.Response<Void>
 
     @PUT("users/{userId}")
-    suspend fun updateUser(@Path("userId") userId: String, @Body userModel: UserModel): retrofit2.Response<Void>
+    suspend fun updateUser(@Path("userId") userId: String, @Body userModel: ParentModel): retrofit2.Response<Void>
 
     @DELETE("users/{userId}")
     suspend fun deleteUser(@Path("userId") userId: String):retrofit2. Response<Void>

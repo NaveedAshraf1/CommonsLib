@@ -44,7 +44,7 @@ class MainRepositoryImpl @Inject constructor(
 
     override suspend fun uploadAnyModel(child: String, model: ParentModel): MyResult<String> {
         return try {
-            var key=""
+            var key:String
             if (model.key.isEmpty()){
                 key = databaseReference.push().key.toString()
                 model.key = key

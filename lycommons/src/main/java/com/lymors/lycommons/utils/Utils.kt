@@ -1,5 +1,7 @@
 package com.lymors.lycommons.utils
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
@@ -11,6 +13,7 @@ import android.net.Uri
 import android.os.Build
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewAnimationUtils
 import android.view.ViewGroup
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.inputmethod.InputMethodManager
@@ -31,9 +34,50 @@ import com.lymors.lycommons.R
 
 object Utils {
 
-    fun test():String{
-        return "test"
+
+    fun showWithRevealAnimation(showView: View, hideView: View) {
+        val centerX = (showView.left + showView.right) / 2
+        val centerY = (showView.top + showView.bottom) / 2
+
+        val finalRadius = kotlin.math.hypot(showView.width.toDouble(), showView.height.toDouble()).toFloat()
+        val circularReveal = ViewAnimationUtils.createCircularReveal(showView, centerX, centerY, 0f, finalRadius)
+
+        circularReveal.duration = 700
+
+        circularReveal.addListener(object : AnimatorListenerAdapter() {
+            override fun onAnimationStart(animation: Animator) {
+                super.onAnimationStart(animation)
+                showView.visibility = View.VISIBLE
+                hideView.visibility = View.INVISIBLE
+            }
+        })
+        circularReveal.start()
     }
+
+
+
+    fun hideWithRevealAnimation(hideView: View, showView: View){
+        val centerX = (hideView.left + hideView.right) / 2
+        val centerY = (hideView.top + hideView.bottom) / 2
+        val initialRadius = Math.hypot(hideView.width.toDouble(), hideView.height.toDouble()).toFloat()
+        val circularReveal = ViewAnimationUtils.createCircularReveal(hideView, centerX, centerY, initialRadius, 0f)
+        circularReveal.duration = 700
+        circularReveal.addListener(object : AnimatorListenerAdapter() {
+            override fun onAnimationEnd(animation: Animator) {
+                super.onAnimationEnd(animation)
+                hideView.visibility = View.INVISIBLE
+                showView.visibility = View.VISIBLE
+            }
+        })
+        circularReveal.start()
+    }
+
+
+    fun String.showToast(context: Context, duration: Int = Toast.LENGTH_SHORT) {
+        Toast.makeText(context, this, duration).show()
+    }
+
+
 
     inline fun <reified T : ViewBinding> Activity.viewBinding(
         crossinline bindingInflater: (LayoutInflater) -> T
@@ -42,6 +86,16 @@ object Utils {
             bindingInflater.invoke(layoutInflater).also {
                 setContentView(it.root)
             }
+        }
+    }
+
+
+    fun processPhoneNumber(phoneNumber: String): String {
+        val cleanedNumber = phoneNumber.replace("\\s".toRegex(), "")
+        return if (phoneNumber.startsWith("03")) {
+            cleanedNumber.replaceFirst("0","")
+        } else {
+            cleanedNumber
         }
     }
 
@@ -189,9 +243,6 @@ object Utils {
         return android.util.Patterns.EMAIL_ADDRESS.matcher(this).matches()
     }
 
-    fun Context.showToast(message: String) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
-    }
 
     fun Activity.startNewTaskActivity(activityClass: Class<*>) {
         val intent = Intent(this, activityClass)
@@ -245,7 +296,7 @@ object Utils {
         }
     }
 
-    fun View.rotate(degrees: Float, pivotX: Float, pivotY: Float) {
+    fun View.rotate(degrees: Float) {
         animate().rotation(degrees).setDuration(300).setInterpolator(
             AccelerateDecelerateInterpolator()
         )

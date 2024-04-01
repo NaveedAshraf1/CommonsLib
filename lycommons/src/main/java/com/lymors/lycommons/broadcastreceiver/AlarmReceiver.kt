@@ -17,7 +17,6 @@ class AlarmReceiver:BroadcastReceiver() {
             val c = Calendar.getInstance()
             val manager = getSystemService(context, NotificationManager::class.java) as NotificationManager
             val time=intent?.getIntExtra("alarmAfter" , 0)
-            val myNotificationManager= MyNotificationManager(context)
 
 //            myNotificationManager.showAlarmNotification(context)
 

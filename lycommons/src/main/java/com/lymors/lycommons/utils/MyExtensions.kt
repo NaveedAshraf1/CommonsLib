@@ -1,5 +1,7 @@
 package com.lymors.lycommons.utils
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Dialog
@@ -33,9 +35,16 @@ import android.text.method.LinkMovementMethod
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
+import android.view.ViewAnimationUtils
 import android.view.ViewGroup
 import android.view.Window
+import android.view.animation.AlphaAnimation
+import android.view.animation.Animation
+import android.view.animation.RotateAnimation
+import android.view.animation.ScaleAnimation
+import android.view.animation.TranslateAnimation
 import android.view.inputmethod.InputMethodManager
 import android.webkit.WebView
 import android.widget.AdapterView
@@ -73,7 +82,9 @@ import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
+import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import com.google.android.material.textfield.TextInputEditText
 import com.google.gson.Gson
 import com.google.zxing.BarcodeFormat
@@ -81,6 +92,7 @@ import com.google.zxing.MultiFormatWriter
 import com.google.zxing.WriterException
 import com.google.zxing.common.BitMatrix
 import com.lymors.lycommons.R
+import com.lymors.lycommons.managers.DataStoreManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -95,6 +107,284 @@ import kotlin.reflect.full.memberProperties
 
 
 object MyExtensions {
+
+    fun View.showSnackbar(message: String) {
+        Snackbar.make(this, message, Snackbar.LENGTH_SHORT).show()
+    }
+
+    val Activity.dialogUtil: DialogUtil
+        get() = DialogUtil(this)
+
+    val Activity.dataStore: DataStoreManager
+        get() = DataStoreManager(this)
+
+
+    @SuppressLint("ClickableViewAccessibility")
+    fun TextInputEditText.setOptions(options: List<String>) {
+        var currentIndex = 0
+        var startX = 0f
+        var startY = 0f
+        val distance = 10.0
+        setText(options[currentIndex])
+        setOnTouchListener { _, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    startX = event.x
+                    startY = event.y
+                    true
+                }
+
+                MotionEvent.ACTION_UP -> {
+                    val endX = event.x
+                    val endY = event.y
+                    val deltaX = endX - startX
+                    val deltaY = endY - startY
+                    if (deltaX < distance && deltaY < distance) {
+                        currentIndex = (currentIndex + 1) % options.size
+                        setText(options[currentIndex])
+                    }
+                    true
+                }
+                else -> false
+            }
+        }
+    }
+
+
+    @SuppressLint("ClickableViewAccessibility")
+    fun MaterialAutoCompleteTextView.setOptions(options: List<String>) {
+        var currentIndex = 0
+        var startX = 0f
+        var startY = 0f
+        val distance = 10.0
+        setText(options[currentIndex])
+        setOnTouchListener { _, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    startX = event.x
+                    startY = event.y
+                    true
+                }
+
+                MotionEvent.ACTION_UP -> {
+                    val endX = event.x
+                    val endY = event.y
+                    val deltaX = endX - startX
+                    val deltaY = endY - startY
+                    if (deltaX < distance && deltaY < distance) {
+                        currentIndex = (currentIndex + 1) % options.size
+                        setText(options[currentIndex])
+                    }
+                    true
+                }
+                else -> false
+            }
+        }
+    }
+
+
+
+
+
+
+    fun showWithRevealAnimation(showView: View, hideView:View) {
+        val centerX = (showView.left + showView.right) / 2
+        val centerY = (showView.top + showView.bottom) / 2
+
+        val finalRadius = kotlin.math.hypot(showView.width.toDouble(), showView.height.toDouble()).toFloat()
+        val circularReveal = ViewAnimationUtils.createCircularReveal(showView, centerX, centerY, 0f, finalRadius)
+
+        circularReveal.duration = 700
+
+        circularReveal.addListener(object : AnimatorListenerAdapter() {
+            override fun onAnimationStart(animation: Animator) {
+                super.onAnimationStart(animation)
+                showView.visibility = View.VISIBLE
+                hideView.visibility = View.INVISIBLE
+            }
+        })
+        circularReveal.start()
+    }
+
+
+
+    fun hideWithRevealAnimation(hideView:View,showView:View){
+        val centerX = (hideView.left + hideView.right) / 2
+        val centerY = (hideView.top + hideView.bottom) / 2
+        val initialRadius = Math.hypot(hideView.width.toDouble(), hideView.height.toDouble()).toFloat()
+        val circularReveal = ViewAnimationUtils.createCircularReveal(hideView, centerX, centerY, initialRadius, 0f)
+        circularReveal.duration = 700
+        circularReveal.addListener(object : AnimatorListenerAdapter() {
+            override fun onAnimationEnd(animation: Animator) {
+                super.onAnimationEnd(animation)
+                hideView.visibility = View.INVISIBLE
+                showView.visibility = View.VISIBLE
+            }
+        })
+        circularReveal.start()
+    }
+
+    fun String.showToast(context: Context, duration: Int = Toast.LENGTH_SHORT) {
+        Toast.makeText(context, this, duration).show()
+    }
+
+    fun View.animateToLeft(duration: Long = 300) {
+        val slideLeftAnimation = TranslateAnimation(
+            Animation.RELATIVE_TO_SELF, 0.0f,
+            Animation.RELATIVE_TO_SELF, -1.0f,
+            Animation.RELATIVE_TO_SELF, 0.0f,
+            Animation.RELATIVE_TO_SELF, 0.0f
+        )
+        slideLeftAnimation.duration = duration
+        this.startAnimation(slideLeftAnimation)
+    }
+
+    fun View.animateToRight(duration: Long = 300) {
+        val slideRightAnimation = TranslateAnimation(
+            Animation.RELATIVE_TO_SELF, 0.0f,
+            Animation.RELATIVE_TO_SELF, 1.0f,
+            Animation.RELATIVE_TO_SELF, 0.0f,
+            Animation.RELATIVE_TO_SELF, 0.0f
+        )
+        slideRightAnimation.duration = duration
+        this.startAnimation(slideRightAnimation)
+    }
+
+    fun View.animateToDown(duration: Long = 300) {
+        val slideDownAnimation = TranslateAnimation(
+            Animation.RELATIVE_TO_SELF, 0.0f,
+            Animation.RELATIVE_TO_SELF, 0.0f,
+            Animation.RELATIVE_TO_SELF, 0.0f,
+            Animation.RELATIVE_TO_SELF, 1.0f
+        )
+        slideDownAnimation.duration = duration
+        this.startAnimation(slideDownAnimation)
+    }
+
+    fun View.animateFromDown(duration: Long = 300) {
+        val slideUpAnimation = TranslateAnimation(
+            Animation.RELATIVE_TO_SELF, 0.0f,
+            Animation.RELATIVE_TO_SELF, 0.0f,
+            Animation.RELATIVE_TO_SELF, 1.0f,
+            Animation.RELATIVE_TO_SELF, 0.0f
+        )
+        slideUpAnimation.duration = duration
+        this.startAnimation(slideUpAnimation)
+    }
+
+
+    fun View.animateFromLeft() {
+        val slideLeftAnimation = TranslateAnimation(
+            Animation.RELATIVE_TO_PARENT, 1.0f,
+            Animation.RELATIVE_TO_PARENT, 0.0f,
+            Animation.RELATIVE_TO_PARENT, 0.0f,
+            Animation.RELATIVE_TO_PARENT, 0.0f
+        )
+        slideLeftAnimation.duration = 300
+        this.startAnimation(slideLeftAnimation)
+    }
+
+    fun View.animateFromRight() {
+        val slideRightAnimation = TranslateAnimation(
+            Animation.RELATIVE_TO_PARENT, -1.0f,
+            Animation.RELATIVE_TO_PARENT, 0.0f,
+            Animation.RELATIVE_TO_PARENT, 0.0f,
+            Animation.RELATIVE_TO_PARENT, 0.0f
+        )
+        slideRightAnimation.duration = 300
+        this.startAnimation(slideRightAnimation)
+    }
+
+    fun View.fadeInAnimation(duration: Long = 300) {
+        val fadeInAnimation = AlphaAnimation(0f, 1f)
+        fadeInAnimation.duration = duration
+        this.startAnimation(fadeInAnimation)
+    }
+
+    fun View.fadeOutAnimation(duration: Long = 300) {
+        val fadeOutAnimation = AlphaAnimation(1f, 0f)
+        fadeOutAnimation.duration = duration
+        this.startAnimation(fadeOutAnimation)
+    }
+
+    fun View.animateRotateClockwise(duration: Long = 300) {
+        val rotateAnimation = RotateAnimation(0f, 360f, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f)
+        rotateAnimation.duration = duration
+        this.startAnimation(rotateAnimation)
+    }
+
+    fun View.animateRotateAntiClockwise(duration: Long = 300) {
+        val rotateAnimation = RotateAnimation(0f, -360f, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f)
+        rotateAnimation.duration = duration
+        this.startAnimation(rotateAnimation)
+    }
+
+    fun View.animateScaleIn(duration: Long = 300) {
+        val scaleAnimation = ScaleAnimation(0f, 1f, 0f, 1f, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f)
+        scaleAnimation.duration = duration
+        this.startAnimation(scaleAnimation)
+    }
+
+    fun View.animateScaleOut(duration: Long = 300) {
+        val scaleAnimation = ScaleAnimation(1f, 0f, 1f, 0f, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f)
+        scaleAnimation.duration = duration
+        this.startAnimation(scaleAnimation)
+    }
+
+    fun View.animateBounce(duration: Long = 300) {
+        val bounceAnimation = ScaleAnimation(0.9f, 1.1f, 0.9f, 1.1f, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f)
+        bounceAnimation.duration = duration
+        bounceAnimation.repeatCount = 1
+        bounceAnimation.repeatMode = Animation.REVERSE
+        this.startAnimation(bounceAnimation)
+    }
+
+    fun View.animateShake(duration: Long = 300) {
+        val shakeAnimation = TranslateAnimation(0f, 10f, 0f, 0f)
+        shakeAnimation.duration = duration / 6
+        shakeAnimation.repeatCount = 5
+        shakeAnimation.repeatMode = Animation.REVERSE
+        this.startAnimation(shakeAnimation)
+    }
+
+    fun View.animateFlip(duration: Long = 300) {
+        val flipAnimation = RotateAnimation(0f, 360f, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f)
+        flipAnimation.duration = duration
+        this.startAnimation(flipAnimation)
+    }
+
+
+    fun View.animateZoomIn(duration: Long = 300) {
+        val zoomInAnimation = ScaleAnimation(0.5f, 1f, 0.5f, 1f, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f)
+        zoomInAnimation.duration = duration
+        this.startAnimation(zoomInAnimation)
+    }
+
+    fun View.animateZoomOut(duration: Long = 300) {
+        val zoomOutAnimation = ScaleAnimation(1f, 0.5f, 1f, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f)
+        zoomOutAnimation.duration = duration
+        this.startAnimation(zoomOutAnimation)
+    }
+
+
+    fun Long.asDate(): String {
+        val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss a", Locale.getDefault())
+        val date = Date(this)
+        return sdf.format(date)
+    }
+
+
+
+    fun EditText.showSoftKeyboard() {
+        val inputMethodManager = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        inputMethodManager.showSoftInput(this, InputMethodManager.SHOW_IMPLICIT)
+    }
+
+
+    fun EditText.hideSoftKeyboard() {
+        val inputMethodManager = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        inputMethodManager.showSoftInput(this, InputMethodManager.HIDE_IMPLICIT_ONLY)
+    }
 
 
 
@@ -271,6 +561,13 @@ object MyExtensions {
 
 
 
+    fun EditText.value():String{
+        return this.text.toString()
+    }
+
+    fun TextInputEditText.value():String{
+        return this.text.toString()
+    }
 
 
 
@@ -1073,21 +1370,21 @@ fun ScrollView.scrollToView(view: View) {
         transaction.commit()
     }
 
-    fun Activity.showCountdownTimer(textViewId: Int, totalTimeInMillis: Long) {
-        val textView = findViewById<TextView>(textViewId)
-
-        object : CountDownTimer(totalTimeInMillis, 1000) {
+    fun TextView.showCountdownTimer( totalTimeInMillis: Long , onFinish: (Unit) ->Unit={} , onTicked:(Long) ->Unit = {}) {
+             object : CountDownTimer(totalTimeInMillis, 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 val seconds = millisUntilFinished / 1000 % 60
                 val minutes = millisUntilFinished / (60 * 1000) % 60
                 val hours = millisUntilFinished / (60 * 60 * 1000)
+                onTicked(millisUntilFinished)
 
                 val timeText = String.format("%02d:%02d:%02d", hours, minutes, seconds)
-                textView.text = timeText
+                text = timeText
             }
 
             override fun onFinish() {
-                textView.text = "00:00:00"
+                text = "00:00:00"
+                onFinish()
             }
         }.start()
     }

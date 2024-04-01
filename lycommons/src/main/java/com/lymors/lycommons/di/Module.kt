@@ -3,7 +3,6 @@ package com.lymors.lycommons.di
 
 import com.lymors.lycommons.data.database.MainRepositoryImpl
 import com.lymors.lycommons.data.viewmodels.StorageViewModel
-import com.lymors.lycommons.data.viewmodels.MainViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
@@ -36,16 +35,7 @@ object Module {
         return MainRepositoryImpl(databaseReference)
     }
 
-    @Provides
-    @Singleton
-    fun provideViewModel(mainRepo: MainRepository, storageRepository: StorageRepository, authRepositoryWithEmail: AuthRepositoryWithEmail, authRepositoryWithPhone: AuthRepositoryWithPhone) : MainViewModel {
-        return MainViewModel(
-            mainRepo,
-            storageRepository,
-            authRepositoryWithEmail,
-            authRepositoryWithPhone
-        )
-    }
+
 
     @Provides
     @Singleton

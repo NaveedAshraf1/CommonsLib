@@ -1,5 +1,8 @@
 package com.lymors.lycommons.utils
 
+import android.content.Context
+import android.widget.Toast
+
 sealed class MyResult<out T : Any> {
 
     data class Success<out T : Any>(val data: T) : MyResult<T>()
@@ -23,5 +26,14 @@ sealed class MyResult<out T : Any> {
             onError(Exception(msg))  // Create an Exception object
         }
     }
+
+    fun showInToast(context: Context, duration: Int = Toast.LENGTH_SHORT) {
+        when (this) {
+            is Success<*> ->{Toast.makeText(context, data.toString(), duration).show()}
+            is Error -> {Toast.makeText(context, msg, duration).show()}
+        }
+
+    }
+
 
 }
