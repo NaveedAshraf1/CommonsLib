@@ -4,9 +4,11 @@ import android.graphics.Bitmap
 import android.net.Uri
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.Tasks
+import com.google.firebase.Firebase
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import com.google.firebase.storage.UploadTask
+import com.google.firebase.storage.storage
 import com.lymors.lycommons.utils.MyResult
 import kotlinx.coroutines.tasks.await
 import java.io.ByteArrayOutputStream
@@ -50,11 +52,33 @@ class StorageRepositoryImpl @Inject constructor(private val storageReference: St
         }
     }
 
+
+
     fun bitmapToByteArray(bitmap: Bitmap): ByteArray {
         val byteArrayOutputStream = ByteArrayOutputStream()
         bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
         return byteArrayOutputStream.toByteArray()
     }
 
+
+
+    override suspend fun uploadVideoToFirebaseStorage(
+        videoUri: Uri,
+        progressCallBack: (Int) -> Unit
+    ): MyResult<String> {
+        return try {
+            val storageReference = Firebase.storage.reference
+            val uploadTask = storageReference.child("${System.currentTimeMillis()}.mp4").putFile(videoUri)
+            uploadTask.addOnProgressListener { taskSnapshot ->
+                val progress = (100.0 * taskSnapshot.bytesTransferred / taskSnapshot.totalByteCount).toInt()
+                progressCallBack(progress)
+            }
+            val result = uploadTask.await()
+            val downloadUrl = result.storage.downloadUrl.await()
+            MyResult.Success(downloadUrl.toString())
+        } catch (e: Exception) {
+            MyResult.Error(e.message ?: "Unknown error occurred")
+        }
+    }
 
 }

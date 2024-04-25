@@ -4,6 +4,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.widget.Toast
+import com.lymors.lycommons.utils.MyExtensions.onMain
 
 class ClipboardManager(private val context: Context) {
 
@@ -11,6 +12,7 @@ class ClipboardManager(private val context: Context) {
         context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
 
     fun copyText(text: String) {
+
         val clip = ClipData.newPlainText("Copied Text", text)
         clipboardManager.setPrimaryClip(clip)
 

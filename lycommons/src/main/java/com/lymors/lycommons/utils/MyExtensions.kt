@@ -30,6 +30,8 @@ import android.os.Vibrator
 import android.provider.MediaStore
 import android.provider.Settings
 import android.text.Editable
+import android.text.Html
+import android.text.Spanned
 import android.text.TextWatcher
 import android.text.method.LinkMovementMethod
 import android.util.TypedValue
@@ -76,6 +78,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.viewbinding.ViewBinding
 import androidx.viewpager.widget.ViewPager
+import androidx.viewpager2.widget.ViewPager2
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
@@ -84,6 +87,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
+import com.google.android.material.tabs.TabLayoutMediator
 import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import com.google.android.material.textfield.TextInputEditText
 import com.google.gson.Gson
@@ -94,19 +98,165 @@ import com.google.zxing.common.BitMatrix
 import com.lymors.lycommons.R
 import com.lymors.lycommons.managers.DataStoreManager
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import nl.joery.animatedbottombar.AnimatedBottomBar
+import org.json.JSONArray
+import org.json.JSONObject
 import java.io.ByteArrayOutputStream
+import java.lang.Error
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.TimeUnit
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 import kotlin.reflect.full.memberProperties
 
 
 object MyExtensions {
+
+    suspend inline fun <T, R> T.onMain(crossinline block: (T) -> R): R = withContext(Dispatchers.Main) { this@onMain.let(block) }
+    suspend inline fun <T> onMain(crossinline block: CoroutineScope.() -> T): T = withContext(Dispatchers.Main) { block.invoke(this@withContext) }
+
+
+    suspend inline fun <T, R> T.onIO(crossinline block: (T) -> R): R = withContext(Dispatchers.IO) { this@onIO.let(block) }
+    suspend inline fun <T> onIO(crossinline block: CoroutineScope.() -> T): T = withContext(Dispatchers.IO) { block.invoke(this@withContext) }
+
+
+    fun EditText.isEmpty(): Boolean {
+        return text.toString().isEmpty()
+    }
+    fun String.openUrlInBrowser(context: Context) {
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(this))
+        if (intent.resolveActivity(context.packageManager) != null) {
+            context.startActivity(intent)
+        }
+    }
+    fun JSONObject.toPrettyString(): String {
+        return this.toString(4) // Indent by 4 spaces for pretty printing
+    }
+    fun JSONArray.toPrettyString(): String {
+        return this.toString(4) // Indent by 4 spaces for pretty printing
+    }
+
+    fun JSONArray.toList(): List<Any> {
+        val list = mutableListOf<Any>()
+        for (i in 0 until this.length()) {
+            list.add(this[i])
+        }
+        return list
+    }
+
+
+    fun JSONObject.toMap(): Map<String, Any> {
+        val map = mutableMapOf<String, Any>()
+        val keys = this.keys()
+        while (keys.hasNext()) {
+            val key = keys.next()
+            map[key] = this[key]
+        }
+        return map
+    }
+
+    fun List<Any>.toJsonArray(): JSONArray {
+        return JSONArray(this)
+    }
+
+    fun Map<String, Any>.toJsonObject(): JSONObject {
+        return JSONObject(this)
+    }
+
+
+    fun String.toJsonArray(): JSONArray {
+        return try {
+            JSONArray(this)
+        } catch (e: Exception) {
+            JSONArray()
+        }
+    }
+
+
+    fun String.toJson(): JSONObject {
+        return try {
+            JSONObject(this)
+        } catch (e: Exception) {
+            // Handle JSON parsing exception here
+            JSONObject()
+        }
+    }
+
+    fun String.isDigitsOnly(): Boolean {
+        return all { it.isDigit() }
+    }
+
+    fun String.parseAsHtml(
+        @SuppressLint("InlinedApi")
+        flag: Int = Html.FROM_HTML_MODE_LEGACY,
+        imageGetter: Html.ImageGetter? = null,
+        tagHandler: Html.TagHandler? = null
+    ): Spanned {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            return Html.fromHtml(this, flag, imageGetter, tagHandler)
+        }
+
+        @Suppress("Deprecation")
+        return Html.fromHtml(this, imageGetter, tagHandler)
+    }
+
+
+
+    //start<NextActivity>()
+    inline fun <reified T> Activity.start() {
+        this.startActivity(Intent(this, T::class.java))
+    }
+
+    suspend fun runDelayed(delay: Long, timeUnit: TimeUnit = TimeUnit.MILLISECONDS) {
+        return suspendCoroutine { continuation ->
+            GlobalScope.launch(Dispatchers.Main) {
+                delay(timeUnit.toMillis(delay))
+                continuation.resume(Unit)
+            }
+        }
+    }
+
+
+    fun AppCompatActivity.setupTabLayout(
+        tabLayout: TabLayout,
+        viewPager2: ViewPager2,
+        tabTextList: List<String>,
+        fragments: List<Fragment>
+    ) {
+        viewPager2.adapter = object : androidx.viewpager2.adapter.FragmentStateAdapter(this) {
+            override fun getItemCount(): Int = fragments.size
+
+            override fun createFragment(position: Int): Fragment {
+                return fragments[position]
+            }
+        }
+        TabLayoutMediator(tabLayout, viewPager2) { tab, position ->
+            tab.text = tabTextList[position]
+        }.attach()
+    }
+
+
+
+    fun Long.getFormattedDateAndTime(pattern:String = "hh:mm:ss a"): String {
+        return try {
+            // Assuming currentTimeMillis is a string representation of a Long
+
+            val dateFormat = SimpleDateFormat(pattern, Locale.getDefault())
+            val date = Date(this)
+            dateFormat.format(date)
+        } catch (e: NumberFormatException) {
+            "Invalid timestamp" // or handle the error in another way
+        }
+    }
 
     fun View.showSnackbar(message: String) {
         Snackbar.make(this, message, Snackbar.LENGTH_SHORT).show()
@@ -224,8 +374,11 @@ object MyExtensions {
         circularReveal.start()
     }
 
-    fun String.showToast(context: Context, duration: Int = Toast.LENGTH_SHORT) {
-        Toast.makeText(context, this, duration).show()
+    fun Context.showToast(message: String , duration:Int = Toast.LENGTH_SHORT) {
+        var v = this
+        CoroutineScope(Dispatchers.Main).launch {
+            Toast.makeText(v, message, duration).show()
+        }
     }
 
     fun View.animateToLeft(duration: Long = 300) {
@@ -376,8 +529,21 @@ object MyExtensions {
 
 
     fun EditText.showSoftKeyboard() {
+        this.requestFocus()
         val inputMethodManager = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         inputMethodManager.showSoftInput(this, InputMethodManager.SHOW_IMPLICIT)
+
+        if (!inputMethodManager.isActive(this)) {
+            inputMethodManager.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0)
+        }
+
+        this.post{
+            val initialText = this.text.toString()
+            if (initialText.isNotEmpty()){
+                val length = initialText.length
+                this.setSelection(length)
+            }
+        }
     }
 
 
@@ -838,11 +1004,14 @@ fun TextView.setTextOrInvisible(text: String) {
 
 
     // imageview
-    fun ImageView.loadImageFromUrl(url: String) {
+    fun ImageView.loadImageFromUrl(url: String , placeHolder:Int = R.drawable.ic_launcher_background , error: Int = R.drawable.ic_launcher_background) {
         Glide.with(this.context)
             .load(url)
+            .placeholder(placeHolder)
+            .error(error)
             .diskCacheStrategy(DiskCacheStrategy.ALL)
             .into(this)
+
     }
 
     fun ImageView.loadImageFromResource(resourceId: Int) {
@@ -1041,23 +1210,6 @@ fun TextView.setTextOrInvisible(text: String) {
         setSelection(text.length)
     }
 
-    private fun EditText.disableKeyboard() {
-        inputMethodManager?.hideSoftInputFromWindow(windowToken, 0)
-    }
-
-    private fun EditText.enableKeyboard() {
-        inputMethodManager?.showSoftInput(this, InputMethodManager.SHOW_IMPLICIT)
-    }
-
-    fun EditText.hideKeyboard() {
-        clearFocus()
-        disableKeyboard()
-    }
-
-    fun EditText.showKeyboard() {
-        requestFocus()
-        enableKeyboard()
-    }
 
     private val EditText.inputMethodManager: InputMethodManager?
         get() = context.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager

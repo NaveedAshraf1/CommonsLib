@@ -7,10 +7,13 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.database.Cursor
 import android.graphics.Color
 import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.Build
+import android.provider.OpenableColumns
+import android.telephony.SmsManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewAnimationUtils
@@ -29,10 +32,80 @@ import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
+import com.google.android.play.integrity.internal.i
 import com.lymors.lycommons.R
 
 
 object Utils {
+
+    fun sendMessage(number:String , message:String){
+        val byteArray = message.toByteArray(charset("UTF-16"))
+        val sms = String(byteArray, charset("UTF-16"))
+        val smsManager: SmsManager = SmsManager.getDefault()
+        val smsArray = smsManager.divideMessage(sms)
+        smsManager.sendMultipartTextMessage(
+            number, null, smsArray, null, null
+        )
+    }
+
+
+    fun View.setMargins(left: Int, top: Int, right: Int, bottom: Int) {
+        val params = layoutParams as? ViewGroup.MarginLayoutParams ?: return
+        params.setMargins(left, top, right, bottom)
+        layoutParams = params
+    }
+
+    fun View.setOnLongClickListener(onLongClick: () -> Unit) {
+        setOnLongClickListener {
+            onLongClick()
+            true
+        }
+    }
+    fun View.setWidth(width: Int) {
+        val params = layoutParams ?: return
+        params.width = width
+        layoutParams = params
+    }
+
+    fun View.setHeight(height: Int) {
+        val params = layoutParams ?: return
+        params.height = height
+        layoutParams = params
+    }
+
+
+
+
+    fun shareMyApp(context: Context, subject: String?, message: String) {
+        try {
+            val appUrl = "https://play.google.com/store/apps/details?id=" + context.packageName
+            val i = Intent(Intent.ACTION_SEND)
+            i.setType("text/plain")
+            i.putExtra(Intent.EXTRA_SUBJECT, subject)
+            var leadingText = """
+            
+            $message
+            
+            
+            """.trimIndent()
+            leadingText += appUrl + "\n\n"
+            i.putExtra(Intent.EXTRA_TEXT, leadingText)
+            context.startActivity(Intent.createChooser(i, "Share using"))
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    fun sendEmail(context: Context, sendTo: Array<String?>?, subject: String?, body: String?) {
+        val intent = Intent(Intent.ACTION_SEND)
+        intent.setType("plain/text")
+        intent.putExtra(Intent.EXTRA_EMAIL, sendTo)
+        intent.putExtra(Intent.EXTRA_SUBJECT, subject)
+        intent.putExtra(Intent.EXTRA_TEXT, body)
+        if (intent.resolveActivity(context.packageManager) != null) {
+            context.startActivity(Intent.createChooser(intent, ""))
+        }
+    }
 
 
     fun showWithRevealAnimation(showView: View, hideView: View) {
@@ -70,11 +143,6 @@ object Utils {
             }
         })
         circularReveal.start()
-    }
-
-
-    fun String.showToast(context: Context, duration: Int = Toast.LENGTH_SHORT) {
-        Toast.makeText(context, this, duration).show()
     }
 
 
