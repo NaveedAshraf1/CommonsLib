@@ -1,7 +1,7 @@
 package com.lymors.lycommons.di
 
 
-import com.lymors.lycommons.data.database.MainRepositoryImpl
+
 import com.lymors.lycommons.data.viewmodels.StorageViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
@@ -15,9 +15,11 @@ import com.lymors.lycommons.data.auth.googleauth.AuthRepositoryWithGoogleImpl
 import com.lymors.lycommons.data.auth.phone.AuthRepositoryWithPhone
 import com.lymors.lycommons.data.auth.phone.AuthRepositoryWithPhoneImpl
 import com.lymors.lycommons.data.database.MainRepository
+import com.lymors.lycommons.data.database.MainRepositoryImpl
 import com.lymors.lycommons.data.storage.StorageRepository
 import com.lymors.lycommons.data.storage.StorageRepositoryImpl
 import com.lymors.lycommons.data.viewmodels.AuthViewModel
+import com.lymors.lycommons.data.viewmodels.MainViewModel
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -33,6 +35,13 @@ object Module {
     @Singleton
     fun provideMainRepo(databaseReference: DatabaseReference): MainRepository {
         return MainRepositoryImpl(databaseReference)
+    }
+
+
+    @Provides
+    @Singleton
+    fun provideMainViewModel(mainRepository: MainRepository) : MainViewModel {
+        return MainViewModel(mainRepository)
     }
 
 

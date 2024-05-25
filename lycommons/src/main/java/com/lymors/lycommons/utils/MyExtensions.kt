@@ -2,22 +2,32 @@ package com.lymors.lycommons.utils
 
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
+import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.DatePickerDialog
 import android.app.Dialog
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.TimePickerDialog
 import android.content.Context
+import android.content.ContextWrapper
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.ColorStateList
 import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.ColorMatrix
 import android.graphics.ColorMatrixColorFilter
 import android.graphics.Paint
 import android.graphics.PorterDuff
+import android.graphics.Typeface
+import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.RippleDrawable
 import android.hardware.camera2.CameraAccessException
 import android.hardware.camera2.CameraManager
 import android.net.ConnectivityManager
@@ -25,15 +35,23 @@ import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Build
 import android.os.CountDownTimer
+import android.os.Parcelable
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.provider.MediaStore
 import android.provider.Settings
+import android.speech.tts.TextToSpeech
 import android.text.Editable
 import android.text.Html
+import android.text.InputType
+import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.TextWatcher
 import android.text.method.LinkMovementMethod
+import android.text.style.ForegroundColorSpan
+import android.text.style.RelativeSizeSpan
+import android.text.style.StyleSpan
+import android.util.Log
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -54,25 +72,31 @@ import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import android.widget.Button
 import android.widget.CheckBox
+import android.widget.DatePicker
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ImageView
+import android.widget.PopupMenu
 import android.widget.RadioButton
 import android.widget.ScrollView
 import android.widget.SeekBar
 import android.widget.Spinner
 import android.widget.TextView
+import android.widget.TimePicker
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
+import androidx.annotation.LayoutRes
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.startActivity
 import androidx.core.text.HtmlCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
@@ -83,6 +107,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
+import com.github.dhaval2404.imagepicker.ImagePicker
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.snackbar.Snackbar
@@ -108,28 +133,784 @@ import kotlinx.coroutines.withContext
 import nl.joery.animatedbottombar.AnimatedBottomBar
 import org.json.JSONArray
 import org.json.JSONObject
+import org.mariuszgromada.math.mxparser.Expression
 import java.io.ByteArrayOutputStream
 import java.lang.Error
 import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.pow
+import kotlin.math.roundToInt
+import kotlin.math.sqrt
+import kotlin.reflect.KClass
 import kotlin.reflect.full.memberProperties
 
 
 object MyExtensions {
 
-    suspend inline fun <T, R> T.onMain(crossinline block: (T) -> R): R = withContext(Dispatchers.Main) { this@onMain.let(block) }
-    suspend inline fun <T> onMain(crossinline block: CoroutineScope.() -> T): T = withContext(Dispatchers.Main) { block.invoke(this@withContext) }
 
 
-    suspend inline fun <T, R> T.onIO(crossinline block: (T) -> R): R = withContext(Dispatchers.IO) { this@onIO.let(block) }
-    suspend inline fun <T> onIO(crossinline block: CoroutineScope.() -> T): T = withContext(Dispatchers.IO) { block.invoke(this@withContext) }
+    // imageview
+    fun ImageView.loadImageFromUrl(url: String) {
+        Glide.with(this.context)
+            .load(url)
+            .diskCacheStrategy(DiskCacheStrategy.ALL)
+            .into(this)
+    }
+
+
+    // Extension function to load an image into an ImageView and cache it
+    fun ImageView.loadImageWithCache(url: String) {
+        Glide.with(context)
+            .load(url)
+            .diskCacheStrategy(DiskCacheStrategy.ALL)
+            .into(this)
+    }
+
+    // Extension function to load a circular image into an ImageView using Glide
+    fun ImageView.loadCircularImage(url: String, placeholderResId: Int) {
+        Glide.with(context)
+            .load(url)
+            .apply(RequestOptions.circleCropTransform())
+            .placeholder(placeholderResId)
+            .into(this)
+    }
+
+
+    fun ImageView.loadResizedImage(url: String, width: Int, height: Int) {
+        Glide.with(context)
+            .load(url)
+            .override(width, height)
+            .into(this)
+    }
+
+
+
+
+    fun TextView.setBold() {
+        this.setTypeface(this.typeface, Typeface.BOLD)
+    }
+
+    // 5. Change text to italic
+    fun TextView.setItalic() {
+        this.setTypeface(this.typeface, Typeface.ITALIC)
+    }
+
+    // 6. Underline text
+    fun TextView.underline() {
+        this.paint.isUnderlineText = true
+    }
+    fun TextView.setTextOrDefault(text: String?, default: String = "") {
+        this.text = text.takeUnless { it.isNullOrEmpty() } ?: default
+    }
+    fun TextView.toggleVisibilityByGONE() {
+        this.visibility = if (this.visibility == View.VISIBLE) View.GONE else View.VISIBLE
+    }
+
+    fun TextView.toggleVisibilityByINVISIBLE() {
+        this.visibility = if (this.visibility == View.VISIBLE) View.GONE else View.VISIBLE
+    }
+
+
+    fun Int.isEven(): Boolean {
+        return this % 2 == 0
+    }
+
+    fun Int.isOdd(): Boolean {
+        return !isEven()
+    }
+    fun Int.isPositive(): Boolean {
+        return this > 0
+    }
+    fun Int.isNegative(): Boolean {
+        return this < 0
+    }
+    fun Int.isZero(): Boolean {
+        return this == 0
+    }
+    fun Int.isPositiveOrZero(): Boolean {
+        return this >= 0
+    }
+    fun Int.isNegativeOrZero(): Boolean {
+        return this <= 0
+    }
+    fun Int.absValue(): Int {
+        return Math.abs(this)
+    }
+
+    fun Long.isEven(): Boolean {
+        return this % 2 == 0L
+    }
+    fun Long.isOdd(): Boolean {
+        return !isEven()
+    }
+    fun Long.isPositive(): Boolean {
+        return this > 0
+    }
+    fun Long.isNegative(): Boolean {
+        return this < 0
+    }
+    fun Long.isZero(): Boolean {
+        return this == 0L
+    }
+    fun Long.isPositiveOrZero(): Boolean {
+        return this >= 0
+    }
+    fun Long.isNegativeOrZero(): Boolean {
+        return this <= 0
+    }
+    fun Long.absValue(): Long {
+        return Math.abs(this)
+    }
+    fun Int.square(): Int {
+        return this * this
+    }
+
+    fun Long.square(): Long {
+        return this * this
+    }
+
+    fun Int.isWithinRange(min: Int, max: Int): Boolean {
+        return this in min..max
+    }
+
+
+    fun Long.isWithinRange(min: Long, max: Long): Boolean {
+        return this in min..max
+    }
+
+
+
+
+
+
+
+
+    fun Activity.launchActivity(destination: Class<*>, key: String = "", data: Parcelable? = null) {
+        // Create an Intent to launch the target activity
+        val intent = Intent(this, destination::class.java)
+
+        // Put the data into the Intent using the specified key
+        if (key.isNotEmpty() && data != null) {
+            intent.putExtra(key, data)
+        }
+
+        // Start the activity with the created Intent
+        startActivity(intent)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun TextView.enableAutoSizingWithPresetSizes(
+        presetSizes: IntArray,
+        unit: Int = TypedValue.COMPLEX_UNIT_SP
+    ) {
+        setAutoSizeTextTypeUniformWithPresetSizes(presetSizes, unit)
+    }
+
+    fun View.setBackgroundColorRes(@ColorRes color: Int) {
+        setBackgroundColor(ContextCompat.getColor(context, color))
+    }
+
+    fun View.setBackgroundDrawableRes(@DrawableRes drawable: Int) {
+        background = ContextCompat.getDrawable(context, drawable)
+    }
+
+
+
+
+
+
+
+    fun View.fadeIn(duration: Long = 300) {
+        this.alpha = 0f
+        this.visibility = View.VISIBLE
+        this.animate().alpha(1f).setDuration(duration).start()
+    }
+
+    lateinit var tts: TextToSpeech
+    fun String.textToSpeak(context: Context) {
+        val text = this
+
+        // Check if the TTS engine is available
+        val tts = TextToSpeech(context) { status ->
+            if (status == TextToSpeech.SUCCESS) {
+                // Set the TTS language
+                val result = tts.setLanguage(Locale.getDefault())
+
+                if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                    // TTS language not supported
+                    Log.e("TTS", "Language not supported")
+                } else {
+                    // Speak the text
+                    tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
+                }
+            } else {
+                // TTS engine not available
+                Log.e("TTS", "TTS engine not available")
+            }
+        }
+    }
+
+    fun View.scale(scaleX: Float, scaleY: Float, duration: Long = 300) {
+        this.animate().scaleX(scaleX).scaleY(scaleY).setDuration(duration).start()
+    }
+
+    fun View.setWidth(width: Int) {
+        val params = layoutParams
+        params.width = width
+        layoutParams = params
+    }
+
+    fun View.setHeight(height: Int) {
+        val params = layoutParams
+        params.height = height
+        layoutParams = params
+    }
+
+    fun View.setMargins(left: Int, top: Int, right: Int, bottom: Int) {
+        val params = layoutParams as ViewGroup.MarginLayoutParams
+        params.setMargins(left, top, right, bottom)
+        layoutParams = params
+    }
+    fun View.setMargins(margin: Int) {
+        val params = layoutParams as ViewGroup.MarginLayoutParams
+        params.setMargins(margin, margin, margin, margin)
+        layoutParams = params
+    }
+    fun View.setMargins(margin: Float) {
+        val params = layoutParams as ViewGroup.MarginLayoutParams
+        params.setMargins(margin.toInt(), margin.toInt(), margin.toInt(), margin.toInt())
+        layoutParams = params
+    }
+
+    fun View.shake() {
+        val shake = ObjectAnimator.ofFloat(this, "translationX", 0f, 25f, -25f, 25f, -25f, 15f, -15f, 6f, -6f, 0f)
+        shake.duration = 500
+        shake.start()
+    }
+
+    fun View.getActivity(): Activity? {
+        var context = context
+        while (context is ContextWrapper) {
+            if (context is Activity) {
+                return context
+            }
+            context = context.baseContext
+        }
+        return null
+    }
+
+
+    fun View.setOnClickListenerWithInterval(interval: Long = 600L, action: () -> Unit) {
+        this.setOnClickListener {
+            this.isEnabled = false
+            action()
+            postDelayed({ this.isEnabled = true }, interval)
+        }
+    }
+
+
+    fun View.getScreenshot(): Bitmap {
+        val screenshot = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(screenshot)
+        draw(canvas)
+        return screenshot
+    }
+
+    fun View.toggleVisibility() {
+        if (this.visibility == View.VISIBLE) {
+            this.visibility = View.GONE
+        } else {
+            this.visibility = View.VISIBLE
+        }
+    }
+
+
+
+
+    fun TextView.enablePinchZoom() {
+        var mRatio = 1.0f
+        var mBaseDist = 0
+        var mBaseRatio = 0f
+        val STEP = 200
+
+        fun getDistance(event: MotionEvent): Int {
+            val dx = (event.getX(0) - event.getX(1)).toInt()
+            val dy = (event.getY(0) - event.getY(1)).toInt()
+            return sqrt((dx * dx + dy * dy).toDouble()).toInt()
+        }
+
+        setOnTouchListener { _, event ->
+            performClick()
+            if (event.pointerCount == 2) {
+                val action = event.action and MotionEvent.ACTION_MASK
+                when (action) {
+                    MotionEvent.ACTION_POINTER_DOWN -> {
+                        mBaseDist = getDistance(event)
+                        mBaseRatio = mRatio
+                    }
+                    MotionEvent.ACTION_MOVE -> {
+                        val delta = (getDistance(event) - mBaseDist) / STEP.toFloat()
+                        val multi = 2.0.pow(delta.toDouble()).toFloat()
+                        mRatio = min(1024.0f, max(0.1f, mBaseRatio * multi))
+                        textSize = mRatio + 13
+                    }
+                }
+            }
+            true
+        }
+
+    }
+
+
+    fun String.showInToast(context: Context, duration: Int = Toast.LENGTH_SHORT) {
+        Toast.makeText(context, this, duration).show()
+    }
+
+    fun Activity.launchActivity(destination: Class<*>, key: String = "", data: String = "") {
+        // Create an Intent to launch the target activity
+        val intent = Intent(this, destination::class.java)
+
+        // Put the data into the Intent using the specified key
+        if (key.isNotEmpty() && data != null) {
+            intent.putExtra(key, data)
+        }
+
+        // Start the activity with the created Intent
+        startActivity(intent)
+    }
+
+    fun Fragment.launchActivity(destination:Class<*>,key: String = "", data:String = "") {
+        // Create an Intent to launch the target activity
+        val intent = Intent(requireContext(), destination::class.java)
+
+        // Put the data into the Intent using the specified key
+        if (key.isNotEmpty()){
+            intent.putExtra(key, data)
+        }
+
+        // Start the activity with the created Intent
+        startActivity(intent)
+    }
+
+
+    @SuppressLint("ClickableViewAccessibility")
+    fun TextView.setDefaultOptions(options:List<String>) {
+        var currentIndex = 0
+        var startX = 0f
+        var startY = 0f
+        val distance = 10.0
+        setText(options[currentIndex])
+        setOnTouchListener { _, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    startX = event.x
+                    startY = event.y
+                    true
+                }
+                MotionEvent.ACTION_UP -> {
+                    val endX = event.x
+                    val endY = event.y
+                    val deltaX = endX - startX
+                    val deltaY = endY - startY
+                    if (deltaX < distance && deltaY < distance) {
+                        currentIndex = (currentIndex + 1) % options.size
+                        setText(options[currentIndex])
+                    }
+                    true
+                }
+                else -> false
+            }
+        }
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    fun TextInputEditText.setDefaultOptions(options: List<String>) {
+        var currentIndex = 0
+        var startX = 0f
+        var startY = 0f
+        val distance = 10.0
+        setText(options[currentIndex])
+        setOnTouchListener { _, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    startX = event.x
+                    startY = event.y
+                    true
+                }
+                MotionEvent.ACTION_UP -> {
+                    val endX = event.x
+                    val endY = event.y
+                    val deltaX = endX - startX
+                    val deltaY = endY - startY
+                    if (deltaX < distance && deltaY < distance) {
+                        currentIndex = (currentIndex + 1) % options.size
+                        setText(options[currentIndex])
+                    }
+                    true
+                }
+                else -> false
+            }
+        }
+    }
+
+    fun TextView.onTextChange(onTextChanged: (s: String) -> Unit) {
+        this.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+                // Not used, implementation optional
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                // Call the provided lambda function with the new text
+                onTextChanged(s.toString())
+            }
+
+            override fun afterTextChanged(s: Editable?) {
+                // Not used, implementation optional
+            }
+        })
+    }
+    fun EditText.showKeyboardForce() {
+        this.requestFocus()
+        val inputMethodManager = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        inputMethodManager.showSoftInput(this, InputMethodManager.SHOW_IMPLICIT)
+
+        if (!inputMethodManager.isActive(this)) {
+            inputMethodManager.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0)
+        }
+
+        this.post{
+            val initialText = this.text.toString()
+            if (initialText.isNotEmpty()){
+                val length = initialText.length
+                this.setSelection(length)
+            }
+        }
+    }
+    fun Long.toDate(pattern: String = "dd-MM-yyyy"): String {
+        val dateFormat = SimpleDateFormat(pattern, Locale.getDefault())
+        return dateFormat.format(Date(this))
+    }
+    fun Long.toTime(pattern: String = "hh:mm a"): String {
+        val dateFormat = SimpleDateFormat(pattern, Locale.getDefault())
+        return dateFormat.format(Date(this))
+    }
+    fun Long.toDateTime(pattern: String = "dd-MM-yyyy hh:mm a"): String {
+        val dateFormat = SimpleDateFormat(pattern, Locale.getDefault())
+        return dateFormat.format(Date(this))
+    }
+
+
+    fun View.makeVisible() {
+        this.visibility = View.VISIBLE
+    }
+
+    fun View.makeInVisible() {
+        this.visibility = View.INVISIBLE
+    }
+    fun View.makeGone() {
+        this.visibility = View.GONE
+    }
+    fun View.makeEnabled() {
+        this.isEnabled = true
+    }
+    fun View.makeDisabled() {
+        this.isEnabled = false
+    }
+
+    fun View.makeSelected() {
+        this.isSelected = true
+    }
+    fun View.makeUnselected() {
+        this.isSelected = false
+        }
+
+    fun String.calculateExpression(exp:String):Double{
+        return Expression(exp).calculate()
+    }
+
+
+    fun Activity.statusBarColor(color:Int= R.color.blue){
+        this.window.statusBarColor= ContextCompat.getColor(this,color)
+    }
+
+    fun Activity.systemBottomNavigationColor(context: Context, color: Int=R.color.white) {
+        this.window.navigationBarColor = ContextCompat.getColor(context, color)
+    }
+
+
+    fun Boolean.toggle(): Boolean {
+        return !this
+    }
+
+    enum class TextStyle(
+        val style: Int
+    ) {
+        BOLD(Typeface.BOLD),
+        NORMAL(Typeface.NORMAL),
+        ITALIC(Typeface.ITALIC),
+        BOLD_ITALIC(Typeface.BOLD_ITALIC)
+    }
+
+    fun TextView.spannableTextFormat(
+        wordToFormat: String,
+        colorResId: Int = android.R.color.black,
+        size: Float = 1f,
+        style: TextStyle = TextStyle.NORMAL
+    ) {
+        val fullText = text.toString()
+        val spannable = SpannableStringBuilder(fullText)
+        val pattern = "\\b${Regex.escape(wordToFormat)}\\b".toRegex()
+        val color = ContextCompat.getColor(context, colorResId)
+        pattern.findAll(fullText).forEach { result ->
+            val startIndex = result.range.first
+            val endIndex = result.range.last + 1
+
+            spannable.setSpan(
+                ForegroundColorSpan(color),
+                startIndex,
+                endIndex,
+                SpannableStringBuilder.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+            spannable.setSpan(
+                RelativeSizeSpan(size),
+                startIndex,
+                endIndex,
+                SpannableStringBuilder.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+            spannable.setSpan(
+                StyleSpan(style.style),
+                startIndex,
+                endIndex,
+                SpannableStringBuilder.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+
+        }
+
+        text = spannable
+    }
+    // Extension function to convert dp to pixels
+    fun String.convertDpToPx(context: Context): Float {
+        val density = context.resources.displayMetrics.density
+        return this.toFloat() * density
+    }
+
+    fun View.applyRippleEffect(color: Int = android.R.color.holo_red_dark) {
+        val rippleColor =
+            ColorStateList.valueOf(ContextCompat.getColor(context, color))
+        val rippleDrawable = RippleDrawable(rippleColor, null, null)
+        foreground = rippleDrawable
+    }
+
+    fun Double.rounded(): String {
+        return if (this == this.roundToInt().toDouble()) {
+            this.roundToInt().toString()
+        } else {
+            String.format("%.1f", this)
+        }
+    }
+
+
+
+    fun EditText.setupQuantityControl(
+        incrementView: View,
+        decrementView: View,
+        initialValue: Int = 0
+    ) {
+        this.setText(initialValue.toString())
+        incrementView.setOnClickListener {
+            this.clearFocus()
+            val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.hideSoftInputFromWindow(windowToken, 0)
+            var value = this.text.toString().toIntOrNull() ?: 0
+            value++
+            this.setText(value.toString())
+        }
+
+        decrementView.setOnClickListener {
+            val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.hideSoftInputFromWindow(windowToken, 0)
+            this.clearFocus()
+            var value = this.text.toString().toIntOrNull() ?: 0
+            if (value > 1) {
+                value--
+                this.setText(value.toString())
+                this.attachDatePickerWithCallback {
+
+                }
+            }
+        }
+    }
+
+
+
+
+
+    fun View.attachDatePickerWithCallback(pattern:String = "dd-MM-yyyy",callback: (Date) -> Unit) {
+
+        fun openDatePickerDialog() {
+            val context = this.context
+            val calendar = Calendar.getInstance()
+            val year = calendar.get(Calendar.YEAR)
+            val month = calendar.get(Calendar.MONTH)
+            val day = calendar.get(Calendar.DAY_OF_MONTH)
+            val datePickerDialog = DatePickerDialog(
+                context,
+                android.R.style.Theme_Holo_Light_Dialog_NoActionBar,
+                { _: DatePicker, selectedYear: Int, selectedMonth: Int, selectedDay: Int ->
+                    val selectedDate = Calendar.getInstance()
+                    selectedDate.set(selectedYear, selectedMonth, selectedDay)
+
+                    val sdf = SimpleDateFormat(pattern, Locale.getDefault())
+                    val formattedDate = sdf.format(selectedDate.time)
+
+                    (this as TextView).text = formattedDate
+                    callback(selectedDate.time)
+                }, year, month, day
+            )
+
+            datePickerDialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+            datePickerDialog.setTitle("Select Date")
+
+            datePickerDialog.show()
+        }
+
+        if (this is EditText) {
+            this.inputType = InputType.TYPE_NULL
+            this.isCursorVisible = false
+            this.onFocusChangeListener = View.OnFocusChangeListener { _, hasFocus ->
+                if (hasFocus) {
+                    openDatePickerDialog()
+                }
+            }
+            this.setOnClickListener {
+                openDatePickerDialog()
+            }
+        } else {
+            this.setOnClickListener {
+                openDatePickerDialog()
+            }
+        }
+
+
+    }
+
+
+    fun View.attachTimePicker() {
+        fun openTimePickerDialog() {
+            val context = this.context
+            val calendar = Calendar.getInstance()
+            val hour = calendar.get(Calendar.HOUR_OF_DAY)
+            val minute = calendar.get(Calendar.MINUTE)
+            val timePickerDialog = TimePickerDialog(
+                context,
+                android.R.style.Theme_Holo_Light_Dialog_NoActionBar,
+                { _: TimePicker, selectedHour: Int, selectedMinute: Int ->
+                    val selectedTime = Calendar.getInstance()
+                    selectedTime.set(Calendar.HOUR_OF_DAY, selectedHour)
+                    selectedTime.set(Calendar.MINUTE, selectedMinute)
+
+                    val sdf = SimpleDateFormat("hh:mm a", Locale.getDefault())
+                    val formattedTime = sdf.format(selectedTime.time)
+                    (this as TextView).text = formattedTime
+                }, hour, minute, false // Set is24HourView to false
+            )
+
+            timePickerDialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+            timePickerDialog.setTitle("Select Time")
+            timePickerDialog.show()
+        }
+
+        if (this is EditText) {
+            this.inputType = InputType.TYPE_NULL
+            this.isCursorVisible = false
+            this.setOnClickListener {
+                openTimePickerDialog()
+            }
+            this.onFocusChangeListener = View.OnFocusChangeListener { _, hasFocus ->
+                if (hasFocus) {
+                    openTimePickerDialog()
+                }
+            }
+        } else {
+            this.setOnClickListener {
+                openTimePickerDialog()
+            }
+        }
+
+
+    }
+
+
+
+    fun EditText.setListItems(items: List<String>) {
+        fun openPopupMenu() {
+            val popup = PopupMenu(this.context, this)
+            items.forEach { item ->
+                popup.menu.add(item)
+            }
+            popup.setOnMenuItemClickListener { menuItem ->
+                setText(menuItem.title)
+                true
+            }
+            popup.show()
+        }
+
+
+        val dropdownIcon: Drawable? =
+            AppCompatResources.getDrawable(context, android.R.drawable.arrow_down_float)
+        setCompoundDrawablesRelativeWithIntrinsicBounds(null, null, dropdownIcon, null)
+
+
+        inputType = InputType.TYPE_NULL
+        isCursorVisible = false
+
+
+        setOnClickListener {
+            openPopupMenu()
+        }
+        onFocusChangeListener = View.OnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) {
+                openPopupMenu()
+            }
+        }
+    }
+
+
+    inline fun <reified T : Any> T.deepCopy(): T {
+        val jsonString = Gson().toJson(this)
+        return Gson().fromJson(jsonString, T::class.java)
+    }
+
+
+    fun Any.logT(append:String = "" , tag:String = "TAG"){
+        Log.i(tag, "$append:$this")
+    }
+
+
+    inline fun <reified T : ViewBinding> Activity.viewBinding(
+        crossinline bindingInflater: (LayoutInflater) -> T
+    ): Lazy<T> {
+        return lazy(LazyThreadSafetyMode.NONE) {
+            bindingInflater.invoke(layoutInflater).also {
+                setContentView(it.root)
+            }
+        }
+    }
+
+
 
 
     fun EditText.isEmpty(): Boolean {
+
         return text.toString().isEmpty()
     }
     fun String.openUrlInBrowser(context: Context) {
@@ -426,21 +1207,21 @@ object MyExtensions {
     }
 
 
-    fun View.animateFromLeft() {
+    fun View.animateFromLeft( fromX: Float = 0.0f, toX: Float = 1.0f , duration: Long = 300) {
         val slideLeftAnimation = TranslateAnimation(
-            Animation.RELATIVE_TO_PARENT, 1.0f,
-            Animation.RELATIVE_TO_PARENT, 0.0f,
+            Animation.RELATIVE_TO_PARENT, fromX,
+            Animation.RELATIVE_TO_PARENT, toX,
             Animation.RELATIVE_TO_PARENT, 0.0f,
             Animation.RELATIVE_TO_PARENT, 0.0f
         )
-        slideLeftAnimation.duration = 300
+        slideLeftAnimation.duration = duration
         this.startAnimation(slideLeftAnimation)
     }
 
-    fun View.animateFromRight() {
+    fun View.animateFromRight(fromX: Float = 1.0f, toX: Float = 0.0f) {
         val slideRightAnimation = TranslateAnimation(
-            Animation.RELATIVE_TO_PARENT, -1.0f,
-            Animation.RELATIVE_TO_PARENT, 0.0f,
+            Animation.RELATIVE_TO_PARENT, fromX,
+            Animation.RELATIVE_TO_PARENT, toX,
             Animation.RELATIVE_TO_PARENT, 0.0f,
             Animation.RELATIVE_TO_PARENT, 0.0f
         )
@@ -448,85 +1229,162 @@ object MyExtensions {
         this.startAnimation(slideRightAnimation)
     }
 
-    fun View.fadeInAnimation(duration: Long = 300) {
-        val fadeInAnimation = AlphaAnimation(0f, 1f)
+    fun ImageView.loadThumbnail(videoUrl: String , frame:Long = 2000) {
+        Glide.with(context).setDefaultRequestOptions(RequestOptions().frame(frame)).load(videoUrl).into(this)
+    }
+
+    // Extension function to fade in a view
+    fun View.fadeInAnimation(fromAlpha: Float = 0f, toAlpha: Float = 1f, duration: Long = 300) {
+        val fadeInAnimation = AlphaAnimation(fromAlpha, toAlpha)
         fadeInAnimation.duration = duration
         this.startAnimation(fadeInAnimation)
     }
 
-    fun View.fadeOutAnimation(duration: Long = 300) {
-        val fadeOutAnimation = AlphaAnimation(1f, 0f)
+    // Extension function to fade out a view
+    fun View.fadeOutAnimation(fromAlpha: Float = 1f, toAlpha: Float = 0f, duration: Long = 300) {
+        val fadeOutAnimation = AlphaAnimation(fromAlpha, toAlpha)
         fadeOutAnimation.duration = duration
         this.startAnimation(fadeOutAnimation)
     }
 
-    fun View.animateRotateClockwise(duration: Long = 300) {
-        val rotateAnimation = RotateAnimation(0f, 360f, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f)
+    // Extension function to rotate a view clockwise
+    fun View.animateRotateClockwise(fromDegrees: Float = 0f, toDegrees: Float = 360f, duration: Long = 300, pivotX: Float = 0.5f, pivotY: Float = 0.5f) {
+        val rotateAnimation = RotateAnimation(fromDegrees, toDegrees, Animation.RELATIVE_TO_SELF, pivotX, Animation.RELATIVE_TO_SELF, pivotY)
         rotateAnimation.duration = duration
         this.startAnimation(rotateAnimation)
     }
 
-    fun View.animateRotateAntiClockwise(duration: Long = 300) {
-        val rotateAnimation = RotateAnimation(0f, -360f, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f)
+    // Extension function to rotate a view anticlockwise
+    fun View.animateRotateAntiClockwise(fromDegrees: Float = 0f, toDegrees: Float = -360f, duration: Long = 300, pivotX: Float = 0.5f, pivotY: Float = 0.5f) {
+        val rotateAnimation = RotateAnimation(fromDegrees, toDegrees, Animation.RELATIVE_TO_SELF, pivotX, Animation.RELATIVE_TO_SELF, pivotY)
         rotateAnimation.duration = duration
         this.startAnimation(rotateAnimation)
     }
 
-    fun View.animateScaleIn(duration: Long = 300) {
-        val scaleAnimation = ScaleAnimation(0f, 1f, 0f, 1f, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f)
+    // Extension function to scale in a view
+    fun View.animateScaleIn(fromX: Float = 0f, toX: Float = 1f, fromY: Float = 0f, toY: Float = 1f, duration: Long = 300, pivotX: Float = 0.5f, pivotY: Float = 0.5f) {
+        val scaleAnimation = ScaleAnimation(fromX, toX, fromY, toY, Animation.RELATIVE_TO_SELF, pivotX, Animation.RELATIVE_TO_SELF, pivotY)
         scaleAnimation.duration = duration
         this.startAnimation(scaleAnimation)
     }
 
-    fun View.animateScaleOut(duration: Long = 300) {
-        val scaleAnimation = ScaleAnimation(1f, 0f, 1f, 0f, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f)
+    // Extension function to scale out a view
+    fun View.animateScaleOut(fromX: Float = 1f, toX: Float = 0f, fromY: Float = 1f, toY: Float = 0f, duration: Long = 300, pivotX: Float = 0.5f, pivotY: Float = 0.5f) {
+        val scaleAnimation = ScaleAnimation(fromX, toX, fromY, toY, Animation.RELATIVE_TO_SELF, pivotX, Animation.RELATIVE_TO_SELF, pivotY)
         scaleAnimation.duration = duration
         this.startAnimation(scaleAnimation)
     }
 
-    fun View.animateBounce(duration: Long = 300) {
-        val bounceAnimation = ScaleAnimation(0.9f, 1.1f, 0.9f, 1.1f, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f)
+    // Extension function to bounce a view
+    fun View.animateBounce(fromX: Float = 0.9f, toX: Float = 1.1f, fromY: Float = 0.9f, toY: Float = 1.1f, duration: Long = 300, pivotX: Float = 0.5f, pivotY: Float = 0.5f, repeatCount: Int = 1, repeatMode: Int = Animation.REVERSE) {
+        val bounceAnimation = ScaleAnimation(fromX, toX, fromY, toY, Animation.RELATIVE_TO_SELF, pivotX, Animation.RELATIVE_TO_SELF, pivotY)
         bounceAnimation.duration = duration
-        bounceAnimation.repeatCount = 1
-        bounceAnimation.repeatMode = Animation.REVERSE
+        bounceAnimation.repeatCount = repeatCount
+        bounceAnimation.repeatMode = repeatMode
         this.startAnimation(bounceAnimation)
     }
 
-    fun View.animateShake(duration: Long = 300) {
-        val shakeAnimation = TranslateAnimation(0f, 10f, 0f, 0f)
+    // Extension function to shake a view
+    fun View.animateShake(offset: Float = 10f, duration: Long = 300) {
+        val shakeAnimation = TranslateAnimation(0f, offset, 0f, 0f)
         shakeAnimation.duration = duration / 6
         shakeAnimation.repeatCount = 5
         shakeAnimation.repeatMode = Animation.REVERSE
         this.startAnimation(shakeAnimation)
     }
 
-    fun View.animateFlip(duration: Long = 300) {
-        val flipAnimation = RotateAnimation(0f, 360f, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f)
+    // Extension function to flip a view
+    fun View.animateFlip(fromDegrees: Float = 0f, toDegrees: Float = 360f, duration: Long = 300, pivotX: Float = 0.5f, pivotY: Float = 0.5f) {
+        val flipAnimation = RotateAnimation(fromDegrees, toDegrees, Animation.RELATIVE_TO_SELF, pivotX, Animation.RELATIVE_TO_SELF, pivotY)
         flipAnimation.duration = duration
         this.startAnimation(flipAnimation)
     }
 
-
-    fun View.animateZoomIn(duration: Long = 300) {
-        val zoomInAnimation = ScaleAnimation(0.5f, 1f, 0.5f, 1f, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f)
+    // Extension function to zoom in a view
+    fun View.animateZoomIn(fromX: Float = 0.5f, toX: Float = 1f, fromY: Float = 0.5f, toY: Float = 1f, duration: Long = 300, pivotX: Float = 0.5f, pivotY: Float = 0.5f) {
+        val zoomInAnimation = ScaleAnimation(fromX, toX, fromY, toY, Animation.RELATIVE_TO_SELF, pivotX, Animation.RELATIVE_TO_SELF, pivotY)
         zoomInAnimation.duration = duration
         this.startAnimation(zoomInAnimation)
     }
 
-    fun View.animateZoomOut(duration: Long = 300) {
-        val zoomOutAnimation = ScaleAnimation(1f, 0.5f, 1f, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f)
+    // Extension function to zoom out a view
+    fun View.animateZoomOut(fromX: Float = 1f, toX: Float = 0.5f, fromY: Float = 1f, toY: Float = 0.5f, duration: Long = 300, pivotX: Float = 0.5f, pivotY: Float = 0.5f) {
+        val zoomOutAnimation = ScaleAnimation(fromX, toX, fromY, toY, Animation.RELATIVE_TO_SELF, pivotX, Animation.RELATIVE_TO_SELF, pivotY)
         zoomOutAnimation.duration = duration
         this.startAnimation(zoomOutAnimation)
     }
 
+    // Extension function to slide in a view from left
+    fun View.slideInFromLeft(fromX: Float = -1f, toX: Float = 0f, fromY: Float = 0f, toY: Float = 0f, duration: Long = 300) {
+        val slideIn = TranslateAnimation(Animation.RELATIVE_TO_PARENT, fromX, Animation.RELATIVE_TO_PARENT, toX, Animation.RELATIVE_TO_PARENT, fromY, Animation.RELATIVE_TO_PARENT, toY)
+        slideIn.duration = duration
+        this.startAnimation(slideIn)
+        this.visibility = View.VISIBLE
+    }
 
-    fun Long.asDate(): String {
-        val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss a", Locale.getDefault())
-        val date = Date(this)
-        return sdf.format(date)
+    // Extension function to slide out a view to left
+    fun View.slideOutToLeft(fromX: Float = 0f, toX: Float = -1f, fromY: Float = 0f, toY: Float = 0f, duration: Long = 300) {
+        val slideOut = TranslateAnimation(Animation.RELATIVE_TO_PARENT, fromX, Animation.RELATIVE_TO_PARENT, toX, Animation.RELATIVE_TO_PARENT, fromY, Animation.RELATIVE_TO_PARENT, toY)
+        slideOut.duration = duration
+        this.startAnimation(slideOut)
+        this.visibility = View.GONE
+    }
+
+    // Extension function to slide in a view from right
+    fun View.slideInFromRight(fromX: Float = 1f, toX: Float = 0f, fromY: Float = 0f, toY: Float = 0f, duration: Long = 300) {
+        val slideIn = TranslateAnimation(Animation.RELATIVE_TO_PARENT, fromX, Animation.RELATIVE_TO_PARENT, toX, Animation.RELATIVE_TO_PARENT, fromY, Animation.RELATIVE_TO_PARENT, toY)
+        slideIn.duration = duration
+        this.startAnimation(slideIn)
+        this.visibility = View.VISIBLE
+    }
+
+    // Extension function to slide out a view to right
+    fun View.slideOutToRight(fromX: Float = 0f, toX: Float = 1f, fromY: Float = 0f, toY: Float = 0f, duration: Long = 300) {
+        val slideOut = TranslateAnimation(Animation.RELATIVE_TO_PARENT, fromX, Animation.RELATIVE_TO_PARENT, toX, Animation.RELATIVE_TO_PARENT, fromY, Animation.RELATIVE_TO_PARENT, toY)
+        slideOut.duration = duration
+        this.startAnimation(slideOut)
+        this.visibility = View.GONE
+    }
+
+    // Extension function to slide in a view from top
+    fun View.slideInFromTop(fromX: Float = 0f, toX: Float = 0f, fromY: Float = -1f, toY: Float = 0f, duration: Long = 300) {
+        val slideIn = TranslateAnimation(Animation.RELATIVE_TO_PARENT, fromX, Animation.RELATIVE_TO_PARENT, toX, Animation.RELATIVE_TO_PARENT, fromY, Animation.RELATIVE_TO_PARENT, toY)
+        slideIn.duration = duration
+        this.startAnimation(slideIn)
+        this.visibility = View.VISIBLE
+    }
+
+    // Extension function to slide out a view to top
+    fun View.slideOutToTop(fromX: Float = 0f, toX: Float = 0f, fromY: Float = 0f, toY: Float = -1f, duration: Long = 300) {
+        val slideOut = TranslateAnimation(Animation.RELATIVE_TO_PARENT, fromX, Animation.RELATIVE_TO_PARENT, toX, Animation.RELATIVE_TO_PARENT, fromY, Animation.RELATIVE_TO_PARENT, toY)
+        slideOut.duration = duration
+        this.startAnimation(slideOut)
+        this.visibility = View.GONE
+    }
+
+    // Extension function to slide in a view from bottom
+    fun View.slideInFromBottom(fromX: Float = 0f, toX: Float = 0f, fromY: Float = 1f, toY: Float = 0f, duration: Long = 300) {
+        val slideIn = TranslateAnimation(Animation.RELATIVE_TO_PARENT, fromX, Animation.RELATIVE_TO_PARENT, toX, Animation.RELATIVE_TO_PARENT, fromY, Animation.RELATIVE_TO_PARENT, toY)
+        slideIn.duration = duration
+        this.startAnimation(slideIn)
+        this.visibility = View.VISIBLE
+    }
+
+    // Extension function to slide out a view to bottom
+    fun View.slideOutToBottom(fromX: Float = 0f, toX: Float = 0f, fromY: Float = 0f, toY: Float = 1f, duration: Long = 300) {
+        val slideOut = TranslateAnimation(Animation.RELATIVE_TO_PARENT, fromX, Animation.RELATIVE_TO_PARENT, toX, Animation.RELATIVE_TO_PARENT, fromY, Animation.RELATIVE_TO_PARENT, toY)
+        slideOut.duration = duration
+        this.startAnimation(slideOut)
+        this.visibility = View.GONE
     }
 
 
+    // Extension function to format Long as date string
+    fun Long.asDate(pattern: String = "yyyy-MM-dd HH:mm:ss a"): String {
+        val sdf = SimpleDateFormat(pattern, Locale.getDefault())
+        val date = Date(this)
+        return sdf.format(date)
+    }
 
     fun EditText.showSoftKeyboard() {
         this.requestFocus()
@@ -748,23 +1606,25 @@ object MyExtensions {
 
 
 
-
-
-
-
     fun Any.shrink(): Map<String, Any> {
         val propertiesMap = mutableMapOf<String, Any>()
         this::class.memberProperties.forEach { prop ->
             val value = prop.getter.call(this)
-            when (prop.returnType.toString()) {
-                "kotlin.Boolean" -> if (value as Boolean) propertiesMap[prop.name] = value
-                "kotlin.collections.List<kotlin.Any>" -> if ((value as List<*>).isNotEmpty()) propertiesMap[prop.name] = value
-                "kotlin.Int" -> if (value as Int != 0) propertiesMap[prop.name] = value
-                "kotlin.Double" -> if (value as Double != 0.0) propertiesMap[prop.name] = value
-                "kotlin.Float" -> if (value as Float != 0.0f) propertiesMap[prop.name] = value
-                "kotlin.Long" -> if (value as Long != 0L) propertiesMap[prop.name] = value
-                "kotlin.collections.ArrayList<kotlin.Any>" -> if ((value as ArrayList<*>).isNotEmpty()) propertiesMap[prop.name] = value
-                "kotlin.String" -> if (value as String != "") propertiesMap[prop.name] = value
+            when (value) {
+                is Boolean -> if (value) propertiesMap[prop.name] = value
+                is Int -> if (value != 0) propertiesMap[prop.name] = value
+                is Double -> if (value != 0.0) propertiesMap[prop.name] = value
+                is Float -> if (value != 0.0f) propertiesMap[prop.name] = value
+                is Long -> if (value != 0L) propertiesMap[prop.name] = value
+                is String -> if (value.isNotEmpty()) propertiesMap[prop.name] = value
+                is List<*> -> if (value.isNotEmpty()) propertiesMap[prop.name] = value
+                is Short -> if (value != 0.toShort()) propertiesMap[prop.name] = value
+                is Byte -> if (value != 0.toByte()) propertiesMap[prop.name] = value
+                is Char -> if (value != '\u0000') propertiesMap[prop.name] = value // '\u0000' is the null char
+                is Set<*> -> if (value.isNotEmpty()) propertiesMap[prop.name] = value
+                is Map<*, *> -> if (value.isNotEmpty()) propertiesMap[prop.name] = value
+                is Date -> propertiesMap[prop.name] = value
+                is Any -> if (value::class.isData) propertiesMap[prop.name] = value.shrink()
             }
         }
         return propertiesMap
@@ -993,10 +1853,9 @@ fun TextView.setTextOrInvisible(text: String) {
             drawable.cornerRadius = radius
         }
     }
+
     fun Button.setElevationCompat(elevation: Float) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            this.elevation = elevation
-        }
+        this.elevation = elevation
     }
 
 
@@ -1027,6 +1886,112 @@ fun TextView.setTextOrInvisible(text: String) {
             .apply(RequestOptions.circleCropTransform())
             .into(this)
     }
+
+    // Extension function to load a drawable resource into an ImageView using Glide
+    fun ImageView.loadDrawable(@DrawableRes resId: Int) {
+        Glide.with(this.context)
+            .load(resId)
+            .apply(RequestOptions().diskCacheStrategy(DiskCacheStrategy.ALL))
+            .into(this)
+    }
+
+    // Extension function to check if the device is connected to the internet
+    fun Context.isNetworkAvailable(): Boolean {
+        val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val network = connectivityManager.activeNetwork ?: return false
+            val activeNetwork = connectivityManager.getNetworkCapabilities(network) ?: return false
+            return activeNetwork.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+        } else {
+            val networkInfo = connectivityManager.activeNetworkInfo ?: return false
+            return networkInfo.isConnected
+        }
+    }
+
+
+
+//    fun Context.isNetworkAvailable(): Boolean {
+//        val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//            val network = connectivityManager.activeNetwork ?: return false
+//            val activeNetwork = connectivityManager.getNetworkCapabilities(network) ?: return false
+//            return when {
+//                activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
+//                activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
+//                activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> true
+//                else -> false
+//            }
+//        } else {
+//            val networkInfo = connectivityManager.activeNetworkInfo ?: return false
+//            return networkInfo.isConnected
+//        }
+//    }
+
+    
+    fun ImageView.pickImage(activity: Activity){
+        ImagePicker.with(activity)
+            .crop()
+            .galleryOnly()
+            .compress(1024)
+            .maxResultSize(1080, 1080)
+            .start()
+    }
+
+    fun ImageView.pickImage(fragment: Fragment){
+        ImagePicker.with(fragment)
+            .crop()
+            .galleryOnly()
+            .compress(1024)
+            .maxResultSize(1080, 1080)
+            .start()
+    }
+
+
+    // Extension function to convert a Drawable to a Bitmap
+    fun Drawable.toBitmap(): Bitmap {
+        if (this is BitmapDrawable) {
+            return this.bitmap
+        }
+        val bitmap = Bitmap.createBitmap(intrinsicWidth, intrinsicHeight, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        setBounds(0, 0, canvas.width, canvas.height)
+        draw(canvas)
+        return bitmap
+    }
+
+
+    fun ImageView.loadUrl(url: String, @DrawableRes placeholder: Int, @DrawableRes error: Int) {
+        Glide.with(this.context)
+            .load(url)
+            .apply(RequestOptions().diskCacheStrategy(DiskCacheStrategy.ALL))
+            .placeholder(placeholder)
+            .error(error)
+            .into(this)
+    }
+
+
+
+
+    // Extension function to start an activity with a delay
+    fun Context.startActivityWithDelay(delayMillis: Long, targetActivity: Class<out Activity>) {
+        val intent = Intent(this, targetActivity)
+        if (this is Activity) {
+            this.window.decorView.postDelayed({
+                startActivity(intent)
+            }, delayMillis)
+        } else {
+            this.applicationContext.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        }
+    }
+
+
+    fun ImageView.loadUrl(url: String) {
+        Glide.with(this.context)
+            .load(url)
+            .apply(RequestOptions().diskCacheStrategy(DiskCacheStrategy.ALL))
+            .into(this)
+    }
+
 
     fun ImageView.setRoundedCorner(cornerRadius: Float) {
         Glide.with(this.context)
@@ -1586,6 +2551,7 @@ fun ScrollView.scrollToView(view: View) {
     }
 
 
+
     fun CoroutineScope.repeatWithDelay(
         intervalMillis: Long,
         action: suspend () -> Unit
@@ -1595,6 +2561,15 @@ fun ScrollView.scrollToView(view: View) {
                 action()
                 delay(intervalMillis)
             }
+        }
+    }
+
+
+    private fun <T : AppCompatActivity> startActivityWithDelay(activity:Activity,delayMillis: Long, destination: Class<T>) {
+        CoroutineScope(Dispatchers.Main).launch {
+            delay(delayMillis)
+           activity.startActivity(Intent(activity, destination))
+
         }
     }
 
@@ -1668,7 +2643,7 @@ fun ScrollView.scrollToView(view: View) {
 
     @SuppressLint("ObsoleteSdkInt")
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-    fun Activity.onFlash(){
+    fun Activity.turnOnFlash(){
         val cameraManager : CameraManager =this.getSystemService(AppCompatActivity.CAMERA_SERVICE) as CameraManager
         try{
             var cameraId : String? = null
@@ -1682,7 +2657,7 @@ fun ScrollView.scrollToView(view: View) {
     }
 
     @SuppressLint("ObsoleteSdkInt")
-    fun Activity.offFlash(){
+    fun Activity.turnOFFFlash(){
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
             val cameraManage = this.getSystemService(AppCompatActivity.CAMERA_SERVICE) as CameraManager
             try {

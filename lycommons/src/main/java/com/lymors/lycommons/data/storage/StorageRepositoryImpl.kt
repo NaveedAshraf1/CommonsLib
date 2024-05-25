@@ -17,9 +17,16 @@ import javax.inject.Inject
 class StorageRepositoryImpl @Inject constructor(private val storageReference: StorageReference,private val storage:FirebaseStorage):
     StorageRepository {
 
-    override suspend fun uploadImageToFirebaseStorage(uri: String): MyResult<String> {
+
+
+    override suspend fun uploadImageToFirebaseStorageWithUri(
+        uri: Uri,
+        name: String
+    ): MyResult<String> {
         return try {
-            val uploadTask = storageReference.putFile(Uri.parse(uri))
+            val filename = (uri.lastPathSegment) ?: System.currentTimeMillis()
+            val imageRef = storageReference.child("images/${filename}")
+            val uploadTask = imageRef.putFile(uri)
             val result: UploadTask.TaskSnapshot = uploadTask.await()
             val downloadUrl = result.storage.downloadUrl.await()
             MyResult.Success(downloadUrl.toString())
@@ -28,10 +35,18 @@ class StorageRepositoryImpl @Inject constructor(private val storageReference: St
         }
     }
 
-    override suspend fun uploadImageToFirebaseStorage(bitmap: Bitmap): MyResult<String> {
+    override suspend fun uploadDocumentToFirebaseStorage(uri: Uri, name: String): MyResult<String> {
+       return uploadImageToFirebaseStorageWithUri(uri,name)
+    }
+
+
+
+    override suspend fun uploadImageToFirebaseStorageWithBitmap(bitmap: Bitmap , name: String): MyResult<String> {
         return try {
+            var n = name.ifEmpty {"images/${System.currentTimeMillis()}" }
+            val imageRef = storageReference.child("images/${n}")
             val byteArray = bitmapToByteArray(bitmap)
-            val uploadTask = storageReference.putBytes(byteArray)
+            val uploadTask = imageRef.putBytes(byteArray)
             val result= uploadTask.await()
             val downloadUrl = result.storage.downloadUrl.await()
             MyResult.Success(downloadUrl.toString())
@@ -54,7 +69,7 @@ class StorageRepositoryImpl @Inject constructor(private val storageReference: St
 
 
 
-    fun bitmapToByteArray(bitmap: Bitmap): ByteArray {
+    private fun bitmapToByteArray(bitmap: Bitmap): ByteArray {
         val byteArrayOutputStream = ByteArrayOutputStream()
         bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
         return byteArrayOutputStream.toByteArray()

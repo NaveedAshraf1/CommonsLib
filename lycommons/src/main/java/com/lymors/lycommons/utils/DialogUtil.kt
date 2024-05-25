@@ -14,10 +14,12 @@ import android.graphics.drawable.ColorDrawable
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.LayoutInflater
+import android.view.ViewGroup
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.annotation.DrawableRes
 import androidx.core.content.ContextCompat
 import androidx.core.view.children
 import androidx.viewbinding.ViewBinding
@@ -49,18 +51,28 @@ class DialogUtil( val context: Activity):Dialog(context) {
         alertDialogBuilder.setPositiveButton("OK") { dialog, _ ->
             dialog.dismiss()
         }
+
         alertDialogBuilder.setNegativeButton("Cancel") { dialog, _ ->
             dialog.dismiss()
         }
         val alertDialog = alertDialogBuilder.create()
         alertDialog.show()
+        dialog = alertDialog
     }
 
     inline fun <reified T : ViewBinding> showCustomLayoutDialog(
-        crossinline bindingInflater: (LayoutInflater) -> T
+        crossinline bindingInflater: (LayoutInflater) -> T, context: Activity ,@DrawableRes drawable:Int = R.drawable.rounderd_corner
     ): T {
-        val binding = bindingInflater.invoke(layoutInflater)
-        dialog = AlertDialog.Builder(context).setView(binding.root).show()
+        val binding = bindingInflater.invoke(context.layoutInflater)
+        val dialog = MaterialAlertDialogBuilder(context)
+            .setView(binding.root)
+            .show()
+
+        // Set the dialog background to white
+        dialog.window?.setBackgroundDrawable(ContextCompat.getDrawable(context , drawable))
+
+        val width = (context.resources.displayMetrics.widthPixels * 0.9).toInt()
+        dialog.window?.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
         return binding
     }
 
@@ -91,7 +103,6 @@ class DialogUtil( val context: Activity):Dialog(context) {
         val alertDialog = alertDialogBuilder.create()
         alertDialog.show()
     }
-
 
 
     fun showEditTextDialog(
@@ -127,7 +138,8 @@ class DialogUtil( val context: Activity):Dialog(context) {
                 textInputLayout.defaultHintTextColor = hintColorStateList
                 boxStrokeWidth = 2
                 boxStrokeColor = ContextCompat.getColor(context, R.color.cement)
-                boxBackgroundColor = ContextCompat.getColor(context, R.color.very_very_light_cement)
+                boxBackgroundMode = TextInputLayout.BOX_BACKGROUND_OUTLINE
+                boxBackgroundColor = ContextCompat.getColor(context, R.color.white)
             }
 
             val textInputEditText = TextInputEditText(context)
@@ -151,9 +163,13 @@ class DialogUtil( val context: Activity):Dialog(context) {
         verticalLinearLayout.addView(editTextLinearLayout)
 
 
-        var buttonsLinear = createLinearLayout(LinearLayout.HORIZONTAL,Gravity.END , right = 20)
-        var b1 = createButton("Save",Gravity.CENTER,LayoutParams.WRAP_CONTENT,LayoutParams.WRAP_CONTENT)
-        var b2 = createButton("Cancel",Gravity.CENTER,LayoutParams.WRAP_CONTENT,LayoutParams.WRAP_CONTENT)
+        val buttonsLinear = createLinearLayout(LinearLayout.HORIZONTAL,Gravity.END , right = 20)
+        val b1 = createButton(capitalizeFirstLetter("save"),Gravity.CENTER,LayoutParams.WRAP_CONTENT,LayoutParams.WRAP_CONTENT).apply {
+            isAllCaps = false
+        }
+        val b2 = createButton(capitalizeFirstLetter("cancel"),Gravity.CENTER,LayoutParams.WRAP_CONTENT,LayoutParams.WRAP_CONTENT).apply {
+            isAllCaps = false
+        }
 
         buttonsLinear.addView(b2)
         buttonsLinear.addView(b1)
@@ -171,12 +187,12 @@ class DialogUtil( val context: Activity):Dialog(context) {
         }
         b2.setOnClickListener {
             obj.onClickNo(alertDialog)
-
-
         }
-
     }
 
+    fun capitalizeFirstLetter(text: String): String {
+        return text.lowercase().replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+    }
 
 
 
@@ -204,6 +220,8 @@ class DialogUtil( val context: Activity):Dialog(context) {
         button.layoutParams = layoutParams
         button.gravity = gravity
         button.text = text
+        button.text = text.lowercase().replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+        button.isAllCaps = false
         button.setTextColor(ContextCompat.getColor(context, textColorRes))  // Set text color
         return button
     }

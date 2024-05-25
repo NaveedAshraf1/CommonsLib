@@ -2,7 +2,6 @@ package com.lymors.lycommons.managers
 
 import android.content.Context
 import android.net.ConnectivityManager
-import com.lymors.lycommons.models.ParentModel
 import com.lymors.lycommons.utils.MyResult
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -29,79 +28,8 @@ class NetworkManager(val context: Context , baseUrl:String) {
             .build()
     }
 
-    private val apiService: ApiService by lazy {
-        retrofit.create(ApiService::class.java)
-    }
 
 
-
-    suspend fun fetchUsers(): MyResult<List<ParentModel>> {
-        return try {
-            if (!isNetworkAvailable()) {
-                MyResult.Error("No network available")
-            } else {
-                val response = apiService.getUsers()
-                if (response.isSuccessful) {
-                    MyResult.Success(response.body() ?: emptyList())
-                } else {
-                    MyResult.Error("API error: ${response.code()}")
-                }
-            }
-        } catch (e: Exception) {
-            MyResult.Error("Network or unexpected error: ${e.message}")
-        }
-    }
-
-    suspend fun uploadUser(userModel: ParentModel): MyResult<String> {
-        return try {
-            if (!isNetworkAvailable()) {
-                MyResult.Error("No network available")
-            } else {
-                val response = apiService.uploadUser(userModel)
-                if (response.isSuccessful) {
-                    MyResult.Success("User uploaded successfully")
-                } else {
-                    MyResult.Error("API error: ${response.code()}")
-                }
-            }
-        } catch (e: Exception) {
-            MyResult.Error("Network or unexpected error: ${e.message}")
-        }
-    }
-
-    suspend fun updateUser(userModel: ParentModel): MyResult<String> {
-        return try {
-            if (!isNetworkAvailable()) {
-                MyResult.Error("No network available")
-            } else {
-                val response = apiService.updateUser(userModel.key, userModel)
-                if (response.isSuccessful) {
-                    MyResult.Success("User updated successfully")
-                } else {
-                    MyResult.Error("API error: ${response.code()}")
-                }
-            }
-        } catch (e: Exception) {
-            MyResult.Error("Network or unexpected error: ${e.message}")
-        }
-    }
-
-    suspend fun deleteUser(userId: String): MyResult<String> {
-        return try {
-            if (!isNetworkAvailable()) {
-                MyResult.Error("No network available")
-            } else {
-                val response = apiService.deleteUser(userId)
-                if (response.isSuccessful) {
-                    MyResult.Success("User deleted successfully")
-                } else {
-                    MyResult.Error("API error: ${response.code()}")
-                }
-            }
-        } catch (e: Exception) {
-            MyResult.Error("Network or unexpected error: ${e.message}")
-        }
-    }
 
 
 
@@ -116,19 +44,3 @@ class NetworkManager(val context: Context , baseUrl:String) {
 
 }
 
-
-
-interface ApiService {
-
-    @GET("users")
-    suspend fun getUsers(): retrofit2.Response<List<ParentModel>>
-
-    @POST("users")
-    suspend fun uploadUser(@Body userModel: ParentModel): retrofit2.Response<Void>
-
-    @PUT("users/{userId}")
-    suspend fun updateUser(@Path("userId") userId: String, @Body userModel: ParentModel): retrofit2.Response<Void>
-
-    @DELETE("users/{userId}")
-    suspend fun deleteUser(@Path("userId") userId: String):retrofit2. Response<Void>
-}

@@ -4,7 +4,6 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.widget.Toast
-import com.lymors.lycommons.utils.MyExtensions.onMain
 
 class ClipboardManager(private val context: Context) {
 

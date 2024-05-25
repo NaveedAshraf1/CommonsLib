@@ -14,15 +14,19 @@ import android.net.Uri
 import android.os.Build
 import android.provider.OpenableColumns
 import android.telephony.SmsManager
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewAnimationUtils
 import android.view.ViewGroup
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.inputmethod.InputMethodManager
+import android.widget.EditText
 import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.annotation.DimenRes
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -32,20 +36,99 @@ import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
+import com.google.android.material.textfield.TextInputEditText
 import com.google.android.play.integrity.internal.i
 import com.lymors.lycommons.R
+import com.lymors.lycommons.utils.MyExtensions.logT
+import com.lymors.lycommons.utils.MyExtensions.showToast
+import java.lang.reflect.Modifier
 
 
 object Utils {
 
-    fun sendMessage(number:String , message:String){
-        val byteArray = message.toByteArray(charset("UTF-16"))
-        val sms = String(byteArray, charset("UTF-16"))
-        val smsManager: SmsManager = SmsManager.getDefault()
-        val smsArray = smsManager.divideMessage(sms)
-        smsManager.sendMultipartTextMessage(
-            number, null, smsArray, null, null
-        )
+
+    fun checkEditTexts(context:Context , list:List<EditText>):Boolean{
+            list.forEach {
+                if (it.text.toString().isEmpty()){
+                 it.context.showToast("${it.id}  must not be empty")
+                    return false
+                }
+            }
+            return true
+        }
+
+
+
+    fun printClassInfo(clazz: Class<*>) {
+        println("Methods:")
+        clazz.declaredMethods.forEach { method ->
+            println(method.name)
+        }
+
+        println("\nProperties:")
+        clazz.declaredFields.forEach { field ->
+            println(field.name)
+        }
+    }
+
+
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun printMethodNames(clazz: Class<*>) {
+        val methods = clazz.declaredMethods
+        println("Methods in class ${clazz.simpleName}:")
+        for (method in methods) {
+            val modifiers = Modifier.toString(method.modifiers)
+            val returnType = method.returnType.simpleName
+            val parameters = method.parameters.joinToString(", ") { "${it.type.simpleName} ${it.name}" }
+            println("$modifiers $returnType ${method.name}($parameters)")
+        }
+    }
+
+
+    fun pickImage(requestCode: Int,context: Activity){
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
+        intent.addCategory(Intent.CATEGORY_OPENABLE)
+        intent.type = "image/*"
+        context.startActivityForResult(intent, requestCode)
+    }
+
+    @SuppressLint("IntentReset")
+    fun pickVideo(requestCode: Int, context: Activity) {
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
+        intent.addCategory(Intent.CATEGORY_OPENABLE)
+        intent.type = "video/*"
+        context.startActivityForResult(intent, requestCode)
+    }
+
+    fun sendMessageToWhatsApp(context: Context,phoneNumber:String,message: String){
+        val intent = Intent(Intent.ACTION_VIEW)
+        intent.data = Uri.parse("https://wa.me/$phoneNumber/?text=${Uri.encode(message)}")
+        context.startActivity(intent)
+    }
+
+    fun pickDocument(requestCode: Int, context: Activity) {
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
+        intent.addCategory(Intent.CATEGORY_OPENABLE)
+        intent.type = "application/*"
+        context.startActivityForResult(intent, requestCode)
+    }
+
+
+
+    fun sendMessage(number:String , message:String) {
+        if (number.isEmpty() || message.isEmpty()) {
+            val byteArray = message.toByteArray(charset("UTF-16"))
+            val sms = String(byteArray, charset("UTF-16"))
+            val smsManager: SmsManager = SmsManager.getDefault()
+            val smsArray = smsManager.divideMessage(sms)
+            smsManager.sendMultipartTextMessage(
+                number, null, smsArray, null, null
+            )
+        } else {
+            "number or message is empty".logT()
+
+        }
     }
 
 
@@ -55,12 +138,6 @@ object Utils {
         layoutParams = params
     }
 
-    fun View.setOnLongClickListener(onLongClick: () -> Unit) {
-        setOnLongClickListener {
-            onLongClick()
-            true
-        }
-    }
     fun View.setWidth(width: Int) {
         val params = layoutParams ?: return
         params.width = width
@@ -146,16 +223,6 @@ object Utils {
     }
 
 
-
-    inline fun <reified T : ViewBinding> Activity.viewBinding(
-        crossinline bindingInflater: (LayoutInflater) -> T
-    ): Lazy<T> {
-        return lazy(LazyThreadSafetyMode.NONE) {
-            bindingInflater.invoke(layoutInflater).also {
-                setContentView(it.root)
-            }
-        }
-    }
 
 
     fun processPhoneNumber(phoneNumber: String): String {
@@ -273,7 +340,7 @@ object Utils {
 
 
 
-    fun statusBarColor(context: Activity, color:Int= R.color.tool_bar_color){
+    fun statusBarColor(context: Activity, color:Int= R.color.blue){
         context.window.statusBarColor= ContextCompat.getColor(context,color)
     }
 
