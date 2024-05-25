@@ -139,7 +139,7 @@ class DialogUtil( val context: Activity):Dialog(context) {
                 boxStrokeWidth = 2
                 boxStrokeColor = ContextCompat.getColor(context, R.color.cement)
                 boxBackgroundMode = TextInputLayout.BOX_BACKGROUND_OUTLINE
-                boxBackgroundColor = ContextCompat.getColor(context, R.color.white)
+                boxBackgroundColor = ContextCompat.getColor(context, android.R.color.white)
             }
 
             val textInputEditText = TextInputEditText(context)

@@ -641,7 +641,7 @@ object MyExtensions {
         this.window.statusBarColor= ContextCompat.getColor(this,color)
     }
 
-    fun Activity.systemBottomNavigationColor(context: Context, color: Int=R.color.white) {
+    fun Activity.systemBottomNavigationColor(context: Context, color: Int=android.R.color.white) {
         this.window.navigationBarColor = ContextCompat.getColor(context, color)
     }
 

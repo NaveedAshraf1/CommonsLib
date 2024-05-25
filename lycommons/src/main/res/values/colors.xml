@@ -4,16 +4,15 @@
 
 
     <color name="black">#000000</color>
+    <color name="cement">#556080</color>
+    <color name="blue">#0F308F</color>
     <color name="white">#FFFFFF</color>
-    <color name="red">#FF0000</color>"
+    <color name="red">#FF0000</color>
     <color name="orange">#FFA500</color>
     <color name="yellow">#FFFF00</color>
     <color name="green">#00FF00</color>
-    <color name="blue">#0000FF</color>
     <color name="purple">#800080</color>
     <color name="gray">#808080</color>
-    <color name="pink">#FFC0CB"</color>
-    <color name="cement">#556080</color>
 
 
 
@@ -239,6 +238,12 @@
     <color name="brown_30">#e69900</color>
     <color name="brown_20">#ffad33</color>
     <color name="brown_10">#ffbf80</color> <!-- Light -->
+
+
+
+
+
+
 
 
 
