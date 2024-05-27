@@ -90,6 +90,7 @@ class DialogUtil( val context: Activity):Dialog(context) {
     }
 
 
+
     fun showInfoDialog( title: String, message: String, positiveButtonLabel:String = "Ok", negativeButtonLabel:String = "Cancel", cancelable: Boolean, obj: DialogClickListener) {
         val alertDialogBuilder = createAlertDialog(title, message, cancelable)
         alertDialogBuilder.setPositiveButton(positiveButtonLabel) { dialog, _ ->
