@@ -16,7 +16,7 @@ class MediaPlayerHelper () {
     companion object {
         @Volatile
         private var instance: MediaPlayerHelper? = null
-        fun getInstance(context: Context): MediaPlayerHelper {
+        fun getInstance(): MediaPlayerHelper {
             return instance ?: synchronized(this) {
                 instance ?: MediaPlayerHelper().also { instance = it }
             }

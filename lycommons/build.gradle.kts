@@ -65,8 +65,6 @@ dependencies {
     implementation( "androidx.datastore:datastore-preferences:1.0.0")
     implementation ("androidx.datastore:datastore-core:1.0.0")
 
-
-
     // firebase
     dependencies {
         implementation("com.google.firebase:firebase-database:20.3.1")
@@ -76,10 +74,7 @@ dependencies {
         implementation("com.google.firebase:firebase-analytics:21.6.1")
     }
 
-
-
-
-    //    // qr code generater
+    //    // qr code generator
     implementation ("com.google.zxing:core:3.4.0")
     implementation ("com.journeyapps:zxing-android-embedded:3.6.0")
 
@@ -94,8 +89,6 @@ dependencies {
 
     // gson
     implementation ("com.google.code.gson:gson:2.10.1")
-
-
 
     // di
     implementation("com.google.dagger:hilt-android:2.48")

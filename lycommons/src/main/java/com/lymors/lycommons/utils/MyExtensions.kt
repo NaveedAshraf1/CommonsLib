@@ -89,14 +89,13 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
-import androidx.annotation.LayoutRes
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
-import androidx.core.content.ContextCompat.startActivity
+import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.text.HtmlCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
@@ -124,32 +123,24 @@ import com.lymors.lycommons.R
 import com.lymors.lycommons.managers.DataStoreManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import nl.joery.animatedbottombar.AnimatedBottomBar
 import org.json.JSONArray
 import org.json.JSONObject
 import org.mariuszgromada.math.mxparser.Expression
 import java.io.ByteArrayOutputStream
-import java.lang.Error
 import java.text.SimpleDateFormat
-import java.time.LocalDate
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
-import java.util.concurrent.TimeUnit
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
-import kotlin.reflect.KClass
 import kotlin.reflect.full.memberProperties
 
 
@@ -339,7 +330,7 @@ object MyExtensions {
         val text = this
 
         // Check if the TTS engine is available
-        val tts = TextToSpeech(context) { status ->
+        tts = TextToSpeech(context) { status ->
             if (status == TextToSpeech.SUCCESS) {
                 // Set the TTS language
                 val result = tts.setLanguage(Locale.getDefault())
@@ -479,7 +470,7 @@ object MyExtensions {
         val intent = Intent(this, destination::class.java)
 
         // Put the data into the Intent using the specified key
-        if (key.isNotEmpty() && data != null) {
+        if (key.isNotEmpty()) {
             intent.putExtra(key, data)
         }
 
@@ -583,17 +574,18 @@ object MyExtensions {
         inputMethodManager.showSoftInput(this, InputMethodManager.SHOW_IMPLICIT)
 
         if (!inputMethodManager.isActive(this)) {
-            inputMethodManager.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0)
+            inputMethodManager.showSoftInput(this, InputMethodManager.SHOW_FORCED) // Use SHOW_FORCED directly
         }
 
-        this.post{
+        this.post {
             val initialText = this.text.toString()
-            if (initialText.isNotEmpty()){
+            if (initialText.isNotEmpty()) {
                 val length = initialText.length
-                this.setSelection(length)
+                this.setSelection(length) // Set cursor position
             }
         }
     }
+
     fun Long.toDate(pattern: String = "dd-MM-yyyy"): String {
         val dateFormat = SimpleDateFormat(pattern, Locale.getDefault())
         return dateFormat.format(Date(this))
@@ -997,14 +989,6 @@ object MyExtensions {
         this.startActivity(Intent(this, T::class.java))
     }
 
-    suspend fun runDelayed(delay: Long, timeUnit: TimeUnit = TimeUnit.MILLISECONDS) {
-        return suspendCoroutine { continuation ->
-            GlobalScope.launch(Dispatchers.Main) {
-                delay(timeUnit.toMillis(delay))
-                continuation.resume(Unit)
-            }
-        }
-    }
 
 
     fun AppCompatActivity.setupTabLayout(
@@ -1531,10 +1515,9 @@ object MyExtensions {
             for (index in 0 until menuItems.size()) {
                 val menu = menuItems.getItem(index)
                 if (menu.itemId == itemId) {
-                    val position = index
-                    if (position in fragmentsList.indices) {
+                    if (index in fragmentsList.indices) {
                         supportFragmentManager.beginTransaction()
-                            .replace(frameLayout.id, fragmentsList[position])
+                            .replace(frameLayout.id, fragmentsList[index])
                             .commit()
                         return@setOnNavigationItemSelectedListener true
                     }
@@ -1646,14 +1629,9 @@ object MyExtensions {
         return jsonString
     }
 
-    fun String.fromJson(clazz: Class<*>): Any? {
-        val gson = Gson()
-        return try {
-            gson.fromJson(this, clazz)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
-        }
+
+    inline fun <reified T> String.fromJson(): T {
+        return Gson().fromJson(this, T::class.java)
     }
 
     @SuppressLint("ObsoleteSdkInt")
@@ -1898,13 +1876,15 @@ fun TextView.setTextOrInvisible(text: String) {
     // Extension function to check if the device is connected to the internet
     fun Context.isNetworkAvailable(): Boolean {
         val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             val network = connectivityManager.activeNetwork ?: return false
             val activeNetwork = connectivityManager.getNetworkCapabilities(network) ?: return false
-            return activeNetwork.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            activeNetwork.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
         } else {
+            @Suppress("DEPRECATION")
             val networkInfo = connectivityManager.activeNetworkInfo ?: return false
-            return networkInfo.isConnected
+            @Suppress("DEPRECATION")
+            networkInfo.isConnected
         }
     }
 
@@ -2033,12 +2013,21 @@ fun TextView.setTextOrInvisible(text: String) {
 //    }
 
     fun CheckBox.setCheckedTintColor(color: Int) {
-        buttonDrawable?.setColorFilter(color, PorterDuff.Mode.SRC_ATOP)
+        buttonDrawable?.let { drawable ->
+            val wrappedDrawable = DrawableCompat.wrap(drawable)
+            DrawableCompat.setTint(wrappedDrawable, color)
+            buttonDrawable = wrappedDrawable
+        }
     }
 
     fun CheckBox.setUncheckedTintColor(color: Int) {
-        buttonDrawable?.setColorFilter(color, PorterDuff.Mode.SRC_ATOP)
+        buttonDrawable?.let { drawable ->
+            val wrappedDrawable = DrawableCompat.wrap(drawable)
+            DrawableCompat.setTint(wrappedDrawable, color)
+            buttonDrawable = wrappedDrawable
+        }
     }
+
 
 //    fun CheckBox.setCheckedText(text: CharSequence) {
 //        // implement later
@@ -2079,11 +2068,15 @@ fun TextView.setTextOrInvisible(text: String) {
     }
 
     fun RadioButton.setCheckedTintColor(color: Int) {
-        buttonDrawable?.setColorFilter(color, PorterDuff.Mode.SRC_ATOP)
+        buttonDrawable?.let { drawable ->
+            DrawableCompat.setTint(drawable, color)
+        }
     }
 
     fun RadioButton.setUncheckedTintColor(color: Int) {
-        buttonDrawable?.setColorFilter(color, PorterDuff.Mode.SRC_ATOP)
+        buttonDrawable?.let { drawable ->
+            DrawableCompat.setTint(drawable, color)
+        }
     }
 
 //    fun RadioButton.setCheckedText(text: CharSequence) {
@@ -2094,11 +2087,6 @@ fun TextView.setTextOrInvisible(text: String) {
 //
 //    }
 
-    fun RadioButton.setCheckedWithAnimation(checked: Boolean) {
-        if (isChecked != checked) {
-            isChecked = checked
-        }
-    }
 
 
 
@@ -2324,13 +2312,7 @@ fun TextView.setTextOrInvisible(text: String) {
         this.setAdapter(myAdapter)
     }
 
-    fun AutoCompleteTextView.setDropdownBackgroundResource(resourceId: Int) {
-        setDropDownBackgroundResource(resourceId)
-    }
 
-    fun AutoCompleteTextView.setOnItemSelectedListener(listener: AdapterView.OnItemSelectedListener) {
-        onItemSelectedListener = listener
-    }
 
     fun AutoCompleteTextView.setOnItemSelectedAction(action: (position: Int) -> Unit) {
         onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
@@ -2649,14 +2631,14 @@ fun ScrollView.scrollToView(view: View) {
             var cameraId : String? = null
             cameraId = cameraManager.cameraIdList[0]
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                cameraManager?.setTorchMode(cameraId,true)
+                cameraManager.setTorchMode(cameraId,true)
             }
         }catch (e: CameraAccessException){
             Toast.makeText(this, "Something wrong", Toast.LENGTH_LONG).show()
         }
     }
 
-    @SuppressLint("ObsoleteSdkInt")
+
     fun Activity.turnOFFFlash(){
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
             val cameraManage = this.getSystemService(AppCompatActivity.CAMERA_SERVICE) as CameraManager

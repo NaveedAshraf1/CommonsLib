@@ -11,6 +11,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.google.gson.Gson
 
 class DataStoreManager(var context: Context){
 
@@ -23,16 +24,18 @@ class DataStoreManager(var context: Context){
         }
     }
 
-    suspend fun <T>  getData(key: String, clazz:Class<T>): T  {
+    suspend inline fun <reified T>  getData(key: String, clazz:Class<T>): T  {
         val preferences = context.dataStore.data.first()
         val storedValue = preferences[stringPreferencesKey(key)]
-        return storedValue?.fromJson(clazz) as T
+        return storedValue?.fromJson() as T
     }
 
-    fun <T> collectData(key: String, clazz: Class<T>): Flow<T> {
+
+
+    inline fun <reified T> collectData(key: String, clazz: Class<T>): Flow<T> {
         return context.dataStore.data.map { preferences ->
             val storedValue = preferences[stringPreferencesKey(key)]
-            storedValue?.fromJson(clazz) as T
+            storedValue?.fromJson()!!
         }
     }
 

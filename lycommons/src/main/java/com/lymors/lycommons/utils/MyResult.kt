@@ -13,7 +13,6 @@ sealed class MyResult<out T : Any> {
         return when (this) {
             is Success<*> -> "Success[data=$data]"
             is Error -> "Error[exception=$msg]"
-           else -> { "Loading..." }
         }
     }
 

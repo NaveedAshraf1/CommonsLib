@@ -158,12 +158,12 @@ class MainRepositoryImpl @Inject constructor(
 
 
 
-    override suspend fun <T : Any> getMap(child: String, clazz: Class<T>): MyResult<Map<String, T>> {
-        Log.i("TAG", "child: $child")
+    override suspend fun <T : Any> getMap(path: String, clazz: Class<T>): MyResult<Map<String, T>> {
+        Log.i("Firebase", "child: $path")
         val newMap = HashMap<String, T>()
         return try {
-            val dataSnapshot = databaseReference.child(child).get().await()
-            Log.i("TAG", "getMap -> snap.value: ${dataSnapshot.value}")
+            val dataSnapshot = databaseReference.child(path).get().await()
+            Log.i("Firebase", "getMap -> snap.value: ${dataSnapshot.value}")
             for (snap in dataSnapshot.children) {
                 snap.getValue(clazz)?.let { value ->
                     newMap[snap.key ?: ""] = value
@@ -179,6 +179,7 @@ class MainRepositoryImpl @Inject constructor(
 
     // Flow-based function to collect the map from Firebase
     override suspend fun <T : Any> collectMap(path: String): Flow<Map<String, T>> = callbackFlow {
+        path.logT( "Firebase" , "collectMap:")
         val valueEventListener = object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 val map: Map<String, T> = dataSnapshot.getValue(object : GenericTypeIndicator<Map<String, T>>() {}) ?: emptyMap()

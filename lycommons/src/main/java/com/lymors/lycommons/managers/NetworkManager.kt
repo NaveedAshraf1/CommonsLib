@@ -2,6 +2,7 @@ package com.lymors.lycommons.managers
 
 import android.content.Context
 import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import com.lymors.lycommons.utils.MyResult
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -37,10 +38,12 @@ class NetworkManager(val context: Context , baseUrl:String) {
     fun isNetworkAvailable(): Boolean {
         val connectivityManager =
             context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val activeNetworkInfo = connectivityManager.activeNetworkInfo
-        return activeNetworkInfo != null && activeNetworkInfo.isConnected
-    }
+        val activeNetwork = connectivityManager.activeNetwork ?: return false
 
+        val networkCapabilities = connectivityManager.getNetworkCapabilities(activeNetwork)
+        return networkCapabilities != null && networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ||
+                networkCapabilities!!.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
+    }
 
 }
 

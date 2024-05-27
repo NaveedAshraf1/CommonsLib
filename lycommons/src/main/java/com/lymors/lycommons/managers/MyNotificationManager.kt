@@ -168,7 +168,7 @@ class MyNotificationManager(private val context: Context , requestPermissionLaun
 
 
 
-    fun showNotification(title:String,message: String,channelId:String,channelName: String,notificationId:Int,requestCode:Int,smallIcon:Int,clazz:Class<*>?=null,bigMessage:String?=null,bigImage:Int?=null,isSticky:Boolean=false){
+    fun showNotification(title:String,message: String,channelId:String,channelName: String,notificationId:Int,requestCode:Int,smallIcon:Int=R.drawable.alarm,clazz:Class<*>?=null,bigMessage:String?=null,bigImage:Int?=null,isSticky:Boolean=false){
 
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
@@ -181,7 +181,7 @@ class MyNotificationManager(private val context: Context , requestPermissionLaun
         }
 
         builder = builder.apply {
-            setSmallIcon(R.drawable.alarm)
+            setSmallIcon(smallIcon)
             setContentTitle(title)
             setContentText(message)
             setDefaults(NotificationCompat.PRIORITY_HIGH)

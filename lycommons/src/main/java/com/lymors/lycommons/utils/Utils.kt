@@ -29,6 +29,7 @@ import androidx.annotation.DimenRes
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
@@ -42,15 +43,22 @@ import com.lymors.lycommons.R
 import com.lymors.lycommons.utils.MyExtensions.logT
 import com.lymors.lycommons.utils.MyExtensions.showToast
 import java.lang.reflect.Modifier
+import java.util.Locale
 
 
 object Utils {
 
 
-    fun checkEditTexts(context:Context , list:List<EditText>):Boolean{
+    fun checkEditTexts( list:List<EditText>):Boolean{
             list.forEach {
                 if (it.text.toString().isEmpty()){
-                 it.context.showToast("${it.id}  must not be empty")
+                    if (it.tag.toString().isNotEmpty()){
+                        it.context.showToast("${it.tag}  must not be empty")
+                    }else if(it.hint.toString().isNotEmpty()){
+                        it.context.showToast("${it.hint}  must not be empty")
+                    }else{
+                        it.context.showToast("${it.id}  must not be empty")
+                    }
                     return false
                 }
             }
@@ -350,20 +358,11 @@ object Utils {
         visibility = if (isVisible) View.VISIBLE else View.GONE
     }
 
-    fun Context.isNetworkAvailable(): Boolean {
-        val connectivityManager =
-            getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val activeNetworkInfo = connectivityManager.activeNetworkInfo
-        return activeNetworkInfo != null && activeNetworkInfo.isConnected
-    }
 
     fun Context.openActivity(activityClass: Class<*>) {
         startActivity(Intent(this, activityClass))
     }
 
-    fun View.showSnackbar(message: String) {
-        // Implement your Snackbar logic here
-    }
 
     fun Activity.hideSoftKeyboard() {
         currentFocus?.let {
@@ -389,8 +388,10 @@ object Utils {
         setOnClickListener { onClick.invoke() }
     }
 
-    fun String.capitalizeWords(): String {
-        return split(" ").joinToString(" ") { it.capitalize() }
+    fun String.capitalizeString(): String {
+        return split(" ").joinToString(" ") { it ->
+            it.replaceFirstChar {char-> if (char.isLowerCase()) char.titlecase(Locale.ROOT) else it
+        } }
     }
 
     fun Context.dpToPx(dp: Float): Int {
@@ -422,14 +423,11 @@ object Utils {
         setPadding(padding, padding, padding, padding)
     }
 
-    @SuppressLint("NewApi")
     fun Activity.setTransparentStatusBar() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            window.decorView.systemUiVisibility =
-                View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-            window.statusBarColor = Color.TRANSPARENT
-        }
+        WindowCompat.setDecorFitsSystemWindows(window, false)  // Recommended for new APIs
+        window.statusBarColor = Color.TRANSPARENT
     }
+
 
     fun View.rotate(degrees: Float) {
         animate().rotation(degrees).setDuration(300).setInterpolator(
