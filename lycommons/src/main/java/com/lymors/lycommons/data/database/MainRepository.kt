@@ -9,7 +9,7 @@ interface MainRepository {
     suspend fun< T :Any> uploadAnyModel(path:String, model: T): MyResult<String>
     suspend fun deleteAnyModel(path:String): MyResult<String>
     fun <T>  collectAnyModel(path:String, clazz: Class<T>):Flow<List<T>>
-    suspend fun < T : Any> getMap(path: String, clazz: Class<T>): MyResult<Map<String, T>>
+    suspend fun getMap(path: String): MyResult<Map<String, String>>
     suspend fun < T : Any> collectMap(path:String): Flow<Map<String , T>>
     suspend fun <T> getAnyData(path:String, clazz: Class<T>): T?
     suspend fun<T> getModelsWithChildren(path:String , clazz:Class<T>): Flow<List<T>>

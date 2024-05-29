@@ -7,7 +7,9 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.GenericTypeIndicator
 import com.google.firebase.database.ValueEventListener
+import com.lymors.lycommons.R
 import com.lymors.lycommons.utils.MyExtensions.logT
+import com.lymors.lycommons.utils.MyExtensions.shrink
 import com.lymors.lycommons.utils.MyResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
@@ -18,6 +20,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import kotlin.coroutines.resume
+import kotlin.random.Random
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.jvm.isAccessible
@@ -28,8 +31,10 @@ class MainRepositoryImpl @Inject constructor(
 ) : MainRepository {
 
     override fun <T> collectAnyModel(path: String, clazz: Class<T>): Flow<List<T>> = callbackFlow {
+        path.logT("collectAnyModel->path","path")
         val valueEventListener = object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
+                dataSnapshot.logT("collectAnyModel->dataSnapshot:","firebase")
                 val messagesList = mutableListOf<T>()
                 for (childSnapshot in dataSnapshot.children) {
                     val message = childSnapshot.getValue(clazz)
@@ -52,6 +57,7 @@ class MainRepositoryImpl @Inject constructor(
 
 
     override suspend fun <T : Any> uploadAnyModel(path: String, model: T): MyResult<String> {
+        path.logT("uploadAnyModel->path","path")
         return try {
             val keyProperty = model::class.declaredMemberProperties.find { it.name == "key" }
             if (keyProperty != null) {
@@ -66,10 +72,10 @@ class MainRepositoryImpl @Inject constructor(
                         }
                     }
                 }
-                databaseReference.child(path).child(updatedKey).setValue(model)
+                databaseReference.child(path).child(updatedKey).setValue(model.shrink())
                 MyResult.Success(if (key.isEmpty()) updatedKey else "Updated")
             } else {
-                databaseReference.child(path).setValue(model)
+                databaseReference.child(path).setValue(model.shrink())
                 MyResult.Success("Success")
             }
 
@@ -83,10 +89,10 @@ class MainRepositoryImpl @Inject constructor(
 
 
     override suspend fun deleteAnyModel(path: String): MyResult<String> {
-        Log.i("TAG", " path:$path")
+        path.logT("deleteAnyModel->path","path")
         return try {
             databaseReference.child(path).removeValue().await()
-            MyResult.Success("Success")
+            MyResult.Success("deleted Successfully")
         } catch (e: Exception) {
             MyResult.Error(e.message.toString())
         }
@@ -96,9 +102,10 @@ class MainRepositoryImpl @Inject constructor(
 
 
     override suspend fun <T> getAnyData(path: String, clazz: Class<T>): T? {
-        Log.i("TAG", "path: $path")
+       path.logT("getAnyData->path","path")
         return try {
             val snapshot = databaseReference.child(path).get().await()
+            snapshot.logT("getAnyData->snapshot","firebase")
             snapshot.getValue(clazz)
         } catch (e: Exception) {
             Log.e("TAG", "Failed to retrieve data: ${e.message}")
@@ -107,11 +114,12 @@ class MainRepositoryImpl @Inject constructor(
     }
 
     override suspend fun <T> getModelsWithChildren(path: String, clazz: Class<T>):Flow< List<T> > = callbackFlow {
-        path.logT("path:")
+       path.logT("getModelsWithChildren->path","path")
         val valueEventListener = object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 val studentsList = mutableListOf<T>()
                 for (classSnap in dataSnapshot.children) {
+                    classSnap.logT("getModelsWithChildren->classSnap", "firebase")
                     for (studentSnap in classSnap.children){
                         val studentModel = studentSnap.getValue(clazz)
                         studentModel?.let {
@@ -133,11 +141,13 @@ class MainRepositoryImpl @Inject constructor(
 
 
     override suspend fun checkExists(path: String): MyResult<String> {
+      path.logT("checkExists->path","path")
         return suspendCancellableCoroutine { continuation ->
             val reference = databaseReference.child(path)
             val listener = object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     if (snapshot.exists()){
+                        snapshot.logT("checkExists->snapshot","firebase")
                         continuation.resume(MyResult.Success("$path exists"))
                     }else{
                         continuation.resume(MyResult.Error("$path does not exist"))
@@ -156,17 +166,15 @@ class MainRepositoryImpl @Inject constructor(
     }
 
 
-
-
-    override suspend fun <T : Any> getMap(path: String, clazz: Class<T>): MyResult<Map<String, T>> {
-        Log.i("Firebase", "child: $path")
-        val newMap = HashMap<String, T>()
+    override suspend fun getMap(path: String): MyResult<Map<String, String>> {
+     path.logT("getMap->path","path")
+        val newMap = HashMap<String, String>()
         return try {
             val dataSnapshot = databaseReference.child(path).get().await()
-            Log.i("Firebase", "getMap -> snap.value: ${dataSnapshot.value}")
+          dataSnapshot.logT("getMap->dataSnapshot","firebase")
             for (snap in dataSnapshot.children) {
-                snap.getValue(clazz)?.let { value ->
-                    newMap[snap.key ?: ""] = value
+                snap.getValue(String::class.java)?.let { value ->
+                    newMap[snap.key ?: Random.nextInt().toString()] = value
                 }
             }
             MyResult.Success(newMap)
@@ -179,10 +187,11 @@ class MainRepositoryImpl @Inject constructor(
 
     // Flow-based function to collect the map from Firebase
     override suspend fun <T : Any> collectMap(path: String): Flow<Map<String, T>> = callbackFlow {
-        path.logT( "Firebase" , "collectMap:")
+        path.logT( "collectMap->path" , "path")
         val valueEventListener = object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 val map: Map<String, T> = dataSnapshot.getValue(object : GenericTypeIndicator<Map<String, T>>() {}) ?: emptyMap()
+                map.logT("collectMap->snap.value","firebase")
                 trySend(map)
             }
             override fun onCancelled(databaseError: DatabaseError) {

@@ -19,6 +19,9 @@ class MainViewModel @Inject constructor(private val mainRepo: MainRepository) : 
     private val _longClickedState = MutableStateFlow<Boolean>(false)
     val longClickedState = _longClickedState.asStateFlow()
 
+    private val _query = MutableStateFlow<String>("")
+    val query = _query.asStateFlow()
+
 
     private  val _searchingState = MutableStateFlow(false)
     val searchingState = _searchingState.asStateFlow()
@@ -28,8 +31,16 @@ class MainViewModel @Inject constructor(private val mainRepo: MainRepository) : 
     val _anyState = MutableStateFlow(Any())
     val anyState = _anyState.asStateFlow()
 
+
+    fun setQuery(query:String) {
+        _query.value = query
+    }
+
     fun setAnyState(any: Any) {
         _anyState.value = any
+    }
+    inline fun <reified T> getAnyState(): T {
+        return anyState as T
     }
     fun <T> getAnyStateFlow(): StateFlow<T> {
         return anyState as StateFlow<T>
@@ -67,8 +78,8 @@ class MainViewModel @Inject constructor(private val mainRepo: MainRepository) : 
         }
     }
 
-    suspend fun <T : Any> getMap(child: String, clazz: Class<T>): MyResult<Map<String, T>> {
-        return mainRepo.getMap(child, clazz)
+    suspend fun  getMap(child: String): MyResult<Map<String, String>> {
+        return mainRepo.getMap(child)
     }
 
     private  val _mapFlow = MutableStateFlow(emptyMap<String,Any>())

@@ -27,6 +27,9 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.lymors.lycommons.R
+import com.lymors.lycommons.utils.MyExtensions.createButton
+import com.lymors.lycommons.utils.MyExtensions.createLinearLayout
+import com.lymors.lycommons.utils.MyExtensions.createTextView
 
 class DialogUtil( val context: Activity):Dialog(context) {
 
@@ -60,11 +63,13 @@ class DialogUtil( val context: Activity):Dialog(context) {
         dialog = alertDialog
     }
 
+
+
     inline fun <reified T : ViewBinding> showCustomLayoutDialog(
-        crossinline bindingInflater: (LayoutInflater) -> T, context: Activity ,@DrawableRes drawable:Int = R.drawable.rounderd_corner
+        crossinline bindingInflater: (LayoutInflater) -> T,@DrawableRes drawable:Int = R.drawable.rounderd_corner
     ): T {
         val binding = bindingInflater.invoke(context.layoutInflater)
-        val dialog = MaterialAlertDialogBuilder(context)
+        dialog = MaterialAlertDialogBuilder(context)
             .setView(binding.root)
             .show()
 
@@ -113,15 +118,15 @@ class DialogUtil( val context: Activity):Dialog(context) {
     ) {
         val textFields = ArrayList<String>()
         val dialog = createAlertDialog("", "")
-        val verticalLinearLayout = createLinearLayout(LinearLayout.VERTICAL, Gravity.CENTER )
+        val verticalLinearLayout = createLinearLayout(context,LinearLayout.VERTICAL, Gravity.CENTER )
 
         // Set title
-        val titleTextView = createTextView(title, Gravity.CENTER_HORIZONTAL, LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT , 30f,0,25,0,10,true)
+        val titleTextView = createTextView(context,title, Gravity.CENTER_HORIZONTAL, LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT , 30f,0,25,0,10,true)
         titleTextView.setTextColor(ContextCompat.getColor(context, R.color.cement))
         verticalLinearLayout.addView(titleTextView)
 
         // Set all TextInputLayouts
-        val editTextLinearLayout = createLinearLayout(LinearLayout.VERTICAL, Gravity.CENTER)
+        val editTextLinearLayout = createLinearLayout(context,LinearLayout.VERTICAL, Gravity.CENTER)
         hints.forEach { hint ->
             val textInputLayout = TextInputLayout(context)
 
@@ -164,11 +169,11 @@ class DialogUtil( val context: Activity):Dialog(context) {
         verticalLinearLayout.addView(editTextLinearLayout)
 
 
-        val buttonsLinear = createLinearLayout(LinearLayout.HORIZONTAL,Gravity.END , right = 20)
-        val b1 = createButton(capitalizeFirstLetter("save"),Gravity.CENTER,LayoutParams.WRAP_CONTENT,LayoutParams.WRAP_CONTENT).apply {
+        val buttonsLinear = createLinearLayout(context,LinearLayout.HORIZONTAL,Gravity.END , right = 20)
+        val b1 = createButton(context,capitalizeFirstLetter("save"),Gravity.CENTER,LayoutParams.WRAP_CONTENT,LayoutParams.WRAP_CONTENT).apply {
             isAllCaps = false
         }
-        val b2 = createButton(capitalizeFirstLetter("cancel"),Gravity.CENTER,LayoutParams.WRAP_CONTENT,LayoutParams.WRAP_CONTENT).apply {
+        val b2 = createButton(context,capitalizeFirstLetter("cancel"),Gravity.CENTER,LayoutParams.WRAP_CONTENT,LayoutParams.WRAP_CONTENT).apply {
             isAllCaps = false
         }
 
@@ -191,72 +196,18 @@ class DialogUtil( val context: Activity):Dialog(context) {
         }
     }
 
-    fun capitalizeFirstLetter(text: String): String {
+    private fun capitalizeFirstLetter(text: String): String {
         return text.lowercase().replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
     }
 
 
 
 
-    fun createLinearLayout(orientation: Int = LinearLayout.VERTICAL, gravity: Int = Gravity.CENTER,left:Int = 15,top:Int=15,right:Int=15,bottom:Int=15): LinearLayout {
-        val linearLayout = LinearLayout(context)
-        val layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
-        layoutParams.setMargins(left,top,right,bottom)
-        linearLayout.layoutParams = layoutParams
-        linearLayout.orientation = orientation
-        linearLayout.gravity = gravity
-        return linearLayout
-    }
-
-
-    fun createButton(
-        text: String,
-        gravity: Int,
-        width: Int,
-        height: Int,
-        textColorRes: Int = R.color.cement  // Color resource for the text color
-    ): Button {
-        val button = Button(context)
-        val layoutParams = LinearLayout.LayoutParams(width, height)
-        button.layoutParams = layoutParams
-        button.gravity = gravity
-        button.text = text
-        button.text = text.lowercase().replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
-        button.isAllCaps = false
-        button.setTextColor(ContextCompat.getColor(context, textColorRes))  // Set text color
-        return button
-    }
 
 
 
-    fun createTextView(
-        text: String,
-        gravity: Int,
-        width: Int,
-        height: Int,
-        textSize: Float = 16f,  // Default text size in sp
-        marginLeft: Int = 0,   // Default margin
-        marginTop: Int = 0,
-        marginRight: Int = 0,
-        marginBottom: Int = 0,
-        isBold: Boolean = false  // Default not bold
-    ): TextView {
-        val textView = TextView(context)
 
-        val layoutParams = LinearLayout.LayoutParams(width, height)
-        layoutParams.setMargins(marginLeft, marginTop, marginRight, marginBottom)
-        textView.layoutParams = layoutParams
 
-        textView.gravity = gravity
-        textView.text = text
-        textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize)
-
-        if (isBold) {
-            textView.setTypeface(null, Typeface.BOLD)  // Set typeface to bold
-        }
-
-        return textView
-    }
 
 
 

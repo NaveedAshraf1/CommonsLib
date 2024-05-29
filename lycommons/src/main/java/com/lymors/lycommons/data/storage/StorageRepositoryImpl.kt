@@ -24,7 +24,7 @@ class StorageRepositoryImpl @Inject constructor(private val storageReference: St
         name: String
     ): MyResult<String> {
         return try {
-            val filename = (uri.lastPathSegment) ?: System.currentTimeMillis()
+            val filename = name.ifEmpty{ (uri.lastPathSegment) ?: System.currentTimeMillis()}
             val imageRef = storageReference.child("images/${filename}")
             val uploadTask = imageRef.putFile(uri)
             val result: UploadTask.TaskSnapshot = uploadTask.await()

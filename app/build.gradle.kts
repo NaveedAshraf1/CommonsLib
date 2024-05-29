@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
+    kotlin("kapt")
 }
 
 android {
@@ -52,7 +53,12 @@ dependencies {
     // ssp
     implementation ("com.intuit.ssp:ssp-android:1.0.6")
 
+//    implementation ("com.github.NaveedAshraf1:commonslib:1.1.4")
 
 
-//    implementation ("com.github.NaveedAshraf1:commonslib:1.0.0")
+
+    // di
+    implementation("com.google.dagger:hilt-android:2.48")
+    kapt("com.google.dagger:hilt-android-compiler:2.48")
+    implementation ("androidx.lifecycle:lifecycle-process:2.7.0")
 }

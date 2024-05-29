@@ -2,6 +2,7 @@ package com.lymors.lycommons.utils
 
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
+import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.app.Activity
@@ -10,6 +11,7 @@ import android.app.Dialog
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.TimePickerDialog
+import android.content.ContentValues
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
@@ -28,6 +30,7 @@ import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.RippleDrawable
+import android.graphics.pdf.PdfDocument
 import android.hardware.camera2.CameraAccessException
 import android.hardware.camera2.CameraManager
 import android.net.ConnectivityManager
@@ -35,6 +38,7 @@ import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Build
 import android.os.CountDownTimer
+import android.os.Environment
 import android.os.Parcelable
 import android.os.VibrationEffect
 import android.os.Vibrator
@@ -60,8 +64,11 @@ import android.view.View
 import android.view.ViewAnimationUtils
 import android.view.ViewGroup
 import android.view.Window
+import android.view.animation.AccelerateDecelerateInterpolator
+import android.view.animation.AccelerateInterpolator
 import android.view.animation.AlphaAnimation
 import android.view.animation.Animation
+import android.view.animation.DecelerateInterpolator
 import android.view.animation.RotateAnimation
 import android.view.animation.ScaleAnimation
 import android.view.animation.TranslateAnimation
@@ -76,6 +83,7 @@ import android.widget.DatePicker
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.PopupMenu
 import android.widget.RadioButton
 import android.widget.ScrollView
@@ -99,6 +107,7 @@ import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.text.HtmlCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
+import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import androidx.viewpager.widget.ViewPager
 import androidx.viewpager2.widget.ViewPager2
@@ -107,6 +116,7 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
 import com.github.dhaval2404.imagepicker.ImagePicker
+import com.google.android.material.animation.AnimatorSetCompat.playTogether
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.snackbar.Snackbar
@@ -132,6 +142,9 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.mariuszgromada.math.mxparser.Expression
 import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -145,6 +158,611 @@ import kotlin.reflect.full.memberProperties
 
 
 object MyExtensions {
+
+
+    fun createTextView(
+        context: Context,
+        text: String,
+        gravity: Int,
+        width: Int,
+        height: Int,
+        textSize: Float = 16f,  // Default text size in sp
+        marginLeft: Int = 0,   // Default margin
+        marginTop: Int = 0,
+        marginRight: Int = 0,
+        marginBottom: Int = 0,
+        isBold: Boolean = false  // Default not bold
+    ): TextView {
+        val textView = TextView(context)
+
+        val layoutParams = LinearLayout.LayoutParams(width, height)
+        layoutParams.setMargins(marginLeft, marginTop, marginRight, marginBottom)
+        textView.layoutParams = layoutParams
+
+        textView.gravity = gravity
+        textView.text = text
+        textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize)
+
+        if (isBold) {
+            textView.setTypeface(null, Typeface.BOLD)  // Set typeface to bold
+        }
+
+        return textView
+    }
+
+
+    fun createButton(
+        context: Context,
+        text: String,
+        gravity: Int,
+        width: Int,
+        height: Int,
+        textColorRes: Int = R.color.cement  // Color resource for the text color
+    ): Button {
+        val button = Button(context)
+        val layoutParams = LinearLayout.LayoutParams(width, height)
+        button.layoutParams = layoutParams
+        button.gravity = gravity
+        button.text = text
+        button.text = text.lowercase().replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+        button.isAllCaps = false
+        button.setTextColor(ContextCompat.getColor(context, textColorRes))  // Set text color
+        return button
+    }
+
+
+    fun createLinearLayout(context: Context,orientation: Int = LinearLayout.VERTICAL, gravity: Int = Gravity.CENTER, left:Int = 15, top:Int=15, right:Int=15, bottom:Int=15): LinearLayout {
+        val linearLayout = LinearLayout(context)
+        val layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+        layoutParams.setMargins(left,top,right,bottom)
+        linearLayout.layoutParams = layoutParams
+        linearLayout.orientation = orientation
+        linearLayout.gravity = gravity
+        return linearLayout
+    }
+
+    fun View.fadeOutGone(duration: Long = 2000) {
+        // Create an ObjectAnimator to animate the alpha property of the view
+        val alphaAnimator = ObjectAnimator.ofFloat(this, View.ALPHA, 1f, 0f)
+
+        // Set the duration of the alpha animation
+        alphaAnimator.duration = duration / 2 // Half the duration for fading out
+
+        // Set a listener to make the view gone after the alpha animation ends
+        alphaAnimator.addListener(object : AnimatorListenerAdapter() {
+            override fun onAnimationEnd(animation: Animator) {
+                // Create ObjectAnimator to animate the scale property of the view after fading out
+                val scaleAnimatorX = ObjectAnimator.ofFloat(this@fadeOutGone, View.SCALE_X, 1f, 0f)
+                val scaleAnimatorY = ObjectAnimator.ofFloat(this@fadeOutGone, View.SCALE_Y, 1f, 0f)
+
+                // Set the duration of the scale animation
+                scaleAnimatorX.duration = duration / 2 // Half the duration for shrinking
+                scaleAnimatorY.duration = duration / 2 // Half the duration for shrinking
+
+                // Set a listener to make the view gone after the scale animation ends
+                scaleAnimatorX.addListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: Animator) {
+                        this@fadeOutGone.visibility = View.GONE
+                    }
+                })
+
+                // Start the scale animations
+                scaleAnimatorX.start()
+                scaleAnimatorY.start()
+            }
+        })
+
+        // Start the alpha animation
+        alphaAnimator.start()
+    }
+
+    fun View.fadeOutInvisible(duration: Long = 5000) {
+        // Create an ObjectAnimator to animate the alpha property of the view
+        val animator = ObjectAnimator.ofFloat(this, View.ALPHA, 1f, 0f)
+
+        // Set the duration of the animation
+        animator.duration = duration
+
+        // Set a listener to make the view invisible after the animation ends
+        animator.addListener(object : AnimatorListenerAdapter() {
+            override fun onAnimationEnd(animation: Animator) {
+                this@fadeOutInvisible.visibility = View.INVISIBLE
+            }
+        })
+
+        // Start the animation
+        animator.start()
+    }
+
+    fun View.zoomOutVisibleFadeIn(duration: Long = 300L) {
+        // Set initial alpha to 0 to ensure it fades in
+        alpha = 0f
+
+        // Set initial scale to 0 to ensure it zooms out
+        scaleX = 0f
+        scaleY = 0f
+
+        // Set visibility to VISIBLE before starting the animation
+        visibility = View.VISIBLE
+
+        // Animate zooming out and fading in
+        animate()
+            .scaleX(1f)
+            .scaleY(1f)
+            .alpha(1f)
+            .setDuration(duration)
+            .setInterpolator(AccelerateDecelerateInterpolator())
+            .start()
+    }
+
+
+    fun View.zoomOutVisibleFadeOut(duration: Long = 300L) {
+        val scaleX = 0f
+        val scaleY = 0f
+        val alpha = 0f
+        this.animate()
+            .scaleX(scaleX)
+            .scaleY(scaleY)
+            .alpha(alpha)
+            .setDuration(duration)
+            .setStartDelay(0)
+            .setInterpolator(AccelerateDecelerateInterpolator())
+            .withEndAction {
+                this.visibility = View.GONE  // Set visibility to GONE after animation
+            }
+            .start()
+    }
+
+    fun View.slideInFromLeft(duration: Long = 300L) {
+        val translationX = -width.toFloat()
+        animate().translationX(0f).setDuration(duration).setInterpolator(AccelerateDecelerateInterpolator()).start()
+        visibility = View.VISIBLE
+    }
+
+    fun View.slideInFromRight(duration: Long = 300L) {
+        val translationX = width.toFloat()
+        animate().translationX(0f).setDuration(duration).setInterpolator(AccelerateDecelerateInterpolator()).start()
+        visibility = View.VISIBLE
+    }
+
+    fun View.slideInFromBottom(duration: Long = 300L) {
+        translationY = height.toFloat()
+        animate().translationY(0f).setDuration(duration).setInterpolator(AccelerateDecelerateInterpolator()).start()
+        visibility = View.VISIBLE
+    }
+
+    fun View.slideOutToRightGone(duration: Long = 300L){
+        val translationX = width.toFloat()
+        animate().translationX(0f).setDuration(duration).setInterpolator(AccelerateDecelerateInterpolator()).start()
+        visibility = View.GONE
+    }
+
+    fun View.slideOutToRightInvisible(duration: Long = 300L){
+        val translationX = width.toFloat()
+        animate().translationX(0f).setDuration(duration).setInterpolator(AccelerateDecelerateInterpolator()).start()
+        visibility = View.INVISIBLE
+    }
+
+
+    fun View.slideInFromBottomFadeIn(duration: Long = 300L) {
+        translationY = this.height.toFloat()
+        this.alpha = 0f
+        this.animate()
+            .translationY(0f)
+            .alpha(1f)
+            .setDuration(duration)
+            .setStartDelay(0)
+            .setInterpolator(AccelerateDecelerateInterpolator())
+            .start()
+    }
+
+
+
+
+    fun View.fadeOut(duration: Long = 5000) {
+        val fadeOut = ObjectAnimator.ofFloat(this, "alpha", 0f, 1f)
+        fadeOut.duration = duration
+        fadeOut.start()
+    }
+
+    fun View.slideInFromTopFadeInVisible(duration: Long = 300L) {
+        // Set initial alpha to 0 to ensure it fades in
+        alpha = 0f
+        // Set visibility to VISIBLE before starting the animation
+        visibility = View.VISIBLE
+        // Animate sliding in from top and fading in
+        animate()
+            .translationY(0f)
+            .alpha(1f)
+            .setDuration(duration)
+            .setInterpolator(AccelerateDecelerateInterpolator())
+            .start()
+    }
+
+
+
+    fun View.fadeInVisible(duration: Long = 300) {
+        this.alpha = 0f
+        this.visibility = View.VISIBLE
+        this.animate().alpha(1f).setDuration(duration).start()
+    }
+
+    fun View.fadeIn(duration: Long = 5000) {
+        val fadeOut = ObjectAnimator.ofFloat(this, "alpha", 1f, 0f)
+        fadeOut.duration = duration
+        fadeOut.start()
+    }
+
+
+
+    fun View.slideUpVisibleFadeIn(duration: Long = 500) {
+        // Calculate the height of the view
+        val originalHeight = height
+
+        // Set initial translationY to the height of the view to make it start from below
+        translationY = originalHeight.toFloat()
+
+        // Animate sliding up
+        val slideAnimator = ObjectAnimator.ofFloat(this, "translationY", originalHeight.toFloat(), 0f)
+        slideAnimator.interpolator = DecelerateInterpolator()
+        slideAnimator.duration = duration
+
+        // Animate fading in
+        val fadeInAnimator = ObjectAnimator.ofFloat(this, View.ALPHA, 0f, 1f)
+        fadeInAnimator.duration = duration
+
+        // Combine the animations
+        val animatorSet = AnimatorSet()
+        animatorSet.playTogether(slideAnimator, fadeInAnimator)
+
+        // Set a listener to make the view visible after the animation ends
+        animatorSet.addListener(object : AnimatorListenerAdapter() {
+            override fun onAnimationStart(animation: Animator) {
+                visibility = View.VISIBLE
+            }
+        })
+
+        // Start the animation
+        animatorSet.start()
+    }
+    fun View.slideDownGoneFadeOut(duration: Long = 500) {
+        // Calculate the height of the view
+        val originalHeight = height
+
+        // Animate sliding down
+        val slideAnimator = ObjectAnimator.ofFloat(this, "translationY", 0f, originalHeight.toFloat())
+        slideAnimator.interpolator = AccelerateInterpolator()
+        slideAnimator.duration = duration
+
+        // Animate fading out
+        val fadeOutAnimator = ObjectAnimator.ofFloat(this, View.ALPHA, 1f, 0f)
+        fadeOutAnimator.duration = duration
+
+        // Combine the animations
+        val animatorSet = AnimatorSet()
+        animatorSet.playTogether(slideAnimator, fadeOutAnimator)
+
+        // Set a listener to make the view gone after the animation ends
+        animatorSet.addListener(object : AnimatorListenerAdapter() {
+            override fun onAnimationEnd(animation: Animator) {
+                visibility = View.GONE
+                translationY = 0f // Reset translation for future use
+            }
+        })
+
+        // Start the animation
+        animatorSet.start()
+    }
+
+
+
+
+    fun View.slideLeft(duration: Long = 1000) {
+        val slideLeft = ObjectAnimator.ofFloat(this, "translationX", 0f, -this.width.toFloat())
+        slideLeft.duration = duration
+        slideLeft.addListener(object : Animator.AnimatorListener {
+            override fun onAnimationStart(animation: Animator) {
+            }
+
+            override fun onAnimationEnd(animation: Animator) {
+                this@slideLeft.translationX = 0f
+                val slideBack = ObjectAnimator.ofFloat(
+                    this@slideLeft,
+                    "translationX",
+                    -this@slideLeft.width.toFloat(),
+                    0f
+                )
+                slideBack.duration = duration
+                slideBack.start()
+            }
+
+            override fun onAnimationCancel(animation: Animator) {
+                this@slideLeft.translationX = 0f
+                Log.i("TAG", "onAnimationCancel: ")
+            }
+
+            override fun onAnimationRepeat(animation: Animator) {
+            }
+        })
+        slideLeft.start()
+    }
+
+    fun View.slideRight(duration: Long = 1000) {
+        val slideIn = ObjectAnimator.ofFloat(this, "translationX", 0f, this.width.toFloat())
+        slideIn.duration = duration
+        slideIn.addListener(object : Animator.AnimatorListener {
+            override fun onAnimationStart(animation: Animator) {
+            }
+
+            override fun onAnimationEnd(animation: Animator) {
+                this@slideRight.translationX = 0f
+                val slideBack = ObjectAnimator.ofFloat(
+                    this@slideRight,
+                    "translationX",
+                    this@slideRight.width.toFloat(),
+                    0f
+                )
+                slideBack.duration = duration
+                slideBack.start()
+            }
+
+            override fun onAnimationCancel(animation: Animator) {
+                this@slideRight.translationX = 0f
+                Log.i("TAG", "onAnimationCancel: ");
+            }
+
+            override fun onAnimationRepeat(animation: Animator) {
+            }
+        })
+        slideIn.start()
+    }
+
+    fun View.bounce(duration: Long = 1000) {
+        var d = duration
+        val scaleXDown = ObjectAnimator.ofFloat(this, "scaleX", 1f, 0.8f)
+        val scaleYDown = ObjectAnimator.ofFloat(this, "scaleY", 1f, 0.8f)
+        val scaleXUp = ObjectAnimator.ofFloat(this, "scaleX", 0.8f, 1.2f)
+        val scaleYUp = ObjectAnimator.ofFloat(this, "scaleY", 0.8f, 1.2f)
+        val scaleXBack = ObjectAnimator.ofFloat(this, "scaleX", 1.2f, 1f)
+        val scaleYBack = ObjectAnimator.ofFloat(this, "scaleY", 1.2f, 1f)
+
+        val downSet = AnimatorSet().apply {
+            playTogether(scaleXDown, scaleYDown)
+            d = duration / 3
+        }
+
+        val upSet = AnimatorSet().apply {
+            playTogether(scaleXUp, scaleYUp)
+            d = duration / 3
+        }
+
+        val backSet = AnimatorSet().apply {
+            playTogether(scaleXBack, scaleYBack)
+            d = duration / 3
+        }
+
+        val bounceSet = AnimatorSet().apply {
+            playSequentially(downSet, upSet, backSet)
+        }
+
+        bounceSet.start()
+    }
+
+
+
+
+
+
+    fun RecyclerView.convertRecyclerViewToPdf(
+        context: Activity,
+        pdfFileName: String,
+        itemBottomMargin: Int = 15
+    ): String? {
+        val adapter = this.adapter ?: return null
+
+        // Create a PdfDocument
+        val pdfDocument = PdfDocument()
+
+        // Get the dimensions of the view
+        val recyclerViewWidth = this.width
+        var totalHeight = 0
+
+        // Calculate the margins (20% on each side)
+        val margin = (recyclerViewWidth * 0.12).toInt()
+        val contentWidth = recyclerViewWidth - 2 * margin
+
+        // Measure and layout each item view
+        for (i in 0 until adapter.itemCount) {
+            val holder = adapter.createViewHolder(this, adapter.getItemViewType(i))
+            adapter.bindViewHolder(holder, i)
+            val itemView = holder.itemView
+
+            itemView.measure(
+                View.MeasureSpec.makeMeasureSpec(contentWidth, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+            )
+            itemView.layout(0, 0, itemView.measuredWidth, itemView.measuredHeight)
+            totalHeight += itemView.measuredHeight + itemBottomMargin
+        }
+
+        // Define page height (you can adjust this as needed)
+        val pageHeight = 297 * 72 / 25 // A4 page height in points
+
+        // Variables to keep track of the current page and its height
+        var currentPageHeight = 0
+        var currentPage: PdfDocument.Page? = null
+        var canvas: Canvas? = null
+        var pageNumber = 1
+
+        // Create pages and draw each item view onto the pages
+        for (i in 0 until adapter.itemCount) {
+            val holder = adapter.createViewHolder(this, adapter.getItemViewType(i))
+            adapter.bindViewHolder(holder, i)
+            val itemView = holder.itemView
+
+            itemView.measure(
+                View.MeasureSpec.makeMeasureSpec(contentWidth, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+            )
+            itemView.layout(0, 0, itemView.measuredWidth, itemView.measuredHeight)
+
+            if (currentPage == null || currentPageHeight + itemView.measuredHeight + itemBottomMargin > pageHeight) {
+                if (currentPage != null) {
+                    pdfDocument.finishPage(currentPage)
+                }
+                val pageInfo = PdfDocument.PageInfo.Builder(recyclerViewWidth, pageHeight, pageNumber).create()
+                currentPage = pdfDocument.startPage(pageInfo)
+                canvas = currentPage.canvas
+                currentPageHeight = 0
+                pageNumber++
+            }
+
+            canvas?.let {
+                it.save()
+                // Translate to the margin position
+                it.translate(margin.toFloat(), currentPageHeight.toFloat())
+                itemView.draw(it)
+                it.restore()
+                currentPageHeight += itemView.measuredHeight + itemBottomMargin
+            }
+        }
+
+        currentPage?.let {
+            pdfDocument.finishPage(it)
+        }
+
+        // Save the PDF to a file
+        val file = File(context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), pdfFileName)
+        try {
+            pdfDocument.writeTo(FileOutputStream(file))
+        } catch (e: IOException) {
+            e.printStackTrace()
+            return null
+        }
+
+        // Close the PdfDocument
+        pdfDocument.close()
+
+        val uri = addPdfToMediaStore(context, file, pdfFileName)
+
+        // Return the URI of the saved PDF file
+        return uri.toString()
+    }
+
+
+    fun RecyclerView.convertRecyclerViewToPdf(
+        context: Activity,
+        pdfFileName: String,
+        headerView: View? = null,
+        footerView: View? = null,
+        itemBottomMargin: Int = 15
+    ): String? {
+
+        val adapter = this.adapter ?: return null
+        // Create a PdfDocument
+        val pdfDocument = PdfDocument()
+        val recyclerViewWidth = this.width
+
+        // Calculate the margins (12% on each side)
+        val margin = (recyclerViewWidth * 0.12).toInt()
+        val contentWidth = recyclerViewWidth - 2 * margin
+        val pageHeight = 297 * 72 / 25 // A4 page height in points
+
+        // Measure and layout a view
+        fun measureAndLayoutView(view: View) {
+            view.measure(
+                View.MeasureSpec.makeMeasureSpec(contentWidth, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+            )
+            view.layout(0, 0, view.measuredWidth, view.measuredHeight)
+        }
+
+        // Draw a view on the canvas
+        fun drawViewOnCanvas(view: View, canvas: Canvas, yOffset: Int): Int {
+            canvas.save()
+            canvas.translate(margin.toFloat(), yOffset.toFloat())
+            view.draw(canvas)
+            canvas.restore()
+            return yOffset + view.measuredHeight + itemBottomMargin
+        }
+
+        // Variables to keep track of the current page and its height
+        var currentPageHeight = 0
+        var pageNumber = 1
+
+        // Function to start a new page
+        fun startNewPage(): Pair<PdfDocument.Page, Canvas?> {
+            val pageInfo = PdfDocument.PageInfo.Builder(recyclerViewWidth, pageHeight, pageNumber).create()
+            val newPage = pdfDocument.startPage(pageInfo)
+            pageNumber++
+            currentPageHeight = 0
+            return newPage to newPage.canvas
+        }
+
+        // Initialize the first page
+        var (currentPage, canvas) = startNewPage()
+
+        // Draw the header if present
+        headerView?.let {
+            measureAndLayoutView(it)
+            if (currentPageHeight + it.measuredHeight + itemBottomMargin > pageHeight) {
+                pdfDocument.finishPage(currentPage)
+                val newPage = startNewPage()
+                currentPage = newPage.first
+                canvas = newPage.second
+            }
+            canvas?.let { c -> currentPageHeight = drawViewOnCanvas(it, c, currentPageHeight) }
+        }
+
+        // Draw each RecyclerView item
+        for (i in 0 until adapter.itemCount) {
+            val holder = adapter.createViewHolder(this, adapter.getItemViewType(i))
+            adapter.bindViewHolder(holder, i)
+            val itemView = holder.itemView
+
+            measureAndLayoutView(itemView)
+
+            if (currentPageHeight + itemView.measuredHeight + itemBottomMargin > pageHeight) {
+                pdfDocument.finishPage(currentPage)
+                val newPage = startNewPage()
+                currentPage = newPage.first
+                canvas = newPage.second
+            }
+
+            canvas?.let { c -> currentPageHeight = drawViewOnCanvas(itemView, c, currentPageHeight) }
+        }
+
+        // Draw the footer if present
+        footerView?.let {
+            measureAndLayoutView(it)
+            if (currentPageHeight + it.measuredHeight + itemBottomMargin > pageHeight) {
+                pdfDocument.finishPage(currentPage)
+                val newPage = startNewPage()
+                currentPage = newPage.first
+                canvas = newPage.second
+            }
+            canvas?.let { c -> currentPageHeight = drawViewOnCanvas(it, c, currentPageHeight) }
+        }
+
+        pdfDocument.finishPage(currentPage)
+
+        // Save the PDF to a file
+        val file = File(context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), pdfFileName)
+        try {
+            pdfDocument.writeTo(FileOutputStream(file))
+        } catch (e: IOException) {
+            e.printStackTrace()
+            return null
+        }
+
+        // Close the PdfDocument
+        pdfDocument.close()
+
+        val uri = addPdfToMediaStore(context, file, pdfFileName)
+
+        // Return the URI of the saved PDF file
+        return uri.toString()
+    }
 
 
 
@@ -181,6 +799,31 @@ object MyExtensions {
             .override(width, height)
             .into(this)
     }
+
+    private fun addPdfToMediaStore(context: Activity,pdfFile: File, displayName: String): Uri? {
+        val values = ContentValues().apply {
+            put(MediaStore.Files.FileColumns.DISPLAY_NAME, displayName)
+            put(MediaStore.Files.FileColumns.MIME_TYPE, "application/pdf")
+            put(MediaStore.Files.FileColumns.RELATIVE_PATH, Environment.DIRECTORY_DOCUMENTS)
+        }
+
+        val resolver = context.contentResolver
+        val uri = resolver.insert(MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL), values)
+
+        uri?.let {
+            try {
+                resolver.openOutputStream(uri, "w")?.use { outputStream ->
+                    pdfFile.inputStream().copyTo(outputStream)
+                }
+            } catch (e: IOException) {
+                e.printStackTrace()
+                return null
+            }
+        }
+
+        return uri
+    }
+
 
 
 
@@ -278,12 +921,6 @@ object MyExtensions {
     }
 
 
-
-
-
-
-
-
     fun Activity.launchActivity(destination: Class<*>, key: String = "", data: Parcelable? = null) {
         // Create an Intent to launch the target activity
         val intent = Intent(this, destination::class.java)
@@ -296,6 +933,50 @@ object MyExtensions {
         // Start the activity with the created Intent
         startActivity(intent)
     }
+    fun Fragment.launchActivity(destination: Class<*>, key: String = "", data: Parcelable? = null) {
+        // Create an Intent to launch the target activity
+        val intent = Intent(requireContext(), destination::class.java)
+
+        // Put the data into the Intent using the specified key
+        if (key.isNotEmpty() && data != null) {
+            intent.putExtra(key, data)
+        }
+
+        // Start the activity with the created Intent
+        startActivity(intent)
+    }
+
+
+    fun Activity.launchActivity(destination: Class<*>, key: String = "", data: String = "") {
+        // Create an Intent to launch the target activity
+        val intent = Intent(this, destination::class.java)
+
+        // Put the data into the Intent using the specified key
+        if (key.isNotEmpty()) {
+            intent.putExtra(key, data)
+        }
+
+        // Start the activity with the created Intent
+        startActivity(intent)
+    }
+
+    fun Fragment.launchActivity(destination:Class<*>,key: String = "", data:String = "") {
+        // Create an Intent to launch the target activity
+        val intent = Intent(requireContext(), destination::class.java)
+
+        // Put the data into the Intent using the specified key
+        if (key.isNotEmpty()){
+            intent.putExtra(key, data)
+        }
+
+        // Start the activity with the created Intent
+        startActivity(intent)
+    }
+
+
+
+
+
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun TextView.enableAutoSizingWithPresetSizes(
@@ -319,11 +1000,7 @@ object MyExtensions {
 
 
 
-    fun View.fadeIn(duration: Long = 300) {
-        this.alpha = 0f
-        this.visibility = View.VISIBLE
-        this.animate().alpha(1f).setDuration(duration).start()
-    }
+
 
     lateinit var tts: TextToSpeech
     fun String.textToSpeak(context: Context) {
@@ -465,31 +1142,6 @@ object MyExtensions {
         Toast.makeText(context, this, duration).show()
     }
 
-    fun Activity.launchActivity(destination: Class<*>, key: String = "", data: String = "") {
-        // Create an Intent to launch the target activity
-        val intent = Intent(this, destination::class.java)
-
-        // Put the data into the Intent using the specified key
-        if (key.isNotEmpty()) {
-            intent.putExtra(key, data)
-        }
-
-        // Start the activity with the created Intent
-        startActivity(intent)
-    }
-
-    fun Fragment.launchActivity(destination:Class<*>,key: String = "", data:String = "") {
-        // Create an Intent to launch the target activity
-        val intent = Intent(requireContext(), destination::class.java)
-
-        // Put the data into the Intent using the specified key
-        if (key.isNotEmpty()){
-            intent.putExtra(key, data)
-        }
-
-        // Start the activity with the created Intent
-        startActivity(intent)
-    }
 
 
     @SuppressLint("ClickableViewAccessibility")

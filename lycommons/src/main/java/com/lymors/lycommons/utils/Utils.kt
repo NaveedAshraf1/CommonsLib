@@ -9,9 +9,11 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.database.Cursor
 import android.graphics.Color
+import android.graphics.pdf.PdfDocument
 import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.Build
+import android.os.Environment
 import android.provider.OpenableColumns
 import android.telephony.SmsManager
 import android.util.Log
@@ -29,6 +31,7 @@ import androidx.annotation.DimenRes
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
@@ -42,6 +45,9 @@ import com.google.android.play.integrity.internal.i
 import com.lymors.lycommons.R
 import com.lymors.lycommons.utils.MyExtensions.logT
 import com.lymors.lycommons.utils.MyExtensions.showToast
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
 import java.lang.reflect.Modifier
 import java.util.Locale
 
@@ -361,6 +367,33 @@ object Utils {
 
     fun Context.openActivity(activityClass: Class<*>) {
         startActivity(Intent(this, activityClass))
+    }
+
+    fun View.convertToPdf(context: Context, pdfFileName: String): String? {
+        val pdfDocument = PdfDocument()
+
+        val width = this.width
+        val height = this.height
+
+        val pageInfo = PdfDocument.PageInfo.Builder(width, height, 1).create()
+        val page = pdfDocument.startPage(pageInfo)
+
+        val canvas = page.canvas
+        this.draw(canvas)
+
+        pdfDocument.finishPage(page)
+
+        val file = File(context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), pdfFileName)
+        try {
+            pdfDocument.writeTo(FileOutputStream(file))
+        } catch (e: IOException) {
+            e.printStackTrace()
+            return null
+        }
+        pdfDocument.close()
+//        val uri = addPdfToMediaStore(context, file.absolutePath, pdfFileName)
+        val uri = file.toUri()
+        return uri.toString()
     }
 
 
