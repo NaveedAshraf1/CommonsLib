@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "767729799883",
+    "project_id": "my-project-74bb1",
+    "storage_bucket": "my-project-74bb1.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:767729799883:android:907244f37a3491a9ecc14e",
+        "android_client_info": {
+          "package_name": "com.lymors.commonslib"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyClRfRh0iShWyjeA9tRjJYXjd199r_wuxA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
