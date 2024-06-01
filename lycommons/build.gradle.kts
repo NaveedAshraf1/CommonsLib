@@ -99,7 +99,7 @@ dependencies {
     kapt("com.google.dagger:hilt-android-compiler:2.48")
     implementation ("androidx.lifecycle:lifecycle-process:2.7.0")
 
-    implementation ("com.google.android.gms:play-services-auth:20.7.0")
+    implementation ("com.google.firebase:firebase-auth:23.0.0")
 
 
 
@@ -121,4 +121,7 @@ dependencies {
     // math expression
     implementation ("org.mariuszgromada.math:MathParser.org-mXparser:5.2.1")
 
+
+//        .. google
+    implementation ("com.google.android.gms:play-services-auth:20.7.0")
 }

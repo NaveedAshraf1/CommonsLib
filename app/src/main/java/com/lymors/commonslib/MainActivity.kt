@@ -246,14 +246,14 @@ class MainActivity : AppCompatActivity() {
 
             if (item in listOfSelectedItems){
                 // if item is selected then set the background
-                b.cardView.background = getDrawable(this@MainActivity, R.drawable.selected_background)
+                b.cardView.background = getDrawable(this@MainActivity, com.lymors.lycommons.R.drawable.selected_background)
             }else{
                 b.cardView.background = null
             }
 
             b.cardView.setOnLongClickListener { view ->
 
-                b.cardView.background = getDrawable(this@MainActivity, R.drawable.selected_background)
+                b.cardView.background = getDrawable(this@MainActivity, com.lymors.lycommons.R.drawable.selected_background)
                 listOfSelectedViews.add(view)
                 listOfSelectedItems.add(item)
 
@@ -275,7 +275,7 @@ class MainActivity : AppCompatActivity() {
                     } else {
                         listOfSelectedItems.add(item)
                         listOfSelectedViews.add(it)
-                        b.cardView.background = getDrawable(this@MainActivity, R.drawable.selected_background)
+                        b.cardView.background = getDrawable(this@MainActivity, com.lymors.lycommons.R.drawable.selected_background)
                     }
                     if (listOfSelectedItems.size==1){
                         binding.update.setVisibleOrGone(true)

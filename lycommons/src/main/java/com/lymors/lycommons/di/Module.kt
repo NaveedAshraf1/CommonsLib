@@ -56,8 +56,8 @@ object Module {
 
     @Provides
     @Singleton
-    fun provideAuthViewModel(authRepositoryWithEmail: AuthRepositoryWithEmail, authRepositoryWithPhone: AuthRepositoryWithPhone) : AuthViewModel {
-        return AuthViewModel(authRepositoryWithEmail,authRepositoryWithPhone)
+    fun provideAuthViewModel(authRepositoryWithEmail: AuthRepositoryWithEmail, authRepositoryWithPhone: AuthRepositoryWithPhone , authRepositoryWithGoogle: AuthRepositoryWithGoogle) : AuthViewModel {
+        return AuthViewModel(authRepositoryWithEmail,authRepositoryWithPhone , authRepositoryWithGoogle)
     }
 
     @Provides
