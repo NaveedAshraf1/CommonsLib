@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="@dimen/_5sdp"
+    app:cardCornerRadius="6dp"
+    app:strokeColor="@color/cement">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/cardView"
+        android:orientation="horizontal">
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/image1"
+            android:layout_width="65dp"
+            android:layout_height="65dp"
+            android:layout_margin="@dimen/_7sdp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/man"
+            android:visibility="visible" />
+
+        <LinearLayout
+            android:id="@+id/sampleLinearLayout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+
+            <TextView
+                android:id="@+id/myname"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="@dimen/_2sdp"
+                android:ellipsize="end"
+                android:fontFamily="sans-serif"
+                android:gravity="center"
+                android:maxWidth="@dimen/_140sdp"
+                android:singleLine="true"
+                android:text="Muhammed Ahmad"
+                android:textColor="@color/black"
+                android:textSize="@dimen/_15sdp"
+                android:textStyle="normal" />
+
+            <TextView
+                android:id="@+id/phone"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:fontFamily="sans-serif"
+                android:gravity="center"
+                android:maxWidth="@dimen/_100sdp"
+                android:singleLine="true"
+                android:text="098765434567"
+                android:textColor="@color/black"
+                android:textSize="@dimen/_10sdp"
+                android:textStyle="normal" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="bottom"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="3dp">
+
+
+
+            <TextView
+                android:id="@+id/feeNumber"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:fontFamily="sans-serif"
+                android:layout_gravity="bottom"
+                android:gravity="bottom"
+                android:maxLength="10"
+                android:layout_marginBottom="@dimen/_5sdp"
+                android:paddingHorizontal="@dimen/_5sdp"
+                android:singleLine="true"
+                android:text="RS : 20,000"
+                android:textColor="@color/black"
+                android:textSize="15sp"
+                android:textStyle="normal" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

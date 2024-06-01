@@ -8,6 +8,10 @@ plugins {
 }
 
 android {
+
+    buildFeatures{
+        viewBinding=true
+    }
     namespace = "com.lymors.lycommons"
     compileSdk = 34
 
@@ -94,6 +98,8 @@ dependencies {
     implementation("com.google.dagger:hilt-android:2.48")
     kapt("com.google.dagger:hilt-android-compiler:2.48")
     implementation ("androidx.lifecycle:lifecycle-process:2.7.0")
+
+    implementation ("com.google.android.gms:play-services-auth:20.7.0")
 
 
 

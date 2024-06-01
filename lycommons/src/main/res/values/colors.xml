@@ -130,14 +130,14 @@
 
 
     <color name="gray10">#F1EFEF</color>
-    <color name="gray20">#F1EFEF</color>
-    <color name="gray30">#F1EFEF</color>
-    <color name="gray40">#F1EFEF</color>
-    <color name="gray50">#F1EFEF</color>
-    <color name="gray60">#F1EFEF</color>
-    <color name="gray70">#F1EFEF</color>
-    <color name="gray80">#F1EFEF</color>
-    <color name="gray90">#F1EFEF</color>
+    <color name="gray20">#D1D0D0</color>
+    <color name="gray30">#C1C1C1</color>
+    <color name="gray40">#919090</color>
+    <color name="gray50">#6E6E6E</color>
+    <color name="gray60">#515151</color>
+    <color name="gray70">#333333</color>
+    <color name="gray80">#222121</color>
+    <color name="gray90">#1C1C1C</color>
 
 
     <!-- Green -->

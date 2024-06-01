@@ -158,6 +158,14 @@ import kotlin.reflect.full.memberProperties
 
 
 object MyExtensions {
+    
+    fun View.setVisibleOrInvisible(visible: Boolean) {
+        visibility = if (visible) View.VISIBLE else View.INVISIBLE
+    }
+    fun View.setVisibleOrGone(visible: Boolean) {
+        visibility = if (visible) View.VISIBLE else View.GONE
+    }
+    
 
 
     fun createTextView(
@@ -318,6 +326,7 @@ object MyExtensions {
         animate().translationX(0f).setDuration(duration).setInterpolator(AccelerateDecelerateInterpolator()).start()
         visibility = View.VISIBLE
     }
+
 
     fun View.slideInFromRight(duration: Long = 300L) {
         val translationX = width.toFloat()
@@ -1386,9 +1395,6 @@ object MyExtensions {
             if (value > 1) {
                 value--
                 this.setText(value.toString())
-                this.attachDatePickerWithCallback {
-
-                }
             }
         }
     }
@@ -1397,7 +1403,7 @@ object MyExtensions {
 
 
 
-    fun View.attachDatePickerWithCallback(pattern:String = "dd-MM-yyyy",callback: (Date) -> Unit) {
+    fun View.attachDatePicker(pattern:String = "dd-MM-yyyy",callback: (Date) -> Unit = {}) {
 
         fun openDatePickerDialog() {
             val context = this.context
@@ -1680,7 +1686,7 @@ object MyExtensions {
     }
 
     val Activity.dialogUtil: DialogUtil
-        get() = DialogUtil(this)
+        get() = DialogUtil()
 
     val Activity.dataStore: DataStoreManager
         get() = DataStoreManager(this)
@@ -2360,7 +2366,7 @@ object MyExtensions {
     }
 
    //Convert a string to an integer (or return a default value if conversion fails)
-    fun String.toIntOrDefault(defaultValue: Int): Int {
+    fun String.toIntOrDefault(defaultValue: Int = 0): Int {
         return toIntOrNull() ?: defaultValue
     }
 

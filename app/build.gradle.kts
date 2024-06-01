@@ -2,11 +2,16 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
     kotlin("kapt")
+    alias(libs.plugins.googleGmsGoogleServices)
+    id ("com.google.dagger.hilt.android")
+    id ("kotlin-parcelize")
 }
 
 android {
     namespace = "com.lymors.commonslib"
     compileSdk = 34
+
+
 
     defaultConfig {
         applicationId = "com.lymors.commonslib"
@@ -34,6 +39,10 @@ android {
     kotlinOptions {
         jvmTarget = "1.8"
     }
+
+    buildFeatures {
+        viewBinding = true
+    }
 }
 
 dependencies {
@@ -44,6 +53,7 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
+    implementation(libs.firebase.database)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -55,7 +65,7 @@ dependencies {
 
 //    implementation ("com.github.NaveedAshraf1:commonslib:1.1.4")
 
-
+    implementation ("de.hdodenhof:circleimageview:3.1.0")
 
     // di
     implementation("com.google.dagger:hilt-android:2.48")

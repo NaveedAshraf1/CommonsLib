@@ -58,18 +58,18 @@ class MainViewModel @Inject constructor(private val mainRepo: MainRepository) : 
     }
 
     val map = HashMap<Class<*>, AlphaModel<*>>()
-    suspend fun <T> collectAnyModels(path: String, clazz: Class<T>): StateFlow<List<T>> {
+    suspend fun <T> collectAnyModels(path: String, clazz: Class<T> ,  numberOfItems: Int = 0): StateFlow<List<T>> {
         return suspendCancellableCoroutine { continuation ->
-            if (map.containsKey(clazz) && map[clazz]?.path ==path ) {
+            if (map.containsKey(clazz) && map[clazz]?.path ==path && map[clazz]?.more == numberOfItems ) {
                 continuation.resume(map[clazz]?.stateFlow as StateFlow<List<T>>)
             } else {
                 val mutableStateFlow = MutableStateFlow<List<T>>(emptyList())
                 val stateFlow = mutableStateFlow.asStateFlow()
-                val a = AlphaModel(path, mutableStateFlow)
+                val a = AlphaModel(path, mutableStateFlow , numberOfItems )
                 a.stateFlow = stateFlow
                 map[clazz] = a
                 viewModelScope.launch {
-                    mainRepo.collectAnyModel(path, clazz).collect {
+                    mainRepo.collectAnyModel(path, clazz,numberOfItems).collect {
                         mutableStateFlow.value = it
                     }
                 }
@@ -100,6 +100,10 @@ class MainViewModel @Inject constructor(private val mainRepo: MainRepository) : 
         return mainRepo.getModelsWithChildren(path, clazz)
     }
 
+    suspend fun <T:Any> queryModelByAProperty(path: String, clazz: Class<T>, property: String, value: String):T? {
+        return mainRepo.queryModelByAProperty(path, property, value , clazz)
+    }
+
     fun setLongClickedState(longClicked: Boolean) {
         _longClickedState.value = longClicked
     }
@@ -112,7 +116,7 @@ class MainViewModel @Inject constructor(private val mainRepo: MainRepository) : 
 data class AlphaModel<T>(
     var path: String,
     var _stateFlow:MutableStateFlow<List<T>>,
-
+    var more:Int = 0
     ){
     var stateFlow:StateFlow<List<T>> = _stateFlow.asStateFlow()
 }

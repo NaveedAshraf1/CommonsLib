@@ -7,26 +7,24 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.database.Cursor
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.pdf.PdfDocument
-import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
-import android.provider.OpenableColumns
+import android.os.Handler
+import android.os.Looper
 import android.telephony.SmsManager
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewAnimationUtils
 import android.view.ViewGroup
 import android.view.animation.AccelerateDecelerateInterpolator
+import android.view.animation.Animation
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.FrameLayout
-import android.widget.ImageView
-import android.widget.Toast
 import androidx.annotation.DimenRes
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
@@ -40,8 +38,6 @@ import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
-import com.google.android.material.textfield.TextInputEditText
-import com.google.android.play.integrity.internal.i
 import com.lymors.lycommons.R
 import com.lymors.lycommons.utils.MyExtensions.logT
 import com.lymors.lycommons.utils.MyExtensions.showToast
@@ -50,27 +46,33 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.lang.reflect.Modifier
 import java.util.Locale
+import kotlin.reflect.KMutableProperty
+import kotlin.reflect.full.declaredMemberProperties
+import kotlin.reflect.jvm.isAccessible
 
 
 object Utils {
 
+    fun View.setTint(color: Int) {
+        backgroundTintList = ContextCompat.getColorStateList(context, color)
+    }
 
-    fun checkEditTexts( list:List<EditText>):Boolean{
-            list.forEach {
-                if (it.text.toString().isEmpty()){
-                    if (it.tag.toString().isNotEmpty()){
-                        it.context.showToast("${it.tag}  must not be empty")
-                    }else if(it.hint.toString().isNotEmpty()){
-                        it.context.showToast("${it.hint}  must not be empty")
-                    }else{
-                        it.context.showToast("${it.id}  must not be empty")
-                    }
-                    return false
+
+    fun checkEditTexts(list: List<EditText>): Boolean {
+        list.forEach {
+            if (it.text.toString().isEmpty()) {
+                if (it.tag.toString().isNotEmpty()) {
+                    it.context.showToast("${it.tag}  must not be empty")
+                } else if (it.hint.toString().isNotEmpty()) {
+                    it.context.showToast("${it.hint}  must not be empty")
+                } else {
+                    it.context.showToast("${it.id}  must not be empty")
                 }
+                return false
             }
-            return true
         }
-
+        return true
+    }
 
 
     fun printClassInfo(clazz: Class<*>) {
@@ -86,7 +88,6 @@ object Utils {
     }
 
 
-
     @RequiresApi(Build.VERSION_CODES.O)
     fun printMethodNames(clazz: Class<*>) {
         val methods = clazz.declaredMethods
@@ -94,13 +95,14 @@ object Utils {
         for (method in methods) {
             val modifiers = Modifier.toString(method.modifiers)
             val returnType = method.returnType.simpleName
-            val parameters = method.parameters.joinToString(", ") { "${it.type.simpleName} ${it.name}" }
+            val parameters =
+                method.parameters.joinToString(", ") { "${it.type.simpleName} ${it.name}" }
             println("$modifiers $returnType ${method.name}($parameters)")
         }
     }
 
 
-    fun pickImage(requestCode: Int,context: Activity){
+    fun pickImage(requestCode: Int, context: Activity) {
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
         intent.addCategory(Intent.CATEGORY_OPENABLE)
         intent.type = "image/*"
@@ -115,7 +117,7 @@ object Utils {
         context.startActivityForResult(intent, requestCode)
     }
 
-    fun sendMessageToWhatsApp(context: Context,phoneNumber:String,message: String){
+    fun sendMessageToWhatsApp(context: Context, phoneNumber: String, message: String) {
         val intent = Intent(Intent.ACTION_VIEW)
         intent.data = Uri.parse("https://wa.me/$phoneNumber/?text=${Uri.encode(message)}")
         context.startActivity(intent)
@@ -129,8 +131,7 @@ object Utils {
     }
 
 
-
-    fun sendMessage(number:String , message:String) {
+    fun sendMessage(number: String, message: String) {
         if (number.isEmpty() || message.isEmpty()) {
             val byteArray = message.toByteArray(charset("UTF-16"))
             val sms = String(byteArray, charset("UTF-16"))
@@ -163,8 +164,6 @@ object Utils {
         params.height = height
         layoutParams = params
     }
-
-
 
 
     fun shareMyApp(context: Context, subject: String?, message: String) {
@@ -203,8 +202,10 @@ object Utils {
         val centerX = (showView.left + showView.right) / 2
         val centerY = (showView.top + showView.bottom) / 2
 
-        val finalRadius = kotlin.math.hypot(showView.width.toDouble(), showView.height.toDouble()).toFloat()
-        val circularReveal = ViewAnimationUtils.createCircularReveal(showView, centerX, centerY, 0f, finalRadius)
+        val finalRadius =
+            kotlin.math.hypot(showView.width.toDouble(), showView.height.toDouble()).toFloat()
+        val circularReveal =
+            ViewAnimationUtils.createCircularReveal(showView, centerX, centerY, 0f, finalRadius)
 
         circularReveal.duration = 700
 
@@ -219,12 +220,13 @@ object Utils {
     }
 
 
-
-    fun hideWithRevealAnimation(hideView: View, showView: View){
+    fun hideWithRevealAnimation(hideView: View, showView: View) {
         val centerX = (hideView.left + hideView.right) / 2
         val centerY = (hideView.top + hideView.bottom) / 2
-        val initialRadius = Math.hypot(hideView.width.toDouble(), hideView.height.toDouble()).toFloat()
-        val circularReveal = ViewAnimationUtils.createCircularReveal(hideView, centerX, centerY, initialRadius, 0f)
+        val initialRadius =
+            Math.hypot(hideView.width.toDouble(), hideView.height.toDouble()).toFloat()
+        val circularReveal =
+            ViewAnimationUtils.createCircularReveal(hideView, centerX, centerY, initialRadius, 0f)
         circularReveal.duration = 700
         circularReveal.addListener(object : AnimatorListenerAdapter() {
             override fun onAnimationEnd(animation: Animator) {
@@ -237,27 +239,22 @@ object Utils {
     }
 
 
-
-
     fun processPhoneNumber(phoneNumber: String): String {
         val cleanedNumber = phoneNumber.replace("\\s".toRegex(), "")
         return if (phoneNumber.startsWith("03")) {
-            cleanedNumber.replaceFirst("0","")
+            cleanedNumber.replaceFirst("0", "")
         } else {
             cleanedNumber
         }
     }
 
 
-
-
-
     /**
     simple default bottom Nav
     usage in activity
 
-      val list = listOf(BlankFragment1(), BlankFragment2(), BlankFragment3())
-        setupBottomNav(this, bottomNav, frameLayout, list)
+    val list = listOf(BlankFragment1(), BlankFragment2(), BlankFragment3())
+    setupBottomNav(this, bottomNav, frameLayout, list)
      **/
     fun AppCompatActivity.setupBottomNav(
         activity: AppCompatActivity,
@@ -317,34 +314,171 @@ object Utils {
     }
 
 
-
-
-
-
-
-
-
-    inline fun <T, VB : ViewBinding> RecyclerView.setData(
+    // paging adapter
+    fun <T, VB : ViewBinding> RecyclerView.setData(
         items: List<T>,
-        crossinline bindingInflater: (LayoutInflater, ViewGroup, Boolean) -> VB,
-        crossinline bindHolder: (binding: VB, item: T, position: Int) -> Unit
+        animation: Animation? = null,
+        pageSize:Int = 10,
+        bindingInflater: (LayoutInflater, ViewGroup, Boolean) -> VB,
+        bindHolder: (binding: VB, item: T, position: Int) -> Unit,
+        loadMore: (lastKey:Int) -> Unit,
     ) {
-        val adapter = object : RecyclerView.Adapter<DataViewHolder<VB>>() {
-            override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DataViewHolder<VB> {
-                val layoutInflater = LayoutInflater.from(parent.context)
-                val binding = bindingInflater(layoutInflater, parent, false)
-                return DataViewHolder(binding)
-            }
-            override fun onBindViewHolder(holder: DataViewHolder<VB>, position: Int) {
-                bindHolder(holder.binding, items[position], position)
-            }
-            override fun getItemCount(): Int {
-              return  items.size
+        val existingAdapter = this.adapter as? GenericPagingAdapter<T, VB>
+        if (items.isNotEmpty()) {
+            if (existingAdapter != null) {
+                existingAdapter.updateData(items)
+            } else {
+                val adapter = GenericPagingAdapter(items, animation, bindingInflater, bindHolder, loadMore, pageSize
+                )
+                this.adapter = adapter
             }
         }
-        this.adapter = adapter
     }
+
+
     class DataViewHolder<VB : ViewBinding>(val binding: VB) : RecyclerView.ViewHolder(binding.root)
+
+
+    class GenericPagingAdapter<T, VB : ViewBinding>(
+        items: List<T>,
+        private val animation: Animation?,
+        private val bindingInflater: (LayoutInflater, ViewGroup, Boolean) -> VB,
+        private val bindHolder: (binding: VB, item: T, position: Int) -> Unit,
+        private val loadMore: (moreItems: Int) -> Unit,
+        private val pageSize: Int
+    ) : RecyclerView.Adapter<DataViewHolder<VB>>() {
+        private var adapterList: List<T> = items
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DataViewHolder<VB> {
+            val layoutInflater = LayoutInflater.from(parent.context)
+            val binding = bindingInflater(layoutInflater, parent, false)
+            return DataViewHolder(binding)
+        }
+
+        override fun getItemCount(): Int = adapterList.size
+
+        override fun onBindViewHolder(holder: DataViewHolder<VB>, position: Int) {
+            position.logT("position" , "position")
+
+            bindHolder(holder.binding, adapterList[position], position)
+            animation?.let {
+                holder.itemView.startAnimation(it)
+            }
+
+            if (position == adapterList.lastIndex) {
+                    loadMore(adapterList.size+pageSize)
+            }
+        }
+
+        private val handler = Handler(Looper.getMainLooper())
+        fun updateData(newData: List<T>) {
+            newData.logT("updateData")
+            handler.post {
+                adapterList.lastIndex.logT("lastIndex//")
+                if (adapterList.size!= newData.size && newData.size>adapterList.size){
+                    adapterList = newData
+                    notifyDataSetChanged()
+                }
+                adapterList.size.logT("listSize//")
+            }
+        }
+
+    }
+
+
+
+
+
+
+    class GenericAdapter<T, VB : ViewBinding>(
+        private var items: List<T>,
+        private val bindingInflater: (LayoutInflater, ViewGroup, Boolean) -> VB,
+        private val bindHolder: (binding: VB, item: T, position: Int) -> Unit,
+        private val animation: Animation?,
+    ) : RecyclerView.Adapter<DataViewHolder<VB>>() {
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DataViewHolder<VB> {
+            val layoutInflater = LayoutInflater.from(parent.context)
+            val binding = bindingInflater(layoutInflater, parent, false)
+            return DataViewHolder(binding)
+        }
+        override fun onBindViewHolder(holder: DataViewHolder<VB>, position: Int) {
+            bindHolder(holder.binding, items[position], position)
+            animation?.let {
+                holder.itemView.startAnimation(it)
+            }
+        }
+        override fun getItemCount(): Int = items.size
+        fun updateData(newItems: List<T>) {
+            newItems.logT("newItems")
+            items = newItems
+            notifyDataSetChanged()
+        }
+    }
+
+
+    fun <T, VB : ViewBinding> RecyclerView.setData(
+        items: List<T>,
+        bindingInflater: (LayoutInflater, ViewGroup, Boolean) -> VB,
+        bindHolder: (binding: VB, item: T, position: Int) -> Unit,
+    ) {
+        val existingAdapter = this.adapter as? GenericAdapter<T, VB>
+        if (existingAdapter != null) {
+            existingAdapter.updateData(items)
+        } else {
+            val adapter = GenericAdapter(
+                items,
+                bindingInflater,
+                bindHolder,
+                animation
+            )
+            this.adapter = adapter
+        }
+    }
+
+
+    fun <T, VB : ViewBinding> RecyclerView.setData(
+        animation: Animation? = null,
+        items: List<T>,
+        bindingInflater: (LayoutInflater, ViewGroup, Boolean) -> VB,
+        bindHolder: (binding: VB, item: T, position: Int) -> Unit,
+
+    ) {
+        val existingAdapter = this.adapter as? GenericAdapter<T, VB>
+        if (existingAdapter != null) {
+            existingAdapter.updateData(items)
+        } else {
+            val adapter = GenericAdapter(items, bindingInflater, bindHolder, animation,)
+            this.adapter = adapter
+        }
+    }
+
+
+
+//    inline fun <T, VB : ViewBinding> RecyclerView.setData(
+//        items: List<T>,
+//        crossinline bindingInflater: (LayoutInflater, ViewGroup, Boolean) -> VB,
+//        crossinline bindHolder: (binding: VB, item: T, position: Int , adapter1: RecyclerView.Adapter<DataViewHolder<VB>>) -> Unit,
+//        animation: Animation? = null
+//    ) {
+//        val adapter = object : RecyclerView.Adapter<DataViewHolder<VB>>() {
+//            var adapterList = items
+//            override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DataViewHolder<VB> {
+//                val layoutInflater = LayoutInflater.from(parent.context)
+//                val binding = bindingInflater(layoutInflater, parent, false)
+//                return DataViewHolder(binding)
+//            }
+//
+//            override fun onBindViewHolder(holder: DataViewHolder<VB>, position: Int) {
+//                bindHolder(holder.binding, adapterList[position], position , this)
+//                if (animation != null) {
+//                    holder.itemView.startAnimation(animation)
+//                }
+//            }
+//            override fun getItemCount(): Int = adapterList.size
+//        }
+//        this.adapter = adapter
+//    }
+//    class DataViewHolder<VB : ViewBinding>(val binding: VB) : RecyclerView.ViewHolder(binding.root)
 
 
 
@@ -359,10 +493,6 @@ object Utils {
     }
 
 
-
-    fun View.setVisible(isVisible: Boolean) {
-        visibility = if (isVisible) View.VISIBLE else View.GONE
-    }
 
 
     fun Context.openActivity(activityClass: Class<*>) {

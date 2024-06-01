@@ -5,4 +5,5 @@ plugins {
     alias(libs.plugins.androidLibrary) apply false
     //hilt plugin
     id("com.google.dagger.hilt.android") version "2.48" apply false
+    alias(libs.plugins.googleGmsGoogleServices) apply false
 }

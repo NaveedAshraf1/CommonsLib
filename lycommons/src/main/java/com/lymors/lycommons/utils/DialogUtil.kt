@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.DialogInterface
 import android.content.res.ColorStateList
 import android.graphics.Color
+import android.graphics.PorterDuff
 import android.graphics.Typeface
 import android.graphics.drawable.ColorDrawable
 import android.util.TypedValue
@@ -20,7 +21,10 @@ import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.annotation.DrawableRes
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.getColor
+import androidx.core.content.ContextCompat.getDrawable
 import androidx.core.view.children
 import androidx.viewbinding.ViewBinding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -31,22 +35,22 @@ import com.lymors.lycommons.utils.MyExtensions.createButton
 import com.lymors.lycommons.utils.MyExtensions.createLinearLayout
 import com.lymors.lycommons.utils.MyExtensions.createTextView
 
-class DialogUtil( val context: Activity):Dialog(context) {
+class DialogUtil {
 
-    lateinit var dialog:Dialog
+    lateinit var dialog: Dialog
 
-    interface DialogClickListener{
+    interface DialogClickListener {
         fun onClickYes(d: DialogInterface)
         fun onClickNo(d: DialogInterface)
     }
 
-    interface EditTextDialogClickListener{
-        fun onClickYes(d: DialogInterface , texts:ArrayList<String>)
+    interface EditTextDialogClickListener {
+        fun onClickYes(d: DialogInterface, texts: ArrayList<String>)
         fun onClickNo(d: DialogInterface)
     }
 
 
-    fun showAlertDialogRounded( title: String, message: String, cancelable: Boolean = false ) {
+    fun showAlertDialogRounded(context: Context,title: String, message: String, cancelable: Boolean = false) {
         val alertDialogBuilder = MaterialAlertDialogBuilder(context)
         alertDialogBuilder.setTitle(title)
         alertDialogBuilder.setMessage(message)
@@ -64,17 +68,17 @@ class DialogUtil( val context: Activity):Dialog(context) {
     }
 
 
-
-    inline fun <reified T : ViewBinding> showCustomLayoutDialog(
-        crossinline bindingInflater: (LayoutInflater) -> T,@DrawableRes drawable:Int = R.drawable.rounderd_corner
+    inline fun <reified T : ViewBinding> showCustomLayoutDialog(context: Activity,
+        crossinline bindingInflater: (LayoutInflater) -> T,
+        @DrawableRes drawable: Int = R.drawable.rounderd_corner
     ): T {
-        val binding = bindingInflater.invoke(context.layoutInflater)
+        val binding = bindingInflater.invoke((context).layoutInflater)
         dialog = MaterialAlertDialogBuilder(context)
             .setView(binding.root)
             .show()
 
         // Set the dialog background to white
-        dialog.window?.setBackgroundDrawable(ContextCompat.getDrawable(context , drawable))
+        dialog.window?.setBackgroundDrawable(ContextCompat.getDrawable(context, drawable))
 
         val width = (context.resources.displayMetrics.widthPixels * 0.9).toInt()
         dialog.window?.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
@@ -82,8 +86,8 @@ class DialogUtil( val context: Activity):Dialog(context) {
     }
 
 
-    fun showAlertDialog( title: String, message: String, cancelable: Boolean = false ) {
-        val alertDialogBuilder = createAlertDialog(title, message, cancelable)
+    fun showAlertDialog(context: Context,title: String, message: String, cancelable: Boolean = false) {
+        val alertDialogBuilder = createAlertDialog(context,title, message, cancelable)
         alertDialogBuilder.setPositiveButton("OK") { dialog, _ ->
             dialog.dismiss()
         }
@@ -95,9 +99,16 @@ class DialogUtil( val context: Activity):Dialog(context) {
     }
 
 
-
-    fun showInfoDialog( title: String, message: String, positiveButtonLabel:String = "Ok", negativeButtonLabel:String = "Cancel", cancelable: Boolean, obj: DialogClickListener) {
-        val alertDialogBuilder = createAlertDialog(title, message, cancelable)
+    fun showInfoDialog(
+        context: Context,
+        title: String,
+        message: String,
+        positiveButtonLabel: String = "Ok",
+        negativeButtonLabel: String = "Cancel",
+        cancelable: Boolean,
+        obj: DialogClickListener
+    ) {
+        val alertDialogBuilder = createAlertDialog(context , title, message, cancelable)
         alertDialogBuilder.setPositiveButton(positiveButtonLabel) { dialog, _ ->
             obj.onClickYes(dialog)
         }
@@ -112,21 +123,36 @@ class DialogUtil( val context: Activity):Dialog(context) {
 
 
     fun showEditTextDialog(
+        context: Context,
         title: String,
         hints: List<String>,
         obj: EditTextDialogClickListener
     ) {
         val textFields = ArrayList<String>()
-        val dialog = createAlertDialog("", "")
-        val verticalLinearLayout = createLinearLayout(context,LinearLayout.VERTICAL, Gravity.CENTER )
+        val dialog = createAlertDialog(context,"", "")
+        val verticalLinearLayout =
+            createLinearLayout(context, LinearLayout.VERTICAL, Gravity.CENTER)
 
         // Set title
-        val titleTextView = createTextView(context,title, Gravity.CENTER_HORIZONTAL, LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT , 30f,0,25,0,10,true)
+        val titleTextView = createTextView(
+            context,
+            title,
+            Gravity.CENTER_HORIZONTAL,
+            LayoutParams.WRAP_CONTENT,
+            LayoutParams.WRAP_CONTENT,
+            30f,
+            0,
+            25,
+            0,
+            10,
+            true
+        )
         titleTextView.setTextColor(ContextCompat.getColor(context, R.color.cement))
         verticalLinearLayout.addView(titleTextView)
 
         // Set all TextInputLayouts
-        val editTextLinearLayout = createLinearLayout(context,LinearLayout.VERTICAL, Gravity.CENTER)
+        val editTextLinearLayout =
+            createLinearLayout(context, LinearLayout.VERTICAL, Gravity.CENTER)
         hints.forEach { hint ->
             val textInputLayout = TextInputLayout(context)
 
@@ -169,11 +195,24 @@ class DialogUtil( val context: Activity):Dialog(context) {
         verticalLinearLayout.addView(editTextLinearLayout)
 
 
-        val buttonsLinear = createLinearLayout(context,LinearLayout.HORIZONTAL,Gravity.END , right = 20)
-        val b1 = createButton(context,capitalizeFirstLetter("save"),Gravity.CENTER,LayoutParams.WRAP_CONTENT,LayoutParams.WRAP_CONTENT).apply {
+        val buttonsLinear =
+            createLinearLayout(context, LinearLayout.HORIZONTAL, Gravity.END, right = 20)
+        val b1 = createButton(
+            context,
+            capitalizeFirstLetter("save"),
+            Gravity.CENTER,
+            LayoutParams.WRAP_CONTENT,
+            LayoutParams.WRAP_CONTENT
+        ).apply {
             isAllCaps = false
         }
-        val b2 = createButton(context,capitalizeFirstLetter("cancel"),Gravity.CENTER,LayoutParams.WRAP_CONTENT,LayoutParams.WRAP_CONTENT).apply {
+        val b2 = createButton(
+            context,
+            capitalizeFirstLetter("cancel"),
+            Gravity.CENTER,
+            LayoutParams.WRAP_CONTENT,
+            LayoutParams.WRAP_CONTENT
+        ).apply {
             isAllCaps = false
         }
 
@@ -197,24 +236,20 @@ class DialogUtil( val context: Activity):Dialog(context) {
     }
 
     private fun capitalizeFirstLetter(text: String): String {
-        return text.lowercase().replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+        return text.lowercase()
+            .replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
     }
 
 
-
-
-
-
-
-
-
-
-
-
-    fun createAlertDialog(title: String, message: String , cancelable:Boolean= false):AlertDialog.Builder{
+    fun createAlertDialog(
+        context: Context,
+        title: String,
+        message: String,
+        cancelable: Boolean = false
+    ): AlertDialog.Builder {
         val alertDialogBuilder = AlertDialog.Builder(context)
         alertDialogBuilder.setTitle(title)
-        if (message.isNotEmpty()){
+        if (message.isNotEmpty()) {
             alertDialogBuilder.setMessage(message)
         }
 
@@ -222,24 +257,26 @@ class DialogUtil( val context: Activity):Dialog(context) {
         return alertDialogBuilder
     }
 
-
-
-
-    fun showProgressDialog(context: Context, message: String): Dialog {
-        val progressDialog = Dialog(context)
-        progressDialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-        progressDialog.setCancelable(false)
-
-        val progressBar = ProgressBar(context)
-        val messageTextView = TextView(context)
+    fun showProgressDialog(context: Context, message: String , cancelable: Boolean = true , transparent: Boolean = false , progressColor: Int =  R.color.gray50 ): Dialog {
+        var progressDialog = Dialog(context)
+        if (transparent) {
+            progressDialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        }
+        progressDialog.setCancelable(cancelable)
+        val view = LayoutInflater.from(context).inflate(R.layout.progress_dialog, null)
+        val messageTextView = view.findViewById<TextView>(R.id.messageTextView)
+        val progress = view.findViewById<ProgressBar>(R.id.progressBar)
+        progress.indeterminateTintList = ColorStateList.valueOf(getColor(context,progressColor))
         messageTextView.text = message
-
-        progressDialog.setContentView(progressBar)
+        progressDialog.setContentView(view)
         progressDialog.show()
-
         return progressDialog
     }
 
 
 
+
+
 }
+
+
