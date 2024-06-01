@@ -17,7 +17,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
-
 @HiltViewModel
 class AuthViewModel @Inject constructor(private val authRepositoryWithEmail: AuthRepositoryWithEmail, private val authRepositoryWithPhone: AuthRepositoryWithPhone ,private val authRepositoryWithGoogle: AuthRepositoryWithGoogle) : ViewModel() {
 
@@ -37,6 +36,7 @@ class AuthViewModel @Inject constructor(private val authRepositoryWithEmail: Aut
     suspend fun loginWithPhoneCredential(credential: PhoneAuthCredential): MyResult<String> {
         return withContext(Dispatchers.IO){authRepositoryWithPhone.loginUser(credential)}
     }
+
     suspend fun resendOtp(token: PhoneAuthProvider.ForceResendingToken, callBack: PhoneAuthProvider.OnVerificationStateChangedCallbacks, context: Activity, phoneNumber: String): MyResult<String> {
         return withContext(Dispatchers.IO){authRepositoryWithPhone.resendOtp(token, callBack, context, phoneNumber)}
     }
