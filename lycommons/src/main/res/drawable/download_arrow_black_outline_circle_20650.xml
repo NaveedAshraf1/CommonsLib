@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="256dp"
+    android:height="256dp"
+    android:viewportWidth="256"
+    android:viewportHeight="256">
+
+    <group
+            android:translateX="1.4065934065934016"
+            android:translateY="1.4065934065934016"
+            android:scaleX="2.81"
+            android:scaleY="2.81">
+        <path
+            android:fillColor="#000000"
+            android:strokeWidth="1"
+            android:strokeMiterLimit="10"
+            android:strokeLineCap="round"
+            android:pathData="M 56.744 44.257 L 47 54.002 V 20.5 c 0 -1.104 -0.896 -2 -2 -2 s -2 0.896 -2 2 v 33.502 l -9.745 -9.745 c -0.78 -0.781 -2.048 -0.781 -2.828 0 c -0.781 0.781 -0.781 2.047 0 2.829 l 13.157 13.157 c 0.092 0.093 0.194 0.176 0.303 0.249 c 0.027 0.018 0.057 0.029 0.084 0.046 c 0.084 0.051 0.168 0.1 0.259 0.138 c 0.038 0.016 0.079 0.023 0.118 0.037 c 0.084 0.029 0.166 0.06 0.255 0.077 c 0.129 0.026 0.262 0.04 0.395 0.04 s 0.266 -0.014 0.395 -0.04 c 0.088 -0.018 0.171 -0.049 0.255 -0.077 c 0.039 -0.014 0.08 -0.021 0.118 -0.037 c 0.091 -0.038 0.176 -0.088 0.259 -0.138 c 0.027 -0.016 0.058 -0.028 0.084 -0.046 c 0.109 -0.073 0.211 -0.156 0.303 -0.249 l 13.157 -13.157 c 0.781 -0.781 0.781 -2.048 0 -2.829 C 58.791 43.476 57.525 43.476 56.744 44.257 z" />
+        <path
+            android:fillColor="#000000"
+            android:strokeWidth="1"
+            android:strokeMiterLimit="10"
+            android:strokeLineCap="round"
+            android:pathData="M 58.158 67.5 H 31.841 c -1.104 0 -2 0.896 -2 2 s 0.896 2 2 2 h 26.317 c 1.104 0 2 -0.896 2 -2 S 59.263 67.5 58.158 67.5 z" />
+        <path
+            android:fillColor="#000000"
+            android:strokeWidth="1"
+            android:strokeMiterLimit="10"
+            android:strokeLineCap="round"
+            android:pathData="M 45 0 C 20.187 0 0 20.187 0 45 c 0 24.813 20.187 45 45 45 c 24.813 0 45 -20.187 45 -45 C 90 20.187 69.813 0 45 0 z M 45 86 C 22.393 86 4 67.607 4 45 S 22.393 4 45 4 s 41 18.393 41 41 S 67.607 86 45 86 z" />
+    </group>
+</vector>

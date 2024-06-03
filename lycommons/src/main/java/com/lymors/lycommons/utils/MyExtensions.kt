@@ -145,6 +145,7 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.io.OutputStream
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -158,7 +159,101 @@ import kotlin.reflect.full.memberProperties
 
 
 object MyExtensions {
-    
+
+
+    enum class ImageFormat {
+        PNG,
+        JPEG
+    }
+
+    fun Drawable.saveAsImageFile(context: Context, fileName: String, format: ImageFormat): File? {
+        val bitmap = this.toBitmap()
+        var outputStream: OutputStream? = null
+        var file: File? = null
+
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val resolver = context.contentResolver
+                val contentValues = ContentValues().apply {
+                    put(MediaStore.MediaColumns.DISPLAY_NAME, "$fileName.${format.name.toLowerCase()}")
+                    put(MediaStore.MediaColumns.MIME_TYPE, "image/${format.name.toLowerCase()}")
+                    put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/myicons")
+                }
+                val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+                if (uri != null) {
+                    outputStream = resolver.openOutputStream(uri)
+                    file = File(uri.path)
+                }
+            } else {
+                val storageDir = File(Environment.getExternalStorageDirectory().toString() + "/myicons")
+                if (!storageDir.exists()) {
+                    storageDir.mkdirs()
+                }
+                file = File(storageDir, "$fileName.${format.name.toLowerCase()}")
+                outputStream = FileOutputStream(file)
+            }
+
+            outputStream?.use { out ->
+                when (format) {
+                    ImageFormat.PNG -> {
+                        bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+                    }
+                    ImageFormat.JPEG -> {
+                        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
+                    }
+
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            file?.delete()
+            return null
+        } finally {
+            outputStream?.close()
+        }
+
+        return file
+    }
+    fun WebView.hideElementByClassName(className: String) {
+        this.evaluateJavascript(
+            """
+        (function() {
+            var elements = document.getElementsByClassName('$className');
+            for (var i = 0; i < elements.length; i++) {
+                elements[i].style.display = 'none';
+            }
+        })();
+        """.trimIndent(), null
+        )
+    }
+
+    fun WebView.hideElementByTagName(tagName: String) {
+        this.evaluateJavascript(
+            """
+        (function() {
+            var elements = document.getElementsByTagName('$tagName');
+            for (var i = 0; i < elements.length; i++) {
+                elements[i].style.display = 'none';
+            }
+        })();
+        """.trimIndent(), null
+        )
+    }
+
+    fun WebView.hideElementById(id: String) {
+        this.evaluateJavascript(
+            """
+        (function() {
+            var element = document.getElementById('$id');
+            if (element) {
+                element.style.display = 'none';
+            }
+        })();
+        """.trimIndent(), null
+        )
+    }
+
+
     fun View.setVisibleOrInvisible(visible: Boolean) {
         visibility = if (visible) View.VISIBLE else View.INVISIBLE
     }
@@ -927,6 +1022,13 @@ object MyExtensions {
 
     fun Long.isWithinRange(min: Long, max: Long): Boolean {
         return this in min..max
+    }
+
+    fun Activity.launchActivity(destination: Class<*>) {
+        // Create an Intent to launch the target activity
+        val intent = Intent(this, destination::class.java)
+        // Start the activity with the created Intent
+        startActivity(intent)
     }
 
 

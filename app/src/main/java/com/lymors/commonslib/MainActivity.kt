@@ -66,6 +66,8 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        dialogUtil.showProgressDialog(this,"Loading...")
+
         allUsers = listOf()
         lifecycleScope.launch {
             // change you model here

@@ -16,6 +16,7 @@ import android.util.TypedValue
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.webkit.WebView
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.ProgressBar
@@ -69,16 +70,39 @@ class DialogUtil {
 
 
     inline fun <reified T : ViewBinding> showCustomLayoutDialog(context: Activity,
+         crossinline bindingInflater: (LayoutInflater) -> T,
+         cancelable: Boolean = true ,
+         callback: (T) -> Unit
+    ): Dialog {
+        val binding = bindingInflater.invoke((context).layoutInflater)
+        dialog = MaterialAlertDialogBuilder(context)
+            .setView(binding.root)
+            .setCancelable(cancelable)
+            .show()
+
+        // Set the dialog background to white
+        dialog.window?.setBackgroundDrawable(ContextCompat.getDrawable(context, R.drawable.rounderd_corner))
+
+        val width = (context.resources.displayMetrics.widthPixels * 0.9).toInt()
+        dialog.window?.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
+        callback.invoke( binding)
+        return dialog
+    }
+
+
+
+    inline fun <reified T : ViewBinding> showCustomLayoutDialog(context: Activity,
         crossinline bindingInflater: (LayoutInflater) -> T,
-        @DrawableRes drawable: Int = R.drawable.rounderd_corner
+        cancelable: Boolean = true
     ): T {
         val binding = bindingInflater.invoke((context).layoutInflater)
         dialog = MaterialAlertDialogBuilder(context)
             .setView(binding.root)
+            .setCancelable(cancelable)
             .show()
 
         // Set the dialog background to white
-        dialog.window?.setBackgroundDrawable(ContextCompat.getDrawable(context, drawable))
+        dialog.window?.setBackgroundDrawable(ContextCompat.getDrawable(context, R.drawable.rounderd_corner))
 
         val width = (context.resources.displayMetrics.widthPixels * 0.9).toInt()
         dialog.window?.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
@@ -257,6 +281,9 @@ class DialogUtil {
         return alertDialogBuilder
     }
 
+
+
+
     fun showProgressDialog(context: Context, message: String , cancelable: Boolean = true , transparent: Boolean = false , progressColor: Int =  R.color.gray50 ): Dialog {
         var progressDialog = Dialog(context)
         if (transparent) {
@@ -268,6 +295,7 @@ class DialogUtil {
         val progress = view.findViewById<ProgressBar>(R.id.progressBar)
         progress.indeterminateTintList = ColorStateList.valueOf(getColor(context,progressColor))
         messageTextView.text = message
+
         progressDialog.setContentView(view)
         progressDialog.show()
         return progressDialog
