@@ -17,10 +17,10 @@ class StorageViewModel @Inject constructor(private val storageRepository: Storag
     // fire base storage
     suspend fun uploadImageToFirebaseStorage(uri: Uri , name:String): MyResult<String> {
 
-        return withContext(Dispatchers.IO){storageRepository.uploadImageToFirebaseStorageWithUri(uri , name)}
+        return withContext(Dispatchers.IO){storageRepository.uploadImageToFirebaseStorageWithUri(uri )}
     }
     suspend fun uploadImageToFirebaseStorage(bitmap: Bitmap , name: String): MyResult<String> {
-        return withContext(Dispatchers.IO){storageRepository.uploadImageToFirebaseStorageWithBitmap(bitmap , name)}
+        return withContext(Dispatchers.IO){storageRepository.uploadImageToFirebaseStorageWithBitmap(bitmap )}
     }
     suspend fun deleteImageToFirebaseStorage(url: String): MyResult<String> {
         return withContext(Dispatchers.IO){storageRepository.deleteImageToFirebaseStorage(url)}

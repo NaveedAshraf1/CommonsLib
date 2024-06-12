@@ -9,6 +9,7 @@ import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import com.google.firebase.storage.UploadTask
 import com.google.firebase.storage.storage
+import com.google.zxing.common.BitArray
 import com.lymors.lycommons.utils.MyResult
 import kotlinx.coroutines.tasks.await
 import java.io.ByteArrayOutputStream
@@ -17,14 +18,11 @@ import javax.inject.Inject
 class StorageRepositoryImpl @Inject constructor(private val storageReference: StorageReference,private val storage:FirebaseStorage):
     StorageRepository {
 
-
-
     override suspend fun uploadImageToFirebaseStorageWithUri(
         uri: Uri,
-        name: String
     ): MyResult<String> {
         return try {
-            val filename = name.ifEmpty{ (uri.lastPathSegment) ?: System.currentTimeMillis()}
+            val filename =  (uri.lastPathSegment) ?: System.currentTimeMillis()
             val imageRef = storageReference.child("images/${filename}")
             val uploadTask = imageRef.putFile(uri)
             val result: UploadTask.TaskSnapshot = uploadTask.await()
@@ -35,18 +33,31 @@ class StorageRepositoryImpl @Inject constructor(private val storageReference: St
         }
     }
 
-    override suspend fun uploadDocumentToFirebaseStorage(uri: Uri, name: String): MyResult<String> {
-       return uploadImageToFirebaseStorageWithUri(uri,name)
+    override suspend fun uploadDocumentToFirebaseStorage(uri: Uri): MyResult<String> {
+       return uploadImageToFirebaseStorageWithUri(uri)
     }
 
 
 
-    override suspend fun uploadImageToFirebaseStorageWithBitmap(bitmap: Bitmap , name: String): MyResult<String> {
+    override suspend fun uploadImageToFirebaseStorageWithBitmap(bitmap: Bitmap ): MyResult<String> {
         return try {
-            var n = name.ifEmpty {"images/${System.currentTimeMillis()}" }
+            var n = "images/${System.currentTimeMillis()}"
             val imageRef = storageReference.child("images/${n}")
             val byteArray = bitmapToByteArray(bitmap)
             val uploadTask = imageRef.putBytes(byteArray)
+            val result= uploadTask.await()
+            val downloadUrl = result.storage.downloadUrl.await()
+            MyResult.Success(downloadUrl.toString())
+        } catch (e: Exception) {
+            MyResult.Error(e.message ?: "Unknown error occurred")
+        }
+    }
+
+    override suspend fun uploadImageToFirebaseStorageWithBitmap(bitArray: ByteArray): MyResult<String> {
+        return try {
+            var n = "images/${System.currentTimeMillis()}"
+            val imageRef = storageReference.child("images/${n}")
+            val uploadTask = imageRef.putBytes(bitArray)
             val result= uploadTask.await()
             val downloadUrl = result.storage.downloadUrl.await()
             MyResult.Success(downloadUrl.toString())

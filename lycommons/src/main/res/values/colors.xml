@@ -19,34 +19,92 @@
 
 
 
+    <!-- Light Green -->
+    <color name="light_green_10">#D4F8D4</color> <!-- Light -->
+    <color name="light_green_20">#B3D8B3</color>
+    <color name="light_green_30">#A2C5A2</color>
+    <color name="light_green_40">#8DAA8D</color>
+    <color name="light_green_50">#698169</color>
+    <color name="light_green_60">#506750</color>
+    <color name="light_green_70">#3E513E</color>
+    <color name="light_green_80">#2E3C2E</color>
+    <color name="light_green_90">#1F291F</color> <!-- Dark -->
+
+
 
 
     <!-- Green -->
-    <color name="green_10">#E6F8E6</color> <!-- Light -->
-    <color name="green_20">#C2FDC2</color>
-    <color name="green_30">#9EFB9E</color>
-    <color name="green_40">#68FA68</color>
-    <color name="green_50">#04F604</color>
-    <color name="green_60">#04B804</color>
-    <color name="green_70">#028002</color>
+    <color name="green_10">#6BFD6B</color> <!-- Light -->
+    <color name="green_20">#72E872</color>
+    <color name="green_30">#5DBF5D</color>
+    <color name="green_40">#4BA34B</color>
+    <color name="green_50">#418841</color>
+    <color name="green_60">#377137</color>
+    <color name="green_70">#2A5C2A</color>
     <color name="green_80">#014E01</color>
-    <color name="green_90">#002500</color> <!-- Dark -->
+    <color name="green_90">#1C3A1C</color> <!-- Dark -->
+
+
+    <!-- DArk Green -->
+    <color name="dark_green_10">#00FF00</color> <!-- Light -->
+    <color name="dark_green_20">#02E802</color>
+    <color name="dark_green_30">#01C501</color>
+    <color name="dark_green_40">#039E03</color>
+    <color name="dark_green_50">#008100</color>
+    <color name="dark_green_60">#016C01</color>
+    <color name="dark_green_70">#015301</color>
+    <color name="dark_green_80">#004300</color>
+    <color name="dark_green_90">#002C00</color> <!-- Dark -->
 
 
 
+    <!--    Gray Blue-->
+    <color name="gray_blue_10">#E6F2FF</color> <!-- Light -->
+    <color name="gray_blue_20">#B4D0EC</color>
+    <color name="gray_blue_30">#A5C1DC</color>
+    <color name="gray_blue_40">#859BB1</color>
+    <color name="gray_blue_50">#7C92A8</color>
+    <color name="gray_blue_60">#627588</color>
+    <color name="gray_blue_70">#455463</color>
+    <color name="gray_blue_80">#313543</color>
+    <color name="gray_blue_90">#1C2733</color> <!-- Dark -->
+
+<!--    Light Blue-->
+    <color name="light_blue_10">#B9DBFF</color> <!-- Light -->
+    <color name="light_blue_20">#9FC4E8</color>
+    <color name="light_blue_30">#71AEEA</color>
+    <color name="light_blue_40">#519EEC</color>
+    <color name="light_blue_50">#5187BC</color>
+    <color name="light_blue_60">#366697</color>
+    <color name="light_blue_70">#365B80</color>
+    <color name="light_blue_80">#1D466E</color>
+    <color name="light_blue_90">#081C33</color> <!-- Dark -->
 
 
 
     <!-- Blue -->
-    <color name="blue_10">#EEEEFA</color> <!-- Light -->
-    <color name="blue_20">#C6C6F6</color>
-    <color name="blue_30">#7D7DFA</color>
-    <color name="blue_40">#4141FD</color>
-    <color name="blue_50">#0E0EFB</color>
-    <color name="blue_60">#0000CC</color>
-    <color name="blue_70">#000099</color>
-    <color name="blue_80">#000066</color>
-    <color name="blue_90">#000033</color> <!-- Dark -->
+    <color name="blue_10">#5A9EFA</color> <!-- Light -->
+    <color name="blue_20">#3C7ADD</color>
+    <color name="blue_30">#295FB5</color>
+    <color name="blue_40">#2C5EA3</color>
+    <color name="blue_50">#20589A</color>
+    <color name="blue_60">#0D479C</color>
+    <color name="blue_70">#063480</color>
+    <color name="blue_80">#07235E</color>
+    <color name="blue_90">#091742</color> <!-- Dark -->
+
+
+
+<!--    Dark Blue-->
+    <color name="dark_blue_10">#5E6DFF</color> <!-- Light -->
+    <color name="dark_blue_20">#2C45E1</color>
+    <color name="dark_blue_30">#0B26CA</color>
+    <color name="dark_blue_40">#061FB1</color>
+    <color name="dark_blue_50">#04178A</color>
+    <color name="dark_blue_60">#021275</color>
+    <color name="dark_blue_70">#021061</color>
+    <color name="dark_blue_80">#010C4C</color>
+    <color name="dark_blue_90">#00072E</color> <!-- Dark -->
 
 
     <!-- Orange -->
@@ -109,25 +167,55 @@
     <color name="navy_90">#000033</color> <!-- Dark -->
 
 
-    <!-- Red -->
-    <color name="red_90">#330000</color> <!-- Dark -->
-    <color name="red_80">#660000</color>
-    <color name="red_70">#990000</color>
-    <color name="red_60">#CC0000</color>
-    <color name="red_50">#FF0000</color>
-    <color name="red_40">#FF3333</color>
-    <color name="red_30">#FF6666</color>
-    <color name="red_20">#FF9999</color>
-    <color name="red_10">#FFCCCC</color> <!-- Light -->
+    <!-- Gray Red -->
+    <color name="gray_red_10">#FFE4E4</color> <!-- Light -->
+    <color name="gray_red_20">#D6BEBE</color>
+    <color name="gray_red_30">#BCA8A8</color>
+    <color name="gray_red_40">#978080</color>
+    <color name="gray_red_50">#715D5D</color>
+    <color name="gray_red_60">#604A4A</color>
+    <color name="gray_red_70">#493838</color>
+    <color name="gray_red_80">#392626</color>
+    <color name="gray_red_90">#3E2525</color> <!-- Dark -->
 
 
 
 
+    <!-- Light Red -->
+    <color name="light_red_10">#FFE6E6</color> <!-- Light -->
+    <color name="light_red_20">#FFCCCC</color>
+    <color name="light_red_30">#FBABAB</color>
+    <color name="light_red_40">#FB7C7C</color>
+    <color name="light_red_50">#FB6A6A</color>
+    <color name="light_red_60">#F64848</color>
+    <color name="light_red_70">#FF2828</color>
+    <color name="light_red_80">#FF0303</color>
+    <color name="light_red_90">#D60000</color> <!-- Dark -->
 
 
 
+<!--        Red-->
+    <color name="red_10">#CA7979</color> <!-- Light -->
+    <color name="red_20">#B65D5D</color>
+    <color name="red_30">#BD3030</color>
+    <color name="red_40">#AA1919</color>
+    <color name="red_50">#A31010</color>
+    <color name="red_60">#8F1313</color>
+    <color name="red_70">#700707</color>
+    <color name="red_80">#780E0E</color>
+    <color name="red_90">#450909</color> <!-- Dark -->
 
 
+<!--        Dark Red-->
+    <color name="dark_red_10">#FB0000</color> <!-- Light -->
+    <color name="dark_red_20">#DC0000</color>
+    <color name="dark_red_30">#C10000</color>
+    <color name="dark_red_40">#A30000</color>
+    <color name="dark_red_50">#9E0000</color>
+    <color name="dark_red_60">#780000</color>
+    <color name="dark_red_70">#600000</color>
+    <color name="dark_red_80">#4C0000</color>
+    <color name="dark_red_90">#300000</color> <!-- Dark -->
 
 
     <color name="gray10">#F1EFEF</color>

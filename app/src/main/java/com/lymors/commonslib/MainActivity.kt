@@ -20,18 +20,22 @@ import com.lymors.commonslib.databinding.NewUserBinding
 import com.lymors.commonslib.databinding.StudentSampleRowBinding
 import com.lymors.lycommons.data.viewmodels.MainViewModel
 import com.lymors.lycommons.data.viewmodels.StorageViewModel
+import com.lymors.lycommons.extensions.ImageViewExtensions.loadImageFromUrl
+import com.lymors.lycommons.extensions.ImageViewExtensions.pickImage
+import com.lymors.lycommons.extensions.ScreenExtensions.myPermissionHelper
+import com.lymors.lycommons.extensions.ScreenExtensions.pickedImageUri
+import com.lymors.lycommons.extensions.TextEditTextExtensions.onTextChange
+import com.lymors.lycommons.extensions.TextEditTextExtensions.setTextOrGone
+import com.lymors.lycommons.extensions.ViewExtensions.attachDatePicker
+import com.lymors.lycommons.extensions.ViewExtensions.setVisibleOrGone
+import com.lymors.lycommons.extensions.ViewExtensions.setVisibleOrInvisible
 import com.lymors.lycommons.utils.DialogUtil
-import com.lymors.lycommons.utils.MyExtensions.attachDatePicker
 import com.lymors.lycommons.utils.MyExtensions.hideSoftKeyboard
-import com.lymors.lycommons.utils.MyExtensions.loadImageFromUrl
 import com.lymors.lycommons.utils.MyExtensions.logT
-import com.lymors.lycommons.utils.MyExtensions.onTextChange
 import com.lymors.lycommons.utils.MyExtensions.setOptions
-import com.lymors.lycommons.utils.MyExtensions.setTextOrGone
-import com.lymors.lycommons.utils.MyExtensions.setVisibleOrGone
-import com.lymors.lycommons.utils.MyExtensions.setVisibleOrInvisible
 import com.lymors.lycommons.utils.MyExtensions.showSoftKeyboard
 import com.lymors.lycommons.utils.MyExtensions.viewBinding
+import com.lymors.lycommons.utils.MyPermissionHelper
 import com.lymors.lycommons.utils.Utils.hideSoftKeyboard
 import com.lymors.lycommons.utils.Utils.setData
 import com.lymors.lycommons.utils.Utils.setTint
@@ -91,6 +95,16 @@ class MainActivity : AppCompatActivity() {
         handleLongClickState()
         handleSearchState()
 
+        myPermissionHelper.requestReadStoragePermission {
+
+        }
+
+
+
+        binding.searchIcon.pickImage(this){
+
+
+        }
 
         binding.searchVew.onTextChange { query ->
             // filter by searchview
@@ -144,6 +158,12 @@ class MainActivity : AppCompatActivity() {
         })
 
         lifecycleScope.launch {
+
+            var permissionHelper = MyPermissionHelper(this@MainActivity)
+            permissionHelper.requestReadStoragePermission{
+
+            }
+
             // listen to the searching state
             mainViewModel.searchingState.collect { isSearching ->
                 binding.apply {
@@ -152,6 +172,7 @@ class MainActivity : AppCompatActivity() {
                     searchIcon.setVisibleOrGone(!isSearching)
                     title.setVisibleOrGone(!isSearching)
                     if (isSearching) {
+                        pickedImageUri
                         searchVew.showSoftKeyboard()
                     } else {
                         binding.searchVew.setText("")

@@ -39,12 +39,15 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import com.lymors.lycommons.R
+import com.lymors.lycommons.utils.MyExtensions.empty
 import com.lymors.lycommons.utils.MyExtensions.logT
 import com.lymors.lycommons.utils.MyExtensions.showToast
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.lang.reflect.Modifier
+import java.net.Inet4Address
+import java.net.NetworkInterface
 import java.util.Locale
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.full.declaredMemberProperties
@@ -53,9 +56,25 @@ import kotlin.reflect.jvm.isAccessible
 
 object Utils {
 
+
+    fun getIpv4LocalHostAddress(): String {
+        val ip = String.empty()
+        NetworkInterface.getNetworkInterfaces()?.toList()?.map { networkInterface ->
+            networkInterface.inetAddresses
+                ?.toList()
+                ?.find { !it.isLoopbackAddress && it is Inet4Address }
+                ?.let { return it.hostAddress.orEmpty() }
+        }
+        return ip
+    }
+
+
+
+
     fun View.setTint(color: Int) {
         backgroundTintList = ContextCompat.getColorStateList(context, color)
     }
+
 
 
     fun checkEditTexts(list: List<EditText>): Boolean {
@@ -535,10 +554,6 @@ object Utils {
         }
     }
 
-    fun String.isValidEmail(): Boolean {
-        // Implement email validation logic
-        return android.util.Patterns.EMAIL_ADDRESS.matcher(this).matches()
-    }
 
 
     fun Activity.startNewTaskActivity(activityClass: Class<*>) {
@@ -551,11 +566,7 @@ object Utils {
         setOnClickListener { onClick.invoke() }
     }
 
-    fun String.capitalizeString(): String {
-        return split(" ").joinToString(" ") { it ->
-            it.replaceFirstChar {char-> if (char.isLowerCase()) char.titlecase(Locale.ROOT) else it
-        } }
-    }
+
 
     fun Context.dpToPx(dp: Float): Int {
         val scale = resources.displayMetrics.density

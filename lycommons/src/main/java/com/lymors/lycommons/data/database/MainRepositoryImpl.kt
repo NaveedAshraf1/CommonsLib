@@ -121,7 +121,7 @@ class MainRepositoryImpl @Inject constructor(
                 databaseReference.child(path).child(updatedKey).setValue(model.shrink())
                 MyResult.Success(if (key.isEmpty()) updatedKey else "Updated")
             } else {
-                databaseReference.child(path).setValue(model.shrink())
+                databaseReference.child(path).setValue(model)
                 MyResult.Success("Success")
             }
 
@@ -144,7 +144,26 @@ class MainRepositoryImpl @Inject constructor(
         }
     }
 
+    override fun <T> collectAModel(path: String, clazz: Class<T>): Flow<T> = callbackFlow {
+        path.logT("collectAModel->path","path")
+        val valueEventListener = object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                dataSnapshot.logT("collectAModel->dataSnapshot","firebase")
+                val message = dataSnapshot.getValue(clazz)
+                if (message != null) {
+                    trySend(message).isSuccess
+                }
+                }
+            override fun onCancelled(databaseError: DatabaseError) {
+                close(databaseError.toException())
+                }
+        }
+        databaseReference.child(path).addValueEventListener(valueEventListener)
+        awaitClose {
+            databaseReference.child(path).removeEventListener(valueEventListener)
+        }
 
+    }
 
 
     override suspend fun <T> getAnyData(path: String, clazz: Class<T>): T? {

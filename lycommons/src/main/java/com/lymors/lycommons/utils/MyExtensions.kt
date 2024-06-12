@@ -40,6 +40,7 @@ import android.os.Build
 import android.os.CountDownTimer
 import android.os.Environment
 import android.os.Parcelable
+import android.os.UserHandle
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.provider.MediaStore
@@ -104,6 +105,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.DrawableCompat
+import androidx.core.graphics.drawable.toBitmap
 import androidx.core.text.HtmlCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
@@ -125,12 +127,16 @@ import com.google.android.material.tabs.TabLayoutMediator
 import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import com.google.android.material.textfield.TextInputEditText
 import com.google.gson.Gson
+import com.google.gson.GsonBuilder
+import com.google.gson.reflect.TypeToken
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.MultiFormatWriter
 import com.google.zxing.WriterException
 import com.google.zxing.common.BitMatrix
 import com.lymors.lycommons.R
+import com.lymors.lycommons.extensions.StringExtensions.fromJson
 import com.lymors.lycommons.managers.DataStoreManager
+import com.lymors.lycommons.utils.MyExtensions.setupTabLayout
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -146,6 +152,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.OutputStream
+import java.lang.reflect.Type
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -161,59 +168,124 @@ import kotlin.reflect.full.memberProperties
 object MyExtensions {
 
 
-    enum class ImageFormat {
-        PNG,
-        JPEG
+
+    val gson: Gson by lazy { GsonBuilder().disableHtmlEscaping().create() }
+    inline fun <reified T> typeToken(): Type = object : TypeToken<T>() {}.type
+    inline fun <reified T> String.toObject(): T {
+        val type = typeToken<T>()
+        return gson.fromJson(this, type)
+    }
+    inline fun <reified T> Map<String, Any>.toObject(): T = convert()
+    inline fun <T, reified R> T.convert(): R = gson.toJson(this).toObject()
+    inline fun <reified T> Gson.fromJson(json: String?): T? = try {
+        fromJson<T>(json, object : TypeToken<T>() {}.type)
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
     }
 
-    fun Drawable.saveAsImageFile(context: Context, fileName: String, format: ImageFormat): File? {
-        val bitmap = this.toBitmap()
-        var outputStream: OutputStream? = null
-        var file: File? = null
+    inline fun <reified T : Any> Gson.fromJsonList(json: String?): List<T>? = try {
+        fromJson<List<T>>(json, object : TypeToken<List<T>>() {}.type)
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
+    }
 
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                val resolver = context.contentResolver
-                val contentValues = ContentValues().apply {
-                    put(MediaStore.MediaColumns.DISPLAY_NAME, "$fileName.${format.name.toLowerCase()}")
-                    put(MediaStore.MediaColumns.MIME_TYPE, "image/${format.name.toLowerCase()}")
-                    put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/myicons")
-                }
-                val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
-                if (uri != null) {
-                    outputStream = resolver.openOutputStream(uri)
-                    file = File(uri.path)
-                }
-            } else {
-                val storageDir = File(Environment.getExternalStorageDirectory().toString() + "/myicons")
-                if (!storageDir.exists()) {
-                    storageDir.mkdirs()
-                }
-                file = File(storageDir, "$fileName.${format.name.toLowerCase()}")
-                outputStream = FileOutputStream(file)
-            }
 
-            outputStream?.use { out ->
-                when (format) {
-                    ImageFormat.PNG -> {
-                        bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
-                    }
-                    ImageFormat.JPEG -> {
-                        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
-                    }
-
-                }
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            file?.delete()
-            return null
-        } finally {
-            outputStream?.close()
+    var Calendar.year: Int
+        get() = get(Calendar.YEAR)
+        set(value) {
+            set(Calendar.YEAR, value)
         }
 
-        return file
+    var Calendar.month: Int
+        get() = get(Calendar.MONTH)
+        set(value) {
+            set(Calendar.MONTH, value)
+        }
+
+    var Calendar.day: Int
+        get() = get(Calendar.DAY_OF_MONTH)
+        set(value) {
+            set(Calendar.DAY_OF_MONTH, value)
+        }
+
+    fun Calendar.previousYear() = if (get(Calendar.MONTH) == Calendar.JANUARY) {
+        get(Calendar.YEAR) - 2
+    } else get(Calendar.YEAR) - 1
+
+    fun Calendar.previousMonth() = if (get(Calendar.MONTH) == Calendar.JANUARY) {
+        Calendar.DECEMBER
+    } else get(Calendar.MONTH) - 1
+
+    fun Calendar.nextMonth() = if (get(Calendar.MONTH) == Calendar.DECEMBER) {
+        Calendar.JANUARY
+    } else get(Calendar.MONTH) + 1
+
+    fun Calendar.setLastDayOfMonth() = apply {
+        add(Calendar.MONTH, 1)
+        set(Calendar.DAY_OF_MONTH, 1)
+        add(Calendar.DAY_OF_YEAR, -1)
     }
+
+    fun Calendar.setLastDayOfYear() = apply {
+        add(Calendar.YEAR, 1)
+        set(Calendar.DAY_OF_YEAR, 1)
+        add(Calendar.DAY_OF_YEAR, -1)
+    }
+
+
+
+
+    fun Any?.isNull() = this == null
+    fun Any?.isNotNull() = this != null
+
+    val Any.className: String
+        get() = this::class.java.simpleName
+
+
+
+    inline fun <T> tryOrDefault(default: T?, block: () -> T) =
+        try {
+            block()
+        } catch (_: Throwable) {
+            default
+        }
+
+
+
+    fun Int.Companion.empty() = 0
+    fun Long.Companion.empty() = 0L
+    fun Float.Companion.empty() = 0f
+    fun String.Companion.empty() = ""
+    fun Double.Companion.empty() = 0.0
+    fun Bitmap.toUri(context: Context): Uri? {
+        // Get the external storage directory
+        val imagesDir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+
+        // Create a temporary file to save the bitmap
+        val imageFile = File.createTempFile(
+            "image_${System.currentTimeMillis()}",
+            ".jpg",
+            imagesDir
+        )
+
+        // Save the bitmap to the temporary file
+        return try {
+            FileOutputStream(imageFile).use { outputStream ->
+                this.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+            }
+            // Create a Uri from the file
+            Uri.fromFile(imageFile)
+        } catch (e: IOException) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+
+
+
     fun WebView.hideElementByClassName(className: String) {
         this.evaluateJavascript(
             """
@@ -254,13 +326,6 @@ object MyExtensions {
     }
 
 
-    fun View.setVisibleOrInvisible(visible: Boolean) {
-        visibility = if (visible) View.VISIBLE else View.INVISIBLE
-    }
-    fun View.setVisibleOrGone(visible: Boolean) {
-        visibility = if (visible) View.VISIBLE else View.GONE
-    }
-    
 
 
     fun createTextView(
@@ -324,333 +389,14 @@ object MyExtensions {
         return linearLayout
     }
 
-    fun View.fadeOutGone(duration: Long = 2000) {
-        // Create an ObjectAnimator to animate the alpha property of the view
-        val alphaAnimator = ObjectAnimator.ofFloat(this, View.ALPHA, 1f, 0f)
 
-        // Set the duration of the alpha animation
-        alphaAnimator.duration = duration / 2 // Half the duration for fading out
 
-        // Set a listener to make the view gone after the alpha animation ends
-        alphaAnimator.addListener(object : AnimatorListenerAdapter() {
-            override fun onAnimationEnd(animation: Animator) {
-                // Create ObjectAnimator to animate the scale property of the view after fading out
-                val scaleAnimatorX = ObjectAnimator.ofFloat(this@fadeOutGone, View.SCALE_X, 1f, 0f)
-                val scaleAnimatorY = ObjectAnimator.ofFloat(this@fadeOutGone, View.SCALE_Y, 1f, 0f)
 
-                // Set the duration of the scale animation
-                scaleAnimatorX.duration = duration / 2 // Half the duration for shrinking
-                scaleAnimatorY.duration = duration / 2 // Half the duration for shrinking
 
-                // Set a listener to make the view gone after the scale animation ends
-                scaleAnimatorX.addListener(object : AnimatorListenerAdapter() {
-                    override fun onAnimationEnd(animation: Animator) {
-                        this@fadeOutGone.visibility = View.GONE
-                    }
-                })
 
-                // Start the scale animations
-                scaleAnimatorX.start()
-                scaleAnimatorY.start()
-            }
-        })
 
-        // Start the alpha animation
-        alphaAnimator.start()
-    }
 
-    fun View.fadeOutInvisible(duration: Long = 5000) {
-        // Create an ObjectAnimator to animate the alpha property of the view
-        val animator = ObjectAnimator.ofFloat(this, View.ALPHA, 1f, 0f)
 
-        // Set the duration of the animation
-        animator.duration = duration
-
-        // Set a listener to make the view invisible after the animation ends
-        animator.addListener(object : AnimatorListenerAdapter() {
-            override fun onAnimationEnd(animation: Animator) {
-                this@fadeOutInvisible.visibility = View.INVISIBLE
-            }
-        })
-
-        // Start the animation
-        animator.start()
-    }
-
-    fun View.zoomOutVisibleFadeIn(duration: Long = 300L) {
-        // Set initial alpha to 0 to ensure it fades in
-        alpha = 0f
-
-        // Set initial scale to 0 to ensure it zooms out
-        scaleX = 0f
-        scaleY = 0f
-
-        // Set visibility to VISIBLE before starting the animation
-        visibility = View.VISIBLE
-
-        // Animate zooming out and fading in
-        animate()
-            .scaleX(1f)
-            .scaleY(1f)
-            .alpha(1f)
-            .setDuration(duration)
-            .setInterpolator(AccelerateDecelerateInterpolator())
-            .start()
-    }
-
-
-    fun View.zoomOutVisibleFadeOut(duration: Long = 300L) {
-        val scaleX = 0f
-        val scaleY = 0f
-        val alpha = 0f
-        this.animate()
-            .scaleX(scaleX)
-            .scaleY(scaleY)
-            .alpha(alpha)
-            .setDuration(duration)
-            .setStartDelay(0)
-            .setInterpolator(AccelerateDecelerateInterpolator())
-            .withEndAction {
-                this.visibility = View.GONE  // Set visibility to GONE after animation
-            }
-            .start()
-    }
-
-    fun View.slideInFromLeft(duration: Long = 300L) {
-        val translationX = -width.toFloat()
-        animate().translationX(0f).setDuration(duration).setInterpolator(AccelerateDecelerateInterpolator()).start()
-        visibility = View.VISIBLE
-    }
-
-
-    fun View.slideInFromRight(duration: Long = 300L) {
-        val translationX = width.toFloat()
-        animate().translationX(0f).setDuration(duration).setInterpolator(AccelerateDecelerateInterpolator()).start()
-        visibility = View.VISIBLE
-    }
-
-    fun View.slideInFromBottom(duration: Long = 300L) {
-        translationY = height.toFloat()
-        animate().translationY(0f).setDuration(duration).setInterpolator(AccelerateDecelerateInterpolator()).start()
-        visibility = View.VISIBLE
-    }
-
-    fun View.slideOutToRightGone(duration: Long = 300L){
-        val translationX = width.toFloat()
-        animate().translationX(0f).setDuration(duration).setInterpolator(AccelerateDecelerateInterpolator()).start()
-        visibility = View.GONE
-    }
-
-    fun View.slideOutToRightInvisible(duration: Long = 300L){
-        val translationX = width.toFloat()
-        animate().translationX(0f).setDuration(duration).setInterpolator(AccelerateDecelerateInterpolator()).start()
-        visibility = View.INVISIBLE
-    }
-
-
-    fun View.slideInFromBottomFadeIn(duration: Long = 300L) {
-        translationY = this.height.toFloat()
-        this.alpha = 0f
-        this.animate()
-            .translationY(0f)
-            .alpha(1f)
-            .setDuration(duration)
-            .setStartDelay(0)
-            .setInterpolator(AccelerateDecelerateInterpolator())
-            .start()
-    }
-
-
-
-
-    fun View.fadeOut(duration: Long = 5000) {
-        val fadeOut = ObjectAnimator.ofFloat(this, "alpha", 0f, 1f)
-        fadeOut.duration = duration
-        fadeOut.start()
-    }
-
-    fun View.slideInFromTopFadeInVisible(duration: Long = 300L) {
-        // Set initial alpha to 0 to ensure it fades in
-        alpha = 0f
-        // Set visibility to VISIBLE before starting the animation
-        visibility = View.VISIBLE
-        // Animate sliding in from top and fading in
-        animate()
-            .translationY(0f)
-            .alpha(1f)
-            .setDuration(duration)
-            .setInterpolator(AccelerateDecelerateInterpolator())
-            .start()
-    }
-
-
-
-    fun View.fadeInVisible(duration: Long = 300) {
-        this.alpha = 0f
-        this.visibility = View.VISIBLE
-        this.animate().alpha(1f).setDuration(duration).start()
-    }
-
-    fun View.fadeIn(duration: Long = 5000) {
-        val fadeOut = ObjectAnimator.ofFloat(this, "alpha", 1f, 0f)
-        fadeOut.duration = duration
-        fadeOut.start()
-    }
-
-
-
-    fun View.slideUpVisibleFadeIn(duration: Long = 500) {
-        // Calculate the height of the view
-        val originalHeight = height
-
-        // Set initial translationY to the height of the view to make it start from below
-        translationY = originalHeight.toFloat()
-
-        // Animate sliding up
-        val slideAnimator = ObjectAnimator.ofFloat(this, "translationY", originalHeight.toFloat(), 0f)
-        slideAnimator.interpolator = DecelerateInterpolator()
-        slideAnimator.duration = duration
-
-        // Animate fading in
-        val fadeInAnimator = ObjectAnimator.ofFloat(this, View.ALPHA, 0f, 1f)
-        fadeInAnimator.duration = duration
-
-        // Combine the animations
-        val animatorSet = AnimatorSet()
-        animatorSet.playTogether(slideAnimator, fadeInAnimator)
-
-        // Set a listener to make the view visible after the animation ends
-        animatorSet.addListener(object : AnimatorListenerAdapter() {
-            override fun onAnimationStart(animation: Animator) {
-                visibility = View.VISIBLE
-            }
-        })
-
-        // Start the animation
-        animatorSet.start()
-    }
-    fun View.slideDownGoneFadeOut(duration: Long = 500) {
-        // Calculate the height of the view
-        val originalHeight = height
-
-        // Animate sliding down
-        val slideAnimator = ObjectAnimator.ofFloat(this, "translationY", 0f, originalHeight.toFloat())
-        slideAnimator.interpolator = AccelerateInterpolator()
-        slideAnimator.duration = duration
-
-        // Animate fading out
-        val fadeOutAnimator = ObjectAnimator.ofFloat(this, View.ALPHA, 1f, 0f)
-        fadeOutAnimator.duration = duration
-
-        // Combine the animations
-        val animatorSet = AnimatorSet()
-        animatorSet.playTogether(slideAnimator, fadeOutAnimator)
-
-        // Set a listener to make the view gone after the animation ends
-        animatorSet.addListener(object : AnimatorListenerAdapter() {
-            override fun onAnimationEnd(animation: Animator) {
-                visibility = View.GONE
-                translationY = 0f // Reset translation for future use
-            }
-        })
-
-        // Start the animation
-        animatorSet.start()
-    }
-
-
-
-
-    fun View.slideLeft(duration: Long = 1000) {
-        val slideLeft = ObjectAnimator.ofFloat(this, "translationX", 0f, -this.width.toFloat())
-        slideLeft.duration = duration
-        slideLeft.addListener(object : Animator.AnimatorListener {
-            override fun onAnimationStart(animation: Animator) {
-            }
-
-            override fun onAnimationEnd(animation: Animator) {
-                this@slideLeft.translationX = 0f
-                val slideBack = ObjectAnimator.ofFloat(
-                    this@slideLeft,
-                    "translationX",
-                    -this@slideLeft.width.toFloat(),
-                    0f
-                )
-                slideBack.duration = duration
-                slideBack.start()
-            }
-
-            override fun onAnimationCancel(animation: Animator) {
-                this@slideLeft.translationX = 0f
-                Log.i("TAG", "onAnimationCancel: ")
-            }
-
-            override fun onAnimationRepeat(animation: Animator) {
-            }
-        })
-        slideLeft.start()
-    }
-
-    fun View.slideRight(duration: Long = 1000) {
-        val slideIn = ObjectAnimator.ofFloat(this, "translationX", 0f, this.width.toFloat())
-        slideIn.duration = duration
-        slideIn.addListener(object : Animator.AnimatorListener {
-            override fun onAnimationStart(animation: Animator) {
-            }
-
-            override fun onAnimationEnd(animation: Animator) {
-                this@slideRight.translationX = 0f
-                val slideBack = ObjectAnimator.ofFloat(
-                    this@slideRight,
-                    "translationX",
-                    this@slideRight.width.toFloat(),
-                    0f
-                )
-                slideBack.duration = duration
-                slideBack.start()
-            }
-
-            override fun onAnimationCancel(animation: Animator) {
-                this@slideRight.translationX = 0f
-                Log.i("TAG", "onAnimationCancel: ");
-            }
-
-            override fun onAnimationRepeat(animation: Animator) {
-            }
-        })
-        slideIn.start()
-    }
-
-    fun View.bounce(duration: Long = 1000) {
-        var d = duration
-        val scaleXDown = ObjectAnimator.ofFloat(this, "scaleX", 1f, 0.8f)
-        val scaleYDown = ObjectAnimator.ofFloat(this, "scaleY", 1f, 0.8f)
-        val scaleXUp = ObjectAnimator.ofFloat(this, "scaleX", 0.8f, 1.2f)
-        val scaleYUp = ObjectAnimator.ofFloat(this, "scaleY", 0.8f, 1.2f)
-        val scaleXBack = ObjectAnimator.ofFloat(this, "scaleX", 1.2f, 1f)
-        val scaleYBack = ObjectAnimator.ofFloat(this, "scaleY", 1.2f, 1f)
-
-        val downSet = AnimatorSet().apply {
-            playTogether(scaleXDown, scaleYDown)
-            d = duration / 3
-        }
-
-        val upSet = AnimatorSet().apply {
-            playTogether(scaleXUp, scaleYUp)
-            d = duration / 3
-        }
-
-        val backSet = AnimatorSet().apply {
-            playTogether(scaleXBack, scaleYBack)
-            d = duration / 3
-        }
-
-        val bounceSet = AnimatorSet().apply {
-            playSequentially(downSet, upSet, backSet)
-        }
-
-        bounceSet.start()
-    }
 
 
 
@@ -870,39 +616,7 @@ object MyExtensions {
 
 
 
-    // imageview
-    fun ImageView.loadImageFromUrl(url: String) {
-        Glide.with(this.context)
-            .load(url)
-            .diskCacheStrategy(DiskCacheStrategy.ALL)
-            .into(this)
-    }
 
-
-    // Extension function to load an image into an ImageView and cache it
-    fun ImageView.loadImageWithCache(url: String) {
-        Glide.with(context)
-            .load(url)
-            .diskCacheStrategy(DiskCacheStrategy.ALL)
-            .into(this)
-    }
-
-    // Extension function to load a circular image into an ImageView using Glide
-    fun ImageView.loadCircularImage(url: String, placeholderResId: Int) {
-        Glide.with(context)
-            .load(url)
-            .apply(RequestOptions.circleCropTransform())
-            .placeholder(placeholderResId)
-            .into(this)
-    }
-
-
-    fun ImageView.loadResizedImage(url: String, width: Int, height: Int) {
-        Glide.with(context)
-            .load(url)
-            .override(width, height)
-            .into(this)
-    }
 
     private fun addPdfToMediaStore(context: Activity,pdfFile: File, displayName: String): Uri? {
         val values = ContentValues().apply {
@@ -932,160 +646,6 @@ object MyExtensions {
 
 
 
-    fun TextView.setBold() {
-        this.setTypeface(this.typeface, Typeface.BOLD)
-    }
-
-    // 5. Change text to italic
-    fun TextView.setItalic() {
-        this.setTypeface(this.typeface, Typeface.ITALIC)
-    }
-
-    // 6. Underline text
-    fun TextView.underline() {
-        this.paint.isUnderlineText = true
-    }
-    fun TextView.setTextOrDefault(text: String?, default: String = "") {
-        this.text = text.takeUnless { it.isNullOrEmpty() } ?: default
-    }
-    fun TextView.toggleVisibilityByGONE() {
-        this.visibility = if (this.visibility == View.VISIBLE) View.GONE else View.VISIBLE
-    }
-
-    fun TextView.toggleVisibilityByINVISIBLE() {
-        this.visibility = if (this.visibility == View.VISIBLE) View.GONE else View.VISIBLE
-    }
-
-
-    fun Int.isEven(): Boolean {
-        return this % 2 == 0
-    }
-
-    fun Int.isOdd(): Boolean {
-        return !isEven()
-    }
-    fun Int.isPositive(): Boolean {
-        return this > 0
-    }
-    fun Int.isNegative(): Boolean {
-        return this < 0
-    }
-    fun Int.isZero(): Boolean {
-        return this == 0
-    }
-    fun Int.isPositiveOrZero(): Boolean {
-        return this >= 0
-    }
-    fun Int.isNegativeOrZero(): Boolean {
-        return this <= 0
-    }
-    fun Int.absValue(): Int {
-        return Math.abs(this)
-    }
-
-    fun Long.isEven(): Boolean {
-        return this % 2 == 0L
-    }
-    fun Long.isOdd(): Boolean {
-        return !isEven()
-    }
-    fun Long.isPositive(): Boolean {
-        return this > 0
-    }
-    fun Long.isNegative(): Boolean {
-        return this < 0
-    }
-    fun Long.isZero(): Boolean {
-        return this == 0L
-    }
-    fun Long.isPositiveOrZero(): Boolean {
-        return this >= 0
-    }
-    fun Long.isNegativeOrZero(): Boolean {
-        return this <= 0
-    }
-    fun Long.absValue(): Long {
-        return Math.abs(this)
-    }
-    fun Int.square(): Int {
-        return this * this
-    }
-
-    fun Long.square(): Long {
-        return this * this
-    }
-
-    fun Int.isWithinRange(min: Int, max: Int): Boolean {
-        return this in min..max
-    }
-
-
-    fun Long.isWithinRange(min: Long, max: Long): Boolean {
-        return this in min..max
-    }
-
-    fun Activity.launchActivity(destination: Class<*>) {
-        // Create an Intent to launch the target activity
-        val intent = Intent(this, destination::class.java)
-        // Start the activity with the created Intent
-        startActivity(intent)
-    }
-
-
-    fun Activity.launchActivity(destination: Class<*>, key: String = "", data: Parcelable? = null) {
-        // Create an Intent to launch the target activity
-        val intent = Intent(this, destination::class.java)
-
-        // Put the data into the Intent using the specified key
-        if (key.isNotEmpty() && data != null) {
-            intent.putExtra(key, data)
-        }
-
-        // Start the activity with the created Intent
-        startActivity(intent)
-    }
-    fun Fragment.launchActivity(destination: Class<*>, key: String = "", data: Parcelable? = null) {
-        // Create an Intent to launch the target activity
-        val intent = Intent(requireContext(), destination::class.java)
-
-        // Put the data into the Intent using the specified key
-        if (key.isNotEmpty() && data != null) {
-            intent.putExtra(key, data)
-        }
-
-        // Start the activity with the created Intent
-        startActivity(intent)
-    }
-
-
-    fun Activity.launchActivity(destination: Class<*>, key: String = "", data: String = "") {
-        // Create an Intent to launch the target activity
-        val intent = Intent(this, destination::class.java)
-
-        // Put the data into the Intent using the specified key
-        if (key.isNotEmpty()) {
-            intent.putExtra(key, data)
-        }
-
-        // Start the activity with the created Intent
-        startActivity(intent)
-    }
-
-    fun Fragment.launchActivity(destination:Class<*>,key: String = "", data:String = "") {
-        // Create an Intent to launch the target activity
-        val intent = Intent(requireContext(), destination::class.java)
-
-        // Put the data into the Intent using the specified key
-        if (key.isNotEmpty()){
-            intent.putExtra(key, data)
-        }
-
-        // Start the activity with the created Intent
-        startActivity(intent)
-    }
-
-
-
 
 
 
@@ -1097,257 +657,10 @@ object MyExtensions {
         setAutoSizeTextTypeUniformWithPresetSizes(presetSizes, unit)
     }
 
-    fun View.setBackgroundColorRes(@ColorRes color: Int) {
-        setBackgroundColor(ContextCompat.getColor(context, color))
-    }
-
-    fun View.setBackgroundDrawableRes(@DrawableRes drawable: Int) {
-        background = ContextCompat.getDrawable(context, drawable)
-    }
 
 
 
 
-
-
-
-
-
-    lateinit var tts: TextToSpeech
-    fun String.textToSpeak(context: Context) {
-        val text = this
-
-        // Check if the TTS engine is available
-        tts = TextToSpeech(context) { status ->
-            if (status == TextToSpeech.SUCCESS) {
-                // Set the TTS language
-                val result = tts.setLanguage(Locale.getDefault())
-
-                if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                    // TTS language not supported
-                    Log.e("TTS", "Language not supported")
-                } else {
-                    // Speak the text
-                    tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
-                }
-            } else {
-                // TTS engine not available
-                Log.e("TTS", "TTS engine not available")
-            }
-        }
-    }
-
-    fun View.scale(scaleX: Float, scaleY: Float, duration: Long = 300) {
-        this.animate().scaleX(scaleX).scaleY(scaleY).setDuration(duration).start()
-    }
-
-    fun View.setWidth(width: Int) {
-        val params = layoutParams
-        params.width = width
-        layoutParams = params
-    }
-
-    fun View.setHeight(height: Int) {
-        val params = layoutParams
-        params.height = height
-        layoutParams = params
-    }
-
-    fun View.setMargins(left: Int, top: Int, right: Int, bottom: Int) {
-        val params = layoutParams as ViewGroup.MarginLayoutParams
-        params.setMargins(left, top, right, bottom)
-        layoutParams = params
-    }
-    fun View.setMargins(margin: Int) {
-        val params = layoutParams as ViewGroup.MarginLayoutParams
-        params.setMargins(margin, margin, margin, margin)
-        layoutParams = params
-    }
-    fun View.setMargins(margin: Float) {
-        val params = layoutParams as ViewGroup.MarginLayoutParams
-        params.setMargins(margin.toInt(), margin.toInt(), margin.toInt(), margin.toInt())
-        layoutParams = params
-    }
-
-    fun View.shake() {
-        val shake = ObjectAnimator.ofFloat(this, "translationX", 0f, 25f, -25f, 25f, -25f, 15f, -15f, 6f, -6f, 0f)
-        shake.duration = 500
-        shake.start()
-    }
-
-    fun View.getActivity(): Activity? {
-        var context = context
-        while (context is ContextWrapper) {
-            if (context is Activity) {
-                return context
-            }
-            context = context.baseContext
-        }
-        return null
-    }
-
-
-    fun View.setOnClickListenerWithInterval(interval: Long = 600L, action: () -> Unit) {
-        this.setOnClickListener {
-            this.isEnabled = false
-            action()
-            postDelayed({ this.isEnabled = true }, interval)
-        }
-    }
-
-
-    fun View.getScreenshot(): Bitmap {
-        val screenshot = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(screenshot)
-        draw(canvas)
-        return screenshot
-    }
-
-    fun View.toggleVisibility() {
-        if (this.visibility == View.VISIBLE) {
-            this.visibility = View.GONE
-        } else {
-            this.visibility = View.VISIBLE
-        }
-    }
-
-
-
-
-    fun TextView.enablePinchZoom() {
-        var mRatio = 1.0f
-        var mBaseDist = 0
-        var mBaseRatio = 0f
-        val STEP = 200
-
-        fun getDistance(event: MotionEvent): Int {
-            val dx = (event.getX(0) - event.getX(1)).toInt()
-            val dy = (event.getY(0) - event.getY(1)).toInt()
-            return sqrt((dx * dx + dy * dy).toDouble()).toInt()
-        }
-
-        setOnTouchListener { _, event ->
-            performClick()
-            if (event.pointerCount == 2) {
-                val action = event.action and MotionEvent.ACTION_MASK
-                when (action) {
-                    MotionEvent.ACTION_POINTER_DOWN -> {
-                        mBaseDist = getDistance(event)
-                        mBaseRatio = mRatio
-                    }
-                    MotionEvent.ACTION_MOVE -> {
-                        val delta = (getDistance(event) - mBaseDist) / STEP.toFloat()
-                        val multi = 2.0.pow(delta.toDouble()).toFloat()
-                        mRatio = min(1024.0f, max(0.1f, mBaseRatio * multi))
-                        textSize = mRatio + 13
-                    }
-                }
-            }
-            true
-        }
-
-    }
-
-
-    fun String.showInToast(context: Context, duration: Int = Toast.LENGTH_SHORT) {
-        Toast.makeText(context, this, duration).show()
-    }
-
-
-
-    @SuppressLint("ClickableViewAccessibility")
-    fun TextView.setDefaultOptions(options:List<String>) {
-        var currentIndex = 0
-        var startX = 0f
-        var startY = 0f
-        val distance = 10.0
-        setText(options[currentIndex])
-        setOnTouchListener { _, event ->
-            when (event.action) {
-                MotionEvent.ACTION_DOWN -> {
-                    startX = event.x
-                    startY = event.y
-                    true
-                }
-                MotionEvent.ACTION_UP -> {
-                    val endX = event.x
-                    val endY = event.y
-                    val deltaX = endX - startX
-                    val deltaY = endY - startY
-                    if (deltaX < distance && deltaY < distance) {
-                        currentIndex = (currentIndex + 1) % options.size
-                        setText(options[currentIndex])
-                    }
-                    true
-                }
-                else -> false
-            }
-        }
-    }
-
-    @SuppressLint("ClickableViewAccessibility")
-    fun TextInputEditText.setDefaultOptions(options: List<String>) {
-        var currentIndex = 0
-        var startX = 0f
-        var startY = 0f
-        val distance = 10.0
-        setText(options[currentIndex])
-        setOnTouchListener { _, event ->
-            when (event.action) {
-                MotionEvent.ACTION_DOWN -> {
-                    startX = event.x
-                    startY = event.y
-                    true
-                }
-                MotionEvent.ACTION_UP -> {
-                    val endX = event.x
-                    val endY = event.y
-                    val deltaX = endX - startX
-                    val deltaY = endY - startY
-                    if (deltaX < distance && deltaY < distance) {
-                        currentIndex = (currentIndex + 1) % options.size
-                        setText(options[currentIndex])
-                    }
-                    true
-                }
-                else -> false
-            }
-        }
-    }
-
-    fun TextView.onTextChange(onTextChanged: (s: String) -> Unit) {
-        this.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-                // Not used, implementation optional
-            }
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                // Call the provided lambda function with the new text
-                onTextChanged(s.toString())
-            }
-
-            override fun afterTextChanged(s: Editable?) {
-                // Not used, implementation optional
-            }
-        })
-    }
-    fun EditText.showKeyboardForce() {
-        this.requestFocus()
-        val inputMethodManager = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        inputMethodManager.showSoftInput(this, InputMethodManager.SHOW_IMPLICIT)
-
-        if (!inputMethodManager.isActive(this)) {
-            inputMethodManager.showSoftInput(this, InputMethodManager.SHOW_FORCED) // Use SHOW_FORCED directly
-        }
-
-        this.post {
-            val initialText = this.text.toString()
-            if (initialText.isNotEmpty()) {
-                val length = initialText.length
-                this.setSelection(length) // Set cursor position
-            }
-        }
-    }
 
     fun Long.toDate(pattern: String = "dd-MM-yyyy"): String {
         val dateFormat = SimpleDateFormat(pattern, Locale.getDefault())
@@ -1363,42 +676,8 @@ object MyExtensions {
     }
 
 
-    fun View.makeVisible() {
-        this.visibility = View.VISIBLE
-    }
-
-    fun View.makeInVisible() {
-        this.visibility = View.INVISIBLE
-    }
-    fun View.makeGone() {
-        this.visibility = View.GONE
-    }
-    fun View.makeEnabled() {
-        this.isEnabled = true
-    }
-    fun View.makeDisabled() {
-        this.isEnabled = false
-    }
-
-    fun View.makeSelected() {
-        this.isSelected = true
-    }
-    fun View.makeUnselected() {
-        this.isSelected = false
-        }
-
-    fun String.calculateExpression(exp:String):Double{
-        return Expression(exp).calculate()
-    }
 
 
-    fun Activity.statusBarColor(color:Int= R.color.blue){
-        this.window.statusBarColor= ContextCompat.getColor(this,color)
-    }
-
-    fun Activity.systemBottomNavigationColor(context: Context, color: Int=android.R.color.white) {
-        this.window.navigationBarColor = ContextCompat.getColor(context, color)
-    }
 
 
     fun Boolean.toggle(): Boolean {
@@ -1451,11 +730,7 @@ object MyExtensions {
 
         text = spannable
     }
-    // Extension function to convert dp to pixels
-    fun String.convertDpToPx(context: Context): Float {
-        val density = context.resources.displayMetrics.density
-        return this.toFloat() * density
-    }
+
 
     fun View.applyRippleEffect(color: Int = android.R.color.holo_red_dark) {
         val rippleColor =
@@ -1473,168 +748,6 @@ object MyExtensions {
     }
 
 
-
-    fun EditText.setupQuantityControl(
-        incrementView: View,
-        decrementView: View,
-        initialValue: Int = 0
-    ) {
-        this.setText(initialValue.toString())
-        incrementView.setOnClickListener {
-            this.clearFocus()
-            val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-            imm.hideSoftInputFromWindow(windowToken, 0)
-            var value = this.text.toString().toIntOrNull() ?: 0
-            value++
-            this.setText(value.toString())
-        }
-
-        decrementView.setOnClickListener {
-            val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-            imm.hideSoftInputFromWindow(windowToken, 0)
-            this.clearFocus()
-            var value = this.text.toString().toIntOrNull() ?: 0
-            if (value > 1) {
-                value--
-                this.setText(value.toString())
-            }
-        }
-    }
-
-
-
-
-
-    fun View.attachDatePicker(pattern:String = "dd-MM-yyyy",callback: (Date) -> Unit = {}) {
-
-        fun openDatePickerDialog() {
-            val context = this.context
-            val calendar = Calendar.getInstance()
-            val year = calendar.get(Calendar.YEAR)
-            val month = calendar.get(Calendar.MONTH)
-            val day = calendar.get(Calendar.DAY_OF_MONTH)
-            val datePickerDialog = DatePickerDialog(
-                context,
-                android.R.style.Theme_Holo_Light_Dialog_NoActionBar,
-                { _: DatePicker, selectedYear: Int, selectedMonth: Int, selectedDay: Int ->
-                    val selectedDate = Calendar.getInstance()
-                    selectedDate.set(selectedYear, selectedMonth, selectedDay)
-
-                    val sdf = SimpleDateFormat(pattern, Locale.getDefault())
-                    val formattedDate = sdf.format(selectedDate.time)
-
-                    (this as TextView).text = formattedDate
-                    callback(selectedDate.time)
-                }, year, month, day
-            )
-
-            datePickerDialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
-
-            datePickerDialog.setTitle("Select Date")
-
-            datePickerDialog.show()
-        }
-
-        if (this is EditText) {
-            this.inputType = InputType.TYPE_NULL
-            this.isCursorVisible = false
-            this.onFocusChangeListener = View.OnFocusChangeListener { _, hasFocus ->
-                if (hasFocus) {
-                    openDatePickerDialog()
-                }
-            }
-            this.setOnClickListener {
-                openDatePickerDialog()
-            }
-        } else {
-            this.setOnClickListener {
-                openDatePickerDialog()
-            }
-        }
-
-
-    }
-
-
-    fun View.attachTimePicker() {
-        fun openTimePickerDialog() {
-            val context = this.context
-            val calendar = Calendar.getInstance()
-            val hour = calendar.get(Calendar.HOUR_OF_DAY)
-            val minute = calendar.get(Calendar.MINUTE)
-            val timePickerDialog = TimePickerDialog(
-                context,
-                android.R.style.Theme_Holo_Light_Dialog_NoActionBar,
-                { _: TimePicker, selectedHour: Int, selectedMinute: Int ->
-                    val selectedTime = Calendar.getInstance()
-                    selectedTime.set(Calendar.HOUR_OF_DAY, selectedHour)
-                    selectedTime.set(Calendar.MINUTE, selectedMinute)
-
-                    val sdf = SimpleDateFormat("hh:mm a", Locale.getDefault())
-                    val formattedTime = sdf.format(selectedTime.time)
-                    (this as TextView).text = formattedTime
-                }, hour, minute, false // Set is24HourView to false
-            )
-
-            timePickerDialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
-            timePickerDialog.setTitle("Select Time")
-            timePickerDialog.show()
-        }
-
-        if (this is EditText) {
-            this.inputType = InputType.TYPE_NULL
-            this.isCursorVisible = false
-            this.setOnClickListener {
-                openTimePickerDialog()
-            }
-            this.onFocusChangeListener = View.OnFocusChangeListener { _, hasFocus ->
-                if (hasFocus) {
-                    openTimePickerDialog()
-                }
-            }
-        } else {
-            this.setOnClickListener {
-                openTimePickerDialog()
-            }
-        }
-
-
-    }
-
-
-
-    fun EditText.setListItems(items: List<String>) {
-        fun openPopupMenu() {
-            val popup = PopupMenu(this.context, this)
-            items.forEach { item ->
-                popup.menu.add(item)
-            }
-            popup.setOnMenuItemClickListener { menuItem ->
-                setText(menuItem.title)
-                true
-            }
-            popup.show()
-        }
-
-
-        val dropdownIcon: Drawable? =
-            AppCompatResources.getDrawable(context, android.R.drawable.arrow_down_float)
-        setCompoundDrawablesRelativeWithIntrinsicBounds(null, null, dropdownIcon, null)
-
-
-        inputType = InputType.TYPE_NULL
-        isCursorVisible = false
-
-
-        setOnClickListener {
-            openPopupMenu()
-        }
-        onFocusChangeListener = View.OnFocusChangeListener { _, hasFocus ->
-            if (hasFocus) {
-                openPopupMenu()
-            }
-        }
-    }
 
 
     inline fun <reified T : Any> T.deepCopy(): T {
@@ -1661,16 +774,8 @@ object MyExtensions {
 
 
 
-    fun EditText.isEmpty(): Boolean {
 
-        return text.toString().isEmpty()
-    }
-    fun String.openUrlInBrowser(context: Context) {
-        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(this))
-        if (intent.resolveActivity(context.packageManager) != null) {
-            context.startActivity(intent)
-        }
-    }
+
     fun JSONObject.toPrettyString(): String {
         return this.toString(4) // Indent by 4 spaces for pretty printing
     }
@@ -1706,42 +811,6 @@ object MyExtensions {
     }
 
 
-    fun String.toJsonArray(): JSONArray {
-        return try {
-            JSONArray(this)
-        } catch (e: Exception) {
-            JSONArray()
-        }
-    }
-
-
-    fun String.toJson(): JSONObject {
-        return try {
-            JSONObject(this)
-        } catch (e: Exception) {
-            // Handle JSON parsing exception here
-            JSONObject()
-        }
-    }
-
-    fun String.isDigitsOnly(): Boolean {
-        return all { it.isDigit() }
-    }
-
-    fun String.parseAsHtml(
-        @SuppressLint("InlinedApi")
-        flag: Int = Html.FROM_HTML_MODE_LEGACY,
-        imageGetter: Html.ImageGetter? = null,
-        tagHandler: Html.TagHandler? = null
-    ): Spanned {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            return Html.fromHtml(this, flag, imageGetter, tagHandler)
-        }
-
-        @Suppress("Deprecation")
-        return Html.fromHtml(this, imageGetter, tagHandler)
-    }
-
 
 
     //start<NextActivity>()
@@ -1750,6 +819,16 @@ object MyExtensions {
     }
 
 
+    fun AppCompatActivity.setUpFragmentSlider(fragments:List<Fragment> , viewPager2: ViewPager2){
+        viewPager2.adapter = object : androidx.viewpager2.adapter.FragmentStateAdapter(this) {
+            override fun getItemCount(): Int = fragments.size
+
+            override fun createFragment(position: Int): Fragment {
+                return fragments[position]
+            }
+        }
+
+    }
 
     fun AppCompatActivity.setupTabLayout(
         tabLayout: TabLayout,
@@ -1783,10 +862,10 @@ object MyExtensions {
         }
     }
 
-    fun View.showSnackbar(message: String) {
-        Snackbar.make(this, message, Snackbar.LENGTH_SHORT).show()
-    }
 
+
+    val Fragment.dialogUtil: DialogUtil
+        get() = DialogUtil()
     val Activity.dialogUtil: DialogUtil
         get() = DialogUtil()
 
@@ -1906,221 +985,6 @@ object MyExtensions {
         }
     }
 
-    fun View.animateToLeft(duration: Long = 300) {
-        val slideLeftAnimation = TranslateAnimation(
-            Animation.RELATIVE_TO_SELF, 0.0f,
-            Animation.RELATIVE_TO_SELF, -1.0f,
-            Animation.RELATIVE_TO_SELF, 0.0f,
-            Animation.RELATIVE_TO_SELF, 0.0f
-        )
-        slideLeftAnimation.duration = duration
-        this.startAnimation(slideLeftAnimation)
-    }
-
-    fun View.animateToRight(duration: Long = 300) {
-        val slideRightAnimation = TranslateAnimation(
-            Animation.RELATIVE_TO_SELF, 0.0f,
-            Animation.RELATIVE_TO_SELF, 1.0f,
-            Animation.RELATIVE_TO_SELF, 0.0f,
-            Animation.RELATIVE_TO_SELF, 0.0f
-        )
-        slideRightAnimation.duration = duration
-        this.startAnimation(slideRightAnimation)
-    }
-
-    fun View.animateToDown(duration: Long = 300) {
-        val slideDownAnimation = TranslateAnimation(
-            Animation.RELATIVE_TO_SELF, 0.0f,
-            Animation.RELATIVE_TO_SELF, 0.0f,
-            Animation.RELATIVE_TO_SELF, 0.0f,
-            Animation.RELATIVE_TO_SELF, 1.0f
-        )
-        slideDownAnimation.duration = duration
-        this.startAnimation(slideDownAnimation)
-    }
-
-    fun View.animateFromDown(duration: Long = 300) {
-        val slideUpAnimation = TranslateAnimation(
-            Animation.RELATIVE_TO_SELF, 0.0f,
-            Animation.RELATIVE_TO_SELF, 0.0f,
-            Animation.RELATIVE_TO_SELF, 1.0f,
-            Animation.RELATIVE_TO_SELF, 0.0f
-        )
-        slideUpAnimation.duration = duration
-        this.startAnimation(slideUpAnimation)
-    }
-
-
-    fun View.animateFromLeft( fromX: Float = 0.0f, toX: Float = 1.0f , duration: Long = 300) {
-        val slideLeftAnimation = TranslateAnimation(
-            Animation.RELATIVE_TO_PARENT, fromX,
-            Animation.RELATIVE_TO_PARENT, toX,
-            Animation.RELATIVE_TO_PARENT, 0.0f,
-            Animation.RELATIVE_TO_PARENT, 0.0f
-        )
-        slideLeftAnimation.duration = duration
-        this.startAnimation(slideLeftAnimation)
-    }
-
-    fun View.animateFromRight(fromX: Float = 1.0f, toX: Float = 0.0f) {
-        val slideRightAnimation = TranslateAnimation(
-            Animation.RELATIVE_TO_PARENT, fromX,
-            Animation.RELATIVE_TO_PARENT, toX,
-            Animation.RELATIVE_TO_PARENT, 0.0f,
-            Animation.RELATIVE_TO_PARENT, 0.0f
-        )
-        slideRightAnimation.duration = 300
-        this.startAnimation(slideRightAnimation)
-    }
-
-    fun ImageView.loadThumbnail(videoUrl: String , frame:Long = 2000) {
-        Glide.with(context).setDefaultRequestOptions(RequestOptions().frame(frame)).load(videoUrl).into(this)
-    }
-
-    // Extension function to fade in a view
-    fun View.fadeInAnimation(fromAlpha: Float = 0f, toAlpha: Float = 1f, duration: Long = 300) {
-        val fadeInAnimation = AlphaAnimation(fromAlpha, toAlpha)
-        fadeInAnimation.duration = duration
-        this.startAnimation(fadeInAnimation)
-    }
-
-    // Extension function to fade out a view
-    fun View.fadeOutAnimation(fromAlpha: Float = 1f, toAlpha: Float = 0f, duration: Long = 300) {
-        val fadeOutAnimation = AlphaAnimation(fromAlpha, toAlpha)
-        fadeOutAnimation.duration = duration
-        this.startAnimation(fadeOutAnimation)
-    }
-
-    // Extension function to rotate a view clockwise
-    fun View.animateRotateClockwise(fromDegrees: Float = 0f, toDegrees: Float = 360f, duration: Long = 300, pivotX: Float = 0.5f, pivotY: Float = 0.5f) {
-        val rotateAnimation = RotateAnimation(fromDegrees, toDegrees, Animation.RELATIVE_TO_SELF, pivotX, Animation.RELATIVE_TO_SELF, pivotY)
-        rotateAnimation.duration = duration
-        this.startAnimation(rotateAnimation)
-    }
-
-    // Extension function to rotate a view anticlockwise
-    fun View.animateRotateAntiClockwise(fromDegrees: Float = 0f, toDegrees: Float = -360f, duration: Long = 300, pivotX: Float = 0.5f, pivotY: Float = 0.5f) {
-        val rotateAnimation = RotateAnimation(fromDegrees, toDegrees, Animation.RELATIVE_TO_SELF, pivotX, Animation.RELATIVE_TO_SELF, pivotY)
-        rotateAnimation.duration = duration
-        this.startAnimation(rotateAnimation)
-    }
-
-    // Extension function to scale in a view
-    fun View.animateScaleIn(fromX: Float = 0f, toX: Float = 1f, fromY: Float = 0f, toY: Float = 1f, duration: Long = 300, pivotX: Float = 0.5f, pivotY: Float = 0.5f) {
-        val scaleAnimation = ScaleAnimation(fromX, toX, fromY, toY, Animation.RELATIVE_TO_SELF, pivotX, Animation.RELATIVE_TO_SELF, pivotY)
-        scaleAnimation.duration = duration
-        this.startAnimation(scaleAnimation)
-    }
-
-    // Extension function to scale out a view
-    fun View.animateScaleOut(fromX: Float = 1f, toX: Float = 0f, fromY: Float = 1f, toY: Float = 0f, duration: Long = 300, pivotX: Float = 0.5f, pivotY: Float = 0.5f) {
-        val scaleAnimation = ScaleAnimation(fromX, toX, fromY, toY, Animation.RELATIVE_TO_SELF, pivotX, Animation.RELATIVE_TO_SELF, pivotY)
-        scaleAnimation.duration = duration
-        this.startAnimation(scaleAnimation)
-    }
-
-    // Extension function to bounce a view
-    fun View.animateBounce(fromX: Float = 0.9f, toX: Float = 1.1f, fromY: Float = 0.9f, toY: Float = 1.1f, duration: Long = 300, pivotX: Float = 0.5f, pivotY: Float = 0.5f, repeatCount: Int = 1, repeatMode: Int = Animation.REVERSE) {
-        val bounceAnimation = ScaleAnimation(fromX, toX, fromY, toY, Animation.RELATIVE_TO_SELF, pivotX, Animation.RELATIVE_TO_SELF, pivotY)
-        bounceAnimation.duration = duration
-        bounceAnimation.repeatCount = repeatCount
-        bounceAnimation.repeatMode = repeatMode
-        this.startAnimation(bounceAnimation)
-    }
-
-    // Extension function to shake a view
-    fun View.animateShake(offset: Float = 10f, duration: Long = 300) {
-        val shakeAnimation = TranslateAnimation(0f, offset, 0f, 0f)
-        shakeAnimation.duration = duration / 6
-        shakeAnimation.repeatCount = 5
-        shakeAnimation.repeatMode = Animation.REVERSE
-        this.startAnimation(shakeAnimation)
-    }
-
-    // Extension function to flip a view
-    fun View.animateFlip(fromDegrees: Float = 0f, toDegrees: Float = 360f, duration: Long = 300, pivotX: Float = 0.5f, pivotY: Float = 0.5f) {
-        val flipAnimation = RotateAnimation(fromDegrees, toDegrees, Animation.RELATIVE_TO_SELF, pivotX, Animation.RELATIVE_TO_SELF, pivotY)
-        flipAnimation.duration = duration
-        this.startAnimation(flipAnimation)
-    }
-
-    // Extension function to zoom in a view
-    fun View.animateZoomIn(fromX: Float = 0.5f, toX: Float = 1f, fromY: Float = 0.5f, toY: Float = 1f, duration: Long = 300, pivotX: Float = 0.5f, pivotY: Float = 0.5f) {
-        val zoomInAnimation = ScaleAnimation(fromX, toX, fromY, toY, Animation.RELATIVE_TO_SELF, pivotX, Animation.RELATIVE_TO_SELF, pivotY)
-        zoomInAnimation.duration = duration
-        this.startAnimation(zoomInAnimation)
-    }
-
-    // Extension function to zoom out a view
-    fun View.animateZoomOut(fromX: Float = 1f, toX: Float = 0.5f, fromY: Float = 1f, toY: Float = 0.5f, duration: Long = 300, pivotX: Float = 0.5f, pivotY: Float = 0.5f) {
-        val zoomOutAnimation = ScaleAnimation(fromX, toX, fromY, toY, Animation.RELATIVE_TO_SELF, pivotX, Animation.RELATIVE_TO_SELF, pivotY)
-        zoomOutAnimation.duration = duration
-        this.startAnimation(zoomOutAnimation)
-    }
-
-    // Extension function to slide in a view from left
-    fun View.slideInFromLeft(fromX: Float = -1f, toX: Float = 0f, fromY: Float = 0f, toY: Float = 0f, duration: Long = 300) {
-        val slideIn = TranslateAnimation(Animation.RELATIVE_TO_PARENT, fromX, Animation.RELATIVE_TO_PARENT, toX, Animation.RELATIVE_TO_PARENT, fromY, Animation.RELATIVE_TO_PARENT, toY)
-        slideIn.duration = duration
-        this.startAnimation(slideIn)
-        this.visibility = View.VISIBLE
-    }
-
-    // Extension function to slide out a view to left
-    fun View.slideOutToLeft(fromX: Float = 0f, toX: Float = -1f, fromY: Float = 0f, toY: Float = 0f, duration: Long = 300) {
-        val slideOut = TranslateAnimation(Animation.RELATIVE_TO_PARENT, fromX, Animation.RELATIVE_TO_PARENT, toX, Animation.RELATIVE_TO_PARENT, fromY, Animation.RELATIVE_TO_PARENT, toY)
-        slideOut.duration = duration
-        this.startAnimation(slideOut)
-        this.visibility = View.GONE
-    }
-
-    // Extension function to slide in a view from right
-    fun View.slideInFromRight(fromX: Float = 1f, toX: Float = 0f, fromY: Float = 0f, toY: Float = 0f, duration: Long = 300) {
-        val slideIn = TranslateAnimation(Animation.RELATIVE_TO_PARENT, fromX, Animation.RELATIVE_TO_PARENT, toX, Animation.RELATIVE_TO_PARENT, fromY, Animation.RELATIVE_TO_PARENT, toY)
-        slideIn.duration = duration
-        this.startAnimation(slideIn)
-        this.visibility = View.VISIBLE
-    }
-
-    // Extension function to slide out a view to right
-    fun View.slideOutToRight(fromX: Float = 0f, toX: Float = 1f, fromY: Float = 0f, toY: Float = 0f, duration: Long = 300) {
-        val slideOut = TranslateAnimation(Animation.RELATIVE_TO_PARENT, fromX, Animation.RELATIVE_TO_PARENT, toX, Animation.RELATIVE_TO_PARENT, fromY, Animation.RELATIVE_TO_PARENT, toY)
-        slideOut.duration = duration
-        this.startAnimation(slideOut)
-        this.visibility = View.GONE
-    }
-
-    // Extension function to slide in a view from top
-    fun View.slideInFromTop(fromX: Float = 0f, toX: Float = 0f, fromY: Float = -1f, toY: Float = 0f, duration: Long = 300) {
-        val slideIn = TranslateAnimation(Animation.RELATIVE_TO_PARENT, fromX, Animation.RELATIVE_TO_PARENT, toX, Animation.RELATIVE_TO_PARENT, fromY, Animation.RELATIVE_TO_PARENT, toY)
-        slideIn.duration = duration
-        this.startAnimation(slideIn)
-        this.visibility = View.VISIBLE
-    }
-
-    // Extension function to slide out a view to top
-    fun View.slideOutToTop(fromX: Float = 0f, toX: Float = 0f, fromY: Float = 0f, toY: Float = -1f, duration: Long = 300) {
-        val slideOut = TranslateAnimation(Animation.RELATIVE_TO_PARENT, fromX, Animation.RELATIVE_TO_PARENT, toX, Animation.RELATIVE_TO_PARENT, fromY, Animation.RELATIVE_TO_PARENT, toY)
-        slideOut.duration = duration
-        this.startAnimation(slideOut)
-        this.visibility = View.GONE
-    }
-
-    // Extension function to slide in a view from bottom
-    fun View.slideInFromBottom(fromX: Float = 0f, toX: Float = 0f, fromY: Float = 1f, toY: Float = 0f, duration: Long = 300) {
-        val slideIn = TranslateAnimation(Animation.RELATIVE_TO_PARENT, fromX, Animation.RELATIVE_TO_PARENT, toX, Animation.RELATIVE_TO_PARENT, fromY, Animation.RELATIVE_TO_PARENT, toY)
-        slideIn.duration = duration
-        this.startAnimation(slideIn)
-        this.visibility = View.VISIBLE
-    }
-
-    // Extension function to slide out a view to bottom
-    fun View.slideOutToBottom(fromX: Float = 0f, toX: Float = 0f, fromY: Float = 0f, toY: Float = 1f, duration: Long = 300) {
-        val slideOut = TranslateAnimation(Animation.RELATIVE_TO_PARENT, fromX, Animation.RELATIVE_TO_PARENT, toX, Animation.RELATIVE_TO_PARENT, fromY, Animation.RELATIVE_TO_PARENT, toY)
-        slideOut.duration = duration
-        this.startAnimation(slideOut)
-        this.visibility = View.GONE
-    }
 
 
     // Extension function to format Long as date string
@@ -2243,112 +1107,6 @@ object MyExtensions {
 
 
 
-
-    inline fun <T : ViewBinding> Fragment.viewBinding(
-        crossinline bindingInflater: (LayoutInflater) -> T
-    ) = lazy(LazyThreadSafetyMode.NONE) {
-        bindingInflater.invoke(layoutInflater)
-    }
-
-
-    /*
-    simple default bottom Nav
-    usage in activity
-
-      val list = listOf(BlankFragment1(), BlankFragment2(), BlankFragment3())
-        setupBottomNav(this, bottomNav, frameLayout, list)
-     */
-    fun AppCompatActivity.setupBottomNav(
-        bottomNavigationView: BottomNavigationView,
-        frameLayout: FrameLayout,
-        fragmentsList: List<Fragment>
-    ) {
-
-        supportFragmentManager.beginTransaction()
-            .replace(frameLayout.id, fragmentsList.first())
-            .commit()
-
-        bottomNavigationView.setOnNavigationItemSelectedListener { menuItem ->
-            val itemId = menuItem.itemId
-
-            val menuItems = bottomNavigationView.menu
-            for (index in 0 until menuItems.size()) {
-                val menu = menuItems.getItem(index)
-                if (menu.itemId == itemId) {
-                    if (index in fragmentsList.indices) {
-                        supportFragmentManager.beginTransaction()
-                            .replace(frameLayout.id, fragmentsList[index])
-                            .commit()
-                        return@setOnNavigationItemSelectedListener true
-                    }
-                }
-            }
-
-            return@setOnNavigationItemSelectedListener false
-        }
-    }
-
-
-
-
-    fun AppCompatActivity.setupBottomNav(
-        bottomNavigationView: AnimatedBottomBar,
-        frameLayout: FrameLayout,
-        fragmentsList: List<Fragment>
-    ) {
-        supportFragmentManager.beginTransaction()
-            .replace(frameLayout.id, fragmentsList.first())
-            .commit()
-
-        bottomNavigationView.setOnTabSelectListener(object : AnimatedBottomBar.OnTabSelectListener {
-            override fun onTabSelected(lastIndex: Int, lastTab: AnimatedBottomBar.Tab?, newIndex: Int, newTab: AnimatedBottomBar.Tab) {
-
-                supportFragmentManager.beginTransaction()
-                    .replace(frameLayout.id, fragmentsList[newIndex])
-                    .commit()
-
-
-            }
-        })
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    fun EditText.value():String{
-        return this.text.toString()
-    }
-
-    fun TextInputEditText.value():String{
-        return this.text.toString()
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     fun Any.shrink(): Map<String, Any> {
         val propertiesMap = mutableMapOf<String, Any>()
         this::class.memberProperties.forEach { prop ->
@@ -2390,9 +1148,6 @@ object MyExtensions {
     }
 
 
-    inline fun <reified T> String.fromJson(): T {
-        return Gson().fromJson(this, T::class.java)
-    }
 
     @SuppressLint("ObsoleteSdkInt")
     private fun checkInternetConnection(context: Context, callback: (Boolean) -> Unit) { // make it suspend network working .
@@ -2418,221 +1173,6 @@ object MyExtensions {
 
 
 
-    fun String.getStringDate(initialFormat: String, requiredFormat: String, locale: Locale = Locale.getDefault()): String {
-        return this.toDate(initialFormat, locale).toString(requiredFormat, locale)
-    }
-
-    fun String.toDate(format: String, locale: Locale = Locale.getDefault()): Date = SimpleDateFormat(format, locale).parse(this)!!
-
-    fun Date.toString(format: String, locale: Locale = Locale.getDefault()): String {
-        val formatter = SimpleDateFormat(format, locale)
-        return formatter.format(this)
-    }
-
-    // string
-    //  Capitalize the first letter of the string
-
-
-    //   // qr code generater
-    //    implementation 'com.google.zxing:core:3.4.0'
-    //    implementation 'com.journeyapps:zxing-android-embedded:3.6.0'
-    fun String.generateQrCode(): Bitmap? {
-        val bitMatrix: BitMatrix
-        try {
-            bitMatrix = MultiFormatWriter().encode(this, BarcodeFormat.QR_CODE, 300, 300, null)
-        } catch (illegalArgumentException: WriterException) {
-            return null
-        }
-        val bitmap = Bitmap.createBitmap(300, 300, Bitmap.Config.RGB_565)
-        for (x in 0 until 300) {
-            for (y in 0 until 300) {
-                bitmap.setPixel(x, y, if (bitMatrix.get(x, y)) Color.BLACK else Color.WHITE)
-            }
-        }
-        return bitmap
-    }
-
-
-
-    fun String.capitalize(): String {
-        return if (isNotEmpty()) {
-            this[0].uppercase() + substring(1)
-        } else {
-            this
-        }
-    }
-
-    fun String.isValidEmail(): Boolean {
-        val emailRegex = Regex("[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}")
-        return matches(emailRegex)
-    }
-
-   //Convert a string to an integer (or return a default value if conversion fails)
-    fun String.toIntOrDefault(defaultValue: Int = 0): Int {
-        return toIntOrNull() ?: defaultValue
-    }
-
-    fun String.isValidUrl(): Boolean {
-        return try {
-            java.net.URL(this)
-            true
-        } catch (e: Exception) {
-            false
-        }
-    }
-
-
-
-    //Truncate the string to a specified length and append "..." if it exceeds
-    fun String.truncate(length: Int): String {
-        return if (length >= length) {
-            substring(0, length) + "..."
-        } else {
-            this
-        }
-    }
-
-    fun String.isNumeric(): Boolean {
-        return matches(Regex("-?\\d+(\\.\\d+)?"))
-    }
-
-    fun String.isAlphaString(): Boolean {
-        return all { it.isLetter() }
-    }
-
-    fun String.isValidPhoneNumber(): Boolean {
-        return matches(Regex("^\\+(?:[0-9] ?){6,14}[0-9]$"))
-    }
-
-    fun String.splitIntoWords(): List<String> {
-        return split("\\s+".toRegex())
-    }
-
-    fun String.removeSpaces(): String {
-        return this.replace("\\s".toRegex(), "")
-    }
-
-
-    fun String.keepOnlyAlphanumeric(): String {
-        return replace(Regex("[^A-Za-z0-9]"), "")
-    }
-
-
-
-//    textview
-fun TextView.setTextOrInvisible(text: String) {
-    this.text = text
-    visibility = if (text.isNullOrEmpty()) TextView.INVISIBLE else TextView.VISIBLE
-}
-
-    fun TextView.setTextOrGone(text: String) {
-        this.text = text
-        visibility = if (text.isNullOrEmpty()) TextView.GONE else TextView.VISIBLE
-    }
-
-    fun TextView.makeLinksClickable() {
-        movementMethod = LinkMovementMethod.getInstance()
-    }
-
-    fun TextView.strikeThrough() {
-        paintFlags = paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
-    }
-
-    fun TextView.setHtmlText(html: String) {
-        text = HtmlCompat.fromHtml(html, HtmlCompat.FROM_HTML_MODE_COMPACT)
-        movementMethod = LinkMovementMethod.getInstance()
-    }
-
-    fun TextView.setTextSizeInSp( s: Float) {
-        setTextSize(TypedValue.COMPLEX_UNIT_SP, s)
-    }
-    fun TextView.setTextColorRes(@ColorRes colorResId: Int) {
-        setTextColor(ContextCompat.getColor(context, colorResId))
-    }
-
-
-
-
-
-
-
-
-
-    // button
-    fun Button.disable() {
-        isEnabled = false
-    }
-
-    fun Button.enable() {
-        isEnabled = true
-    }
-
-    fun Button.setTextColorRes(@ColorRes colorResId: Int) {
-        setTextColor(ContextCompat.getColor(context, colorResId))
-    }
-
-    fun Button.setBackgroundRes(@DrawableRes drawableResId: Int) {
-        background = ContextCompat.getDrawable(context, drawableResId)
-    }
-
-    fun Button.setRippleEffect() {
-        val attrs = intArrayOf(android.R.attr.selectableItemBackground)
-        val typedArray = context.obtainStyledAttributes(attrs)
-        val drawable = typedArray.getDrawable(0)
-        background = drawable
-        typedArray.recycle()
-    }
-
-
-
-    fun Button.setCornerRadius(radius: Float) {
-        val drawable = background
-        if (drawable is GradientDrawable) {
-            drawable.cornerRadius = radius
-        }
-    }
-
-    fun Button.setElevationCompat(elevation: Float) {
-        this.elevation = elevation
-    }
-
-
-
-
-
-    // imageview
-    fun ImageView.loadImageFromUrl(url: String , placeHolder:Int = R.drawable.ic_launcher_background , error: Int = R.drawable.ic_launcher_background) {
-        Glide.with(this.context)
-            .load(url)
-            .placeholder(placeHolder)
-            .error(error)
-            .diskCacheStrategy(DiskCacheStrategy.ALL)
-            .into(this)
-
-    }
-
-    fun ImageView.loadImageFromResource(resourceId: Int) {
-        Glide.with(this.context)
-            .load(resourceId)
-            .into(this)
-    }
-
-
-    fun ImageView.makeCircular() {
-        Glide.with(this.context)
-            .load(this.drawable)
-            .apply(RequestOptions.circleCropTransform())
-            .into(this)
-    }
-
-    // Extension function to load a drawable resource into an ImageView using Glide
-    fun ImageView.loadDrawable(@DrawableRes resId: Int) {
-        Glide.with(this.context)
-            .load(resId)
-            .apply(RequestOptions().diskCacheStrategy(DiskCacheStrategy.ALL))
-            .into(this)
-    }
-
     // Extension function to check if the device is connected to the internet
     fun Context.isNetworkAvailable(): Boolean {
         val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
@@ -2649,42 +1189,18 @@ fun TextView.setTextOrInvisible(text: String) {
     }
 
 
-
-//    fun Context.isNetworkAvailable(): Boolean {
-//        val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-//            val network = connectivityManager.activeNetwork ?: return false
-//            val activeNetwork = connectivityManager.getNetworkCapabilities(network) ?: return false
-//            return when {
-//                activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
-//                activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
-//                activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> true
-//                else -> false
-//            }
-//        } else {
-//            val networkInfo = connectivityManager.activeNetworkInfo ?: return false
-//            return networkInfo.isConnected
-//        }
-//    }
-
-    
-    fun ImageView.pickImage(activity: Activity){
-        ImagePicker.with(activity)
-            .crop()
-            .galleryOnly()
-            .compress(1024)
-            .maxResultSize(1080, 1080)
-            .start()
+    // Extension function to start an activity with a delay
+    fun Context.startActivityWithDelay(delayMillis: Long, targetActivity: Class<out Activity>) {
+        val intent = Intent(this, targetActivity)
+        if (this is Activity) {
+            this.window.decorView.postDelayed({
+                startActivity(intent)
+            }, delayMillis)
+        } else {
+            this.applicationContext.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        }
     }
 
-    fun ImageView.pickImage(fragment: Fragment){
-        ImagePicker.with(fragment)
-            .crop()
-            .galleryOnly()
-            .compress(1024)
-            .maxResultSize(1080, 1080)
-            .start()
-    }
 
 
     // Extension function to convert a Drawable to a Bitmap
@@ -2700,57 +1216,7 @@ fun TextView.setTextOrInvisible(text: String) {
     }
 
 
-    fun ImageView.loadUrl(url: String, @DrawableRes placeholder: Int, @DrawableRes error: Int) {
-        Glide.with(this.context)
-            .load(url)
-            .apply(RequestOptions().diskCacheStrategy(DiskCacheStrategy.ALL))
-            .placeholder(placeholder)
-            .error(error)
-            .into(this)
-    }
 
-
-
-
-    // Extension function to start an activity with a delay
-    fun Context.startActivityWithDelay(delayMillis: Long, targetActivity: Class<out Activity>) {
-        val intent = Intent(this, targetActivity)
-        if (this is Activity) {
-            this.window.decorView.postDelayed({
-                startActivity(intent)
-            }, delayMillis)
-        } else {
-            this.applicationContext.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-        }
-    }
-
-
-    fun ImageView.loadUrl(url: String) {
-        Glide.with(this.context)
-            .load(url)
-            .apply(RequestOptions().diskCacheStrategy(DiskCacheStrategy.ALL))
-            .into(this)
-    }
-
-
-    fun ImageView.setRoundedCorner(cornerRadius: Float) {
-        Glide.with(this.context)
-            .load(this.drawable)
-            .apply(RequestOptions().transform(RoundedCorners(cornerRadius.toInt())))
-            .into(this)
-    }
-
-
-    fun ImageView.setTintColor(color: Int) {
-        setColorFilter(color, PorterDuff.Mode.SRC_ATOP)
-    }
-
-    fun ImageView.setGrayscale() {
-        val matrix = ColorMatrix()
-        matrix.setSaturation(0f)
-        val filter = ColorMatrixColorFilter(matrix)
-        colorFilter = filter
-    }
 
 
 //    check button
@@ -2813,10 +1279,6 @@ fun TextView.setTextOrInvisible(text: String) {
     }
 
 
-
-
-
-
     // radio button
 
     fun RadioButton.setCheckedColor(color: Int) {
@@ -2848,10 +1310,6 @@ fun TextView.setTextOrInvisible(text: String) {
 //    }
 
 
-
-
-
-
     // seek bar
     fun SeekBar.setOnSeekBarChangeListenerCompat(listener: (Int) -> Unit) {
         setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -2868,9 +1326,6 @@ fun TextView.setTextOrInvisible(text: String) {
             }
         })
     }
-
-
-
 
 
     // spinner
@@ -2907,62 +1362,6 @@ fun TextView.setTextOrInvisible(text: String) {
 
 
 
-
-
-
-
-    // edit text
-
-    fun EditText.getText(): String {
-        return text.toString()
-    }
-    fun EditText.setMaxLength(maxLength: Int) {
-        filters = arrayOf(android.text.InputFilter.LengthFilter(maxLength))
-    }
-    fun EditText.setSelectionToEnd() {
-        setSelection(text.length)
-    }
-
-
-    private val EditText.inputMethodManager: InputMethodManager?
-        get() = context.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
-
-    fun EditText.onTextChange(callback: (String) -> Unit){
-              this.addTextChangedListener(object : TextWatcher {
-                          override fun beforeTextChanged(
-                              s: CharSequence?,
-                              start: Int,
-                              count: Int,
-                              after: Int
-                          ) {
-                          }
-                          override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-                          override fun afterTextChanged(s: Editable?) {
-                          callback(s.toString())
-                          }
-                      })
-    }
-
-    fun TextInputEditText.onTextChange(callback: (String) -> Unit){
-        this.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(
-                s: CharSequence?,
-                start: Int,
-                count: Int,
-                after: Int
-            ) {
-            }
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: Editable?) {
-                callback(s.toString())
-            }
-        })
-    }
-
-
-
-
-
     //  tablayout
     fun TabLayout.addTabWithText(text: String) {
         this.addTab(this.newTab().setText(text))
@@ -2993,8 +1392,6 @@ fun TextView.setTextOrInvisible(text: String) {
             this.addTabWithTextAndIcon(text, iconResId)
         }
     }
-
-
 
 
 
@@ -3032,37 +1429,10 @@ fun TextView.setTextOrInvisible(text: String) {
 
 
 
-
-
-
-
-
-
-
     // webview
     fun WebView.enableJavaScript() {
         settings.javaScriptEnabled = true
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     // autoCompleteTextView
@@ -3091,15 +1461,10 @@ fun TextView.setTextOrInvisible(text: String) {
     }
 
 
-
-
 // scrollview
 fun ScrollView.scrollToView(view: View) {
     this.post { this.scrollTo(0, view.top) }
 }
-
-
-
 
     // spinner
     fun Spinner.setAdapter(list: List<String>) {
@@ -3133,152 +1498,6 @@ fun ScrollView.scrollToView(view: View) {
     }
 
 
-
-
-
-    // activity
-    // . showToast(message: String)
-    fun Activity.showToast(message: String) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
-    }
-    fun ComponentActivity.getPermissionLauncher():ActivityResultLauncher<String>{
-        return this.registerForActivityResult(ActivityResultContracts.RequestPermission()) {}
-    }
-
-    fun Activity.startActivity(clazz: Class<*>) {
-        startActivity(Intent(this, clazz))
-    }
-
-    fun Activity.startActivity(clazz: Class<*>, key: String, data: String) {
-        var i = Intent(this, clazz)
-        i.putExtra(key, data)
-        startActivity(i)
-    }
-
-    // . setStatusBarColor(color: Int)
-    fun Activity.setStatusBarColor(color: Int) {
-        window.statusBarColor = color
-    }
-
-    // . setActionBarTitle(title: String)
-    fun Activity.setActionBarTitle(title: String) {
-        actionBar?.title = title
-    }
-
-    // . requestPermission(permission: String, requestCode: Int)
-    fun Activity.requestPermission(permission: Array<String>, requestCode: Int) {
-        ActivityCompat.requestPermissions(this, permission, requestCode)
-    }
-
-    // . checkPermission(permission: String)
-    fun Activity.checkPermission(permission: String): Boolean {
-        return ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
-    }
-
-    fun Activity.openAppSettings() {
-        startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$packageName")))
-    }
-
-    fun Activity.vibrate(milliseconds: Long) {
-        val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            vibrator.vibrate(VibrationEffect.createOneShot(milliseconds, VibrationEffect.DEFAULT_AMPLITUDE))
-        } else {
-            vibrator.vibrate(milliseconds)
-        }
-    }
-
-    // . startActivityWithAnimation(clazz: Class<*>, enterAnim: Int, exitAnim: Int)
-    fun Activity.startActivityWithAnimation(clazz: Class<*>, enterAnim: Int, exitAnim: Int) {
-        startActivity(Intent(this, clazz))
-        overridePendingTransition(enterAnim, exitAnim)
-    }
-
-
-    fun Activity.setTransparentStatusBar() {
-        window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-        window.statusBarColor = Color.TRANSPARENT
-    }
-
-
-    fun Activity.takeScreenshot() {
-        val rootView = window.decorView.rootView
-        rootView.isDrawingCacheEnabled = true
-        val bitmap = Bitmap.createBitmap(rootView.drawingCache)
-        rootView.isDrawingCacheEnabled = false
-        // Save or share the bitmap as needed
-    }
-
-
-    fun Activity.restart() {
-        startActivity(Intent(this, this::class.java))
-        finish()
-    }
-
-    inline fun <reified T> Activity.getBinding(): T {
-        val bindingClass = T::class.java
-        val inflateMethod = bindingClass.getMethod("inflate", LayoutInflater::class.java)
-        val inflater = LayoutInflater.from(this)
-        @Suppress("UNCHECKED_CAST")
-        return inflateMethod.invoke(null, inflater) as T
-    }
-
-    fun FragmentActivity.replaceFragment(frameLayoutId: Int,fragment: Fragment) {
-        val transaction = supportFragmentManager.beginTransaction()
-        transaction.replace(frameLayoutId, fragment)
-        transaction.commit()
-    }
-
-    fun TextView.showCountdownTimer( totalTimeInMillis: Long , onFinish: (Unit) ->Unit={} , onTicked:(Long) ->Unit = {}) {
-             object : CountDownTimer(totalTimeInMillis, 1000) {
-            override fun onTick(millisUntilFinished: Long) {
-                val seconds = millisUntilFinished / 1000 % 60
-                val minutes = millisUntilFinished / (60 * 1000) % 60
-                val hours = millisUntilFinished / (60 * 60 * 1000)
-                onTicked(millisUntilFinished)
-
-                val timeText = String.format("%02d:%02d:%02d", hours, minutes, seconds)
-                text = timeText
-            }
-
-            override fun onFinish() {
-                text = "00:00:00"
-                onFinish()
-            }
-        }.start()
-    }
-
-    // fragments
-    fun Fragment.showToast(message: String, duration: Int = Toast.LENGTH_SHORT) {
-        Toast.makeText(requireContext(), message, duration).show()
-    }
-
-    fun Fragment.navigateToFragment(frameLayoutId:Int ,fragment: Fragment, addToBackStack: Boolean = true) {
-        val transaction = requireActivity().supportFragmentManager.beginTransaction()
-        transaction.replace(frameLayoutId, fragment)
-        if (addToBackStack) transaction.addToBackStack(null)
-        transaction.commit()
-    }
-
-    fun Fragment.openUrl(url: String) {
-        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-        startActivity(intent)
-    }
-
-       fun Fragment.shareText(content: String, title: String = "Share via") {
-        val intent = Intent(Intent.ACTION_SEND)
-        intent.type = "text/plain"
-        intent.putExtra(Intent.EXTRA_TEXT, content)
-        startActivity(Intent.createChooser(intent, title))
-    }
-
-    fun Fragment.hideKeyboard() {
-        val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        imm.hideSoftInputFromWindow(requireView().windowToken, 0)
-    }
-
-
-
     fun CoroutineScope.launchSafe(
         block: suspend CoroutineScope.() -> Unit,
         onError: (Throwable) -> Unit = {}
@@ -3291,7 +1510,6 @@ fun ScrollView.scrollToView(view: View) {
             }
         }
     }
-
 
 
     fun CoroutineScope.repeatWithDelay(
@@ -3314,7 +1532,6 @@ fun ScrollView.scrollToView(view: View) {
 
         }
     }
-
 
 
     fun NotificationManager.showNotification(
@@ -3353,22 +1570,6 @@ fun ScrollView.scrollToView(view: View) {
         return Uri.parse(path)
     }
 
-
-
-
-    fun String.shareImage(context: Context) {
-        var uri = Uri.parse(this)
-        val shareIntent = Intent().apply {
-            action = Intent.ACTION_SEND
-            putExtra(Intent.EXTRA_STREAM, uri)
-            type = "image/*"
-        }
-        context.startActivity(Intent.createChooser(shareIntent, "Share image via"))
-    }
-
-
-
-
     fun Uri.shareImage(context: Context, imgUri: Uri) {
         val shareIntent = Intent().apply {
             action = Intent.ACTION_SEND
@@ -3377,41 +1578,6 @@ fun ScrollView.scrollToView(view: View) {
         }
         context.startActivity(Intent.createChooser(shareIntent, "Share image via"))
     }
-
-
-
-
-
-
-    @SuppressLint("ObsoleteSdkInt")
-    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-    fun Activity.turnOnFlash(){
-        val cameraManager : CameraManager =this.getSystemService(AppCompatActivity.CAMERA_SERVICE) as CameraManager
-        try{
-            var cameraId : String? = null
-            cameraId = cameraManager.cameraIdList[0]
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                cameraManager.setTorchMode(cameraId,true)
-            }
-        }catch (e: CameraAccessException){
-            Toast.makeText(this, "Something wrong", Toast.LENGTH_LONG).show()
-        }
-    }
-
-
-    fun Activity.turnOFFFlash(){
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
-            val cameraManage = this.getSystemService(AppCompatActivity.CAMERA_SERVICE) as CameraManager
-            try {
-                val cameraId = cameraManage.cameraIdList[0]
-                cameraManage.setTorchMode(cameraId,false)
-            }catch (e: CameraAccessException){
-                Toast.makeText(this, "Something wrong", Toast.LENGTH_LONG).show()
-            }
-        }
-    }
-
-
 
 
 }

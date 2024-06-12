@@ -72,7 +72,7 @@ class DialogUtil {
     inline fun <reified T : ViewBinding> showCustomLayoutDialog(context: Activity,
          crossinline bindingInflater: (LayoutInflater) -> T,
          cancelable: Boolean = true ,
-         callback: (T) -> Unit
+         callback: (T, Dialog ) -> Unit
     ): Dialog {
         val binding = bindingInflater.invoke((context).layoutInflater)
         dialog = MaterialAlertDialogBuilder(context)
@@ -85,7 +85,7 @@ class DialogUtil {
 
         val width = (context.resources.displayMetrics.widthPixels * 0.9).toInt()
         dialog.window?.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
-        callback.invoke( binding)
+        callback.invoke( binding , dialog)
         return dialog
     }
 

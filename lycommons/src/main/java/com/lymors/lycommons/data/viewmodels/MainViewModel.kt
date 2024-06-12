@@ -57,6 +57,7 @@ class MainViewModel @Inject constructor(private val mainRepo: MainRepository) : 
         return mainRepo.deleteAnyModel(child)
     }
 
+
     val map = HashMap<Class<*>, AlphaModel<*>>()
     suspend fun <T> collectAnyModels(path: String, clazz: Class<T> ,  numberOfItems: Int = 0): StateFlow<List<T>> {
         return suspendCancellableCoroutine { continuation ->
@@ -109,6 +110,18 @@ class MainViewModel @Inject constructor(private val mainRepo: MainRepository) : 
     }
     fun setSearchingState(searching: Boolean) {
         _searchingState.value = searching
+    }
+
+    fun <T> collectAModel(path: String, clazz: Class<T>): StateFlow<T> {
+        val _aModelState = MutableStateFlow<T>(null as T) // Initialize with null
+        val aModelState: StateFlow<T> = _aModelState.asStateFlow()
+
+        viewModelScope.launch {
+            mainRepo.collectAModel(path, clazz).collect { model ->
+                _aModelState.value = model // Update value
+            }
+        }
+        return aModelState
     }
 }
 

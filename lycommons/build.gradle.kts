@@ -109,8 +109,6 @@ dependencies {
     implementation ("de.hdodenhof:circleimageview:3.1.0")
     implementation ("com.squareup.okhttp3:okhttp:4.11.0")
 
-
-
     // work manager
     implementation("androidx.work:work-runtime-ktx:2.9.0")
     implementation ("com.github.bumptech.glide:glide:4.12.0")
@@ -120,8 +118,17 @@ dependencies {
     implementation ("com.github.dhaval2404:imagepicker:2.1")
     // math expression
     implementation ("org.mariuszgromada.math:MathParser.org-mXparser:5.2.1")
-
-
+    
 //        .. google
     implementation ("com.google.android.gms:play-services-auth:20.7.0")
+
+    // exoplayer
+    implementation ("com.google.android.exoplayer:exoplayer:2.19.1")
+
+    //circular image
+    implementation ("de.hdodenhof:circleimageview:3.1.0")
+
+    implementation ("com.intuit.sdp:sdp-android:1.1.0")
+
+
 }
