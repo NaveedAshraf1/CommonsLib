@@ -1,0 +1,49 @@
+{
+  "project_info": {
+    "project_number": "303214493289",
+    "firebase_url": "https://store-96542-default-rtdb.firebaseio.com",
+    "project_id": "store-96542",
+    "storage_bucket": "store-96542.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:303214493289:android:edff3c5dd7d786199facf8",
+        "android_client_info": {
+          "package_name": "com.lymors.commonslib"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA9Z0BGlFLXi4He3oCp7qwac4Uk5zR00_A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:303214493289:android:9ceac3d86af516009facf8",
+        "android_client_info": {
+          "package_name": "com.lymors.storewise"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA9Z0BGlFLXi4He3oCp7qwac4Uk5zR00_A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
