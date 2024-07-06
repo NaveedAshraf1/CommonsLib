@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.tasks.await
+import java.security.InvalidParameterException
 import javax.inject.Inject
 import kotlin.coroutines.resume
 import kotlin.random.Random
@@ -32,6 +33,9 @@ class MainRepositoryImpl @Inject constructor(
 
 
     override suspend fun <T : Any> uploadAllModelsAtOnce(path: String, models: List<T>): MyResult<String> {
+        if (!path.isValidPath()){
+            return MyResult.Error("$path path is invalid for firebase")
+        }
         path.logT("uploadAllModelsAtOnce->path", "path")
         return try {
             val updates = models.associateBy { model ->
@@ -133,6 +137,9 @@ class MainRepositoryImpl @Inject constructor(
 
 
     override suspend fun <T : Any> uploadAnyModel(path: String, model: T): MyResult<String> {
+        if (!path.isValidPath()){
+            return MyResult.Error("$path path is invalid for firebase")
+        }
         path.logT("uploadAnyModel->path","path")
         return try {
             val keyProperty = model::class.declaredMemberProperties.find { it.name == "key" }
@@ -165,6 +172,9 @@ class MainRepositoryImpl @Inject constructor(
 
 
     override suspend fun deleteAnyModel(path: String): MyResult<String> {
+        if (!path.isValidPath()){
+            return MyResult.Error("$path path is invalid for firebase")
+        }
         path.logT("deleteAnyModel->path","path")
         return try {
             databaseReference.child(path).removeValue().await()
@@ -197,6 +207,9 @@ class MainRepositoryImpl @Inject constructor(
 
 
     override suspend fun <T> getAnyData(path: String, clazz: Class<T>): T? {
+        if (!path.isValidPath()){
+           throw InvalidParameterException("$path path is invalid for firebase")
+        }
        path.logT("getAnyData->path","path")
         return try {
             val snapshot = databaseReference.child(path).get().await()
@@ -209,6 +222,10 @@ class MainRepositoryImpl @Inject constructor(
     }
 
     override suspend fun <T> getModelsWithChildren(path: String, clazz: Class<T>):Flow< List<T> > = callbackFlow {
+        if (!path.isValidPath()){
+            throw InvalidParameterException("$path path is invalid for firebase")
+        }
+
        path.logT("getModelsWithChildren->path","path")
         val valueEventListener = object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
@@ -236,6 +253,9 @@ class MainRepositoryImpl @Inject constructor(
 
 
     override suspend fun checkExists(path: String): MyResult<String> {
+        if (!path.isValidPath()){
+            return MyResult.Error("$path path is invalid for firebase")
+        }
       path.logT("checkExists->path","path")
         return suspendCancellableCoroutine { continuation ->
             val reference = databaseReference.child(path)
@@ -321,6 +341,12 @@ class MainRepositoryImpl @Inject constructor(
         }
     }.flowOn(Dispatchers.IO)
 
+
+
+    fun String.isValidPath(): Boolean {
+        val forbiddenCharacters = listOf('.', '#', '$', '[', ']')
+        return forbiddenCharacters.none { this.contains(it) }
+    }
 
 
 

@@ -15,15 +15,43 @@ import javax.inject.Inject
 class StorageViewModel @Inject constructor(private val storageRepository: StorageRepository) : ViewModel() {
 
     // fire base storage
-    suspend fun uploadImageToFirebaseStorage(uri: Uri): MyResult<String> {
+    suspend fun uploadImageToFirebaseStorage(uri: Uri , result: (MyResult<String>) -> Unit = {}) {
+        withContext(Dispatchers.IO){storageRepository.uploadImageToFirebaseStorageWithUri(uri ){
+            result.invoke(it)
+        } }
+    }
 
-        return withContext(Dispatchers.IO){storageRepository.uploadImageToFirebaseStorageWithUri(uri )}
+    suspend fun uploadDocumentToFirebaseStorage(uri: Uri , result: (MyResult<String>) -> Unit = {}) {
+        withContext(Dispatchers.IO){storageRepository.uploadDocumentToFirebaseStorage(uri ){
+            result.invoke(it)
+        } }
     }
-    suspend fun uploadImageToFirebaseStorage(bitmap: Bitmap ): MyResult<String> {
-        return withContext(Dispatchers.IO){storageRepository.uploadImageToFirebaseStorageWithBitmap(bitmap )}
+
+    suspend fun uploadAudioToFirebaseStorage(uri: Uri , result: (MyResult<String>) -> Unit ={}) {
+        withContext(Dispatchers.IO){storageRepository.uploadAudioToFirebaseStorage(uri ){
+            result.invoke(it)
+        } }
     }
-    suspend fun deleteImageToFirebaseStorage(url: String): MyResult<String> {
-        return withContext(Dispatchers.IO){storageRepository.deleteImageToFirebaseStorage(url)}
+
+
+
+    suspend fun uploadVideoToFirebaseStorage(uri: Uri , progressCallBack: (Int) -> Unit ={}, result: (MyResult<String>) -> Unit ) {
+        withContext(Dispatchers.IO){storageRepository.uploadVideoToFirebaseStorage(uri ,{
+            result.invoke(it)
+        },{
+            progressCallBack.invoke(it)
+        })}
+    }
+
+    suspend fun uploadImageToFirebaseStorage(bitmap: Bitmap , result: (MyResult<String>) -> Unit = {}) {
+        withContext(Dispatchers.IO){storageRepository.uploadImageToFirebaseStorageWithBitmap(bitmap ){
+            result.invoke(it)
+        } }
+    }
+    suspend fun deleteImageToFirebaseStorage(url: String, result: (MyResult<String>) -> Unit = {}){
+        withContext(Dispatchers.IO){storageRepository.deleteImageToFirebaseStorage(url){
+            result.invoke(it)
+        } }
     }
 
 

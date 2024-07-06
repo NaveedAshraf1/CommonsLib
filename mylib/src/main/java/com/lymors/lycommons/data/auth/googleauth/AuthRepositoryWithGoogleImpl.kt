@@ -13,6 +13,7 @@ import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
+import com.lymors.lycommons.utils.MyExtensions.logT
 import com.lymors.lycommons.utils.MyResult
 import javax.inject.Inject
 
@@ -20,30 +21,33 @@ class AuthRepositoryWithGoogleImpl @Inject constructor(private val auth: Firebas
 
     private lateinit var googleSignInClient: GoogleSignInClient
     private lateinit var signInLauncher: ActivityResultLauncher<Intent>
-    private var onSignInResult: ((task: Task<AuthResult>?, account: GoogleSignInAccount?, exception: Exception?) -> Unit)? = null
+    private var onSignInResult: (( account: GoogleSignInAccount?, exception: Exception?) -> Unit)? = null
 
-    override fun signInWithGoogle(activity: AppCompatActivity, serverClientId: String, callback: (task: Task<AuthResult>?, account: GoogleSignInAccount?, exception: Exception?) -> Unit) {
-        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestIdToken(serverClientId)
-            .requestEmail()
-            .build()
-        googleSignInClient = GoogleSignIn.getClient(activity, gso)
-        onSignInResult = callback
-
+    override fun registerGoogleSignInLauncher(activity: AppCompatActivity) {
+        "registerGoogleSignInLauncher".logT()
         signInLauncher = activity.registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == AppCompatActivity.RESULT_OK) {
                 val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
                 try {
                     val account = task.getResult(ApiException::class.java)
                     firebaseAuthWithGoogle(activity, account)
+                    onSignInResult?.invoke( account, null)
                 } catch (e: ApiException) {
-                    onSignInResult?.invoke(null, null, e)
+                    onSignInResult?.invoke( null, e)
                 }
             } else {
-                onSignInResult?.invoke(null, null, Exception("Sign in canceled"))
+                onSignInResult?.invoke( null, Exception("Sign in canceled"))
             }
         }
+    }
 
+    override fun signInWithGoogle(activity: AppCompatActivity, serverClientId: String, callback: ( account: GoogleSignInAccount?, exception: Exception?) -> Unit) {
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken(serverClientId)
+            .requestEmail()
+            .build()
+        googleSignInClient = GoogleSignIn.getClient(activity, gso)
+        onSignInResult = callback
         val signInIntent = googleSignInClient.signInIntent
         signInLauncher.launch(signInIntent)
     }
@@ -58,20 +62,6 @@ class AuthRepositoryWithGoogleImpl @Inject constructor(private val auth: Firebas
             .requestEmail()
             .build()
         googleSignInClient = GoogleSignIn.getClient(activity, gso)
-
-        signInLauncher = activity.registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == AppCompatActivity.RESULT_OK) {
-                val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
-                try {
-                    val account = task.getResult(ApiException::class.java)
-                    accountCallback.invoke(account)
-                } catch (e: ApiException) {
-                    accountCallback.invoke(null)
-                }
-            } else {
-                accountCallback.invoke(null)
-            }
-        }
         val signInIntent = googleSignInClient.signInIntent
         signInLauncher.launch(signInIntent)
     }
@@ -101,9 +91,9 @@ class AuthRepositoryWithGoogleImpl @Inject constructor(private val auth: Firebas
         auth.signInWithCredential(credential)
             .addOnCompleteListener(activity) { task ->
                 if (task.isSuccessful) {
-                    onSignInResult?.invoke(task, account, null)
+                    onSignInResult?.invoke(account , null)
                 } else {
-                    onSignInResult?.invoke(task, account, task.exception)
+                    onSignInResult?.invoke( account, task.exception)
                 }
             }
     }

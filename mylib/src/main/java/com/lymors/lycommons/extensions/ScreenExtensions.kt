@@ -83,19 +83,6 @@ object ScreenExtensions {
     }
 
 
-    var AppCompatActivity.myPermissionHelper: MyPermissionHelper
-        get() = MyPermissionHelper(this)
-        set(value) {
-            MyPermissionHelper(this)
-        }
-
-    var Fragment.myPermissionHelper: MyPermissionHelper
-        get() = MyPermissionHelper(requireActivity() as AppCompatActivity)
-        set(value) {
-            MyPermissionHelper(requireActivity() as AppCompatActivity)
-        }
-
-
     // WeakHashMap to hold the picked image URI for each Activity instance
     private val activityPickedImageUriMap = WeakHashMap<Activity, Uri?>()
     var Activity.pickedImageUri: Uri?
@@ -179,14 +166,14 @@ object ScreenExtensions {
 
 
     fun Activity.launchActivity(destination: Class<*>, key: String , data: Parcelable? = null) {
-        val intent = Intent(this, destination::class.java)
+        val intent = Intent(this, destination)
         if (key.isNotEmpty() && data != null) {
             intent.putExtra(key, data)
         }
         startActivity(intent)
     }
     fun Activity.launchActivity(destination: Class<*>, key: String = "", data: String = "") {
-        val intent = Intent(this, destination::class.java)
+        val intent = Intent(this, destination)
         if (key.isNotEmpty()) {
             intent.putExtra(key, data)
         }
@@ -194,7 +181,7 @@ object ScreenExtensions {
     }
 
     fun Activity.launchActivity(destination: Class<*>, key: String, data: Map<String,String>) {
-        val intent = Intent(this, destination::class.java)
+        val intent = Intent(this, destination)
         if (key.isNotEmpty()) {
             data.keys.forEach {
                 if (it.isNotEmpty()){
@@ -206,7 +193,7 @@ object ScreenExtensions {
     }
 
     fun Fragment.launchActivity(destination: Class<*>, key: String, data: Map<String,String>) {
-        val intent = Intent(requireActivity(), destination::class.java)
+        val intent = Intent(requireActivity(), destination)
         if (key.isNotEmpty()) {
             data.keys.forEach {
                 if (it.isNotEmpty()){
@@ -220,7 +207,7 @@ object ScreenExtensions {
 
     fun Fragment.launchActivity(destination: Class<*>, key: String, data: Parcelable? = null) {
         // Create an Intent to launch the target activity
-        val intent = Intent(requireContext(), destination::class.java)
+        val intent = Intent(requireContext(), destination)
 
         // Put the data into the Intent using the specified key
         if (key.isNotEmpty() && data != null) {
@@ -236,7 +223,7 @@ object ScreenExtensions {
 
     fun Fragment.launchActivity(destination:Class<*>, key: String = "", data:String = "") {
         // Create an Intent to launch the target activity
-        val intent = Intent(requireContext(), destination::class.java)
+        val intent = Intent(requireContext(), destination)
 
         // Put the data into the Intent using the specified key
         if (key.isNotEmpty()){

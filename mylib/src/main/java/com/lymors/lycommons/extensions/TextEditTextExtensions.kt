@@ -216,9 +216,7 @@ object TextEditTextExtensions {
         isEnabled = true
     }
 
-    fun Button.setTextColorRes(@ColorRes colorResId: Int) {
-        setTextColor(ContextCompat.getColor(context, colorResId))
-    }
+
 
     fun Button.setBackgroundRes(@DrawableRes drawableResId: Int) {
         background = ContextCompat.getDrawable(context, drawableResId)

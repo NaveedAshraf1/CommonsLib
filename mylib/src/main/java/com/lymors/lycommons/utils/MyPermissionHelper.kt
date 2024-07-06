@@ -1,126 +1,57 @@
 package com.lymors.lycommons.utils
 
 import android.Manifest
-import android.app.Activity
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
+import android.provider.Settings
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.RequiresApi
-import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.Fragment
-import com.lymors.lycommons.utils.MyExtensions.showToast
+import androidx.fragment.app.FragmentActivity
 
-class MyPermissionHelper(var activity: AppCompatActivity) {
+object MyPermissionHelper {
 
+    private lateinit var requestPermissionLauncher: ActivityResultLauncher<Array<String>>
+    private var permissionCallback: (Boolean) -> Unit = {}
 
-    fun isReadStoragePermissionGranted():Boolean{
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            checkPermission(arrayOf(Manifest.permission.READ_MEDIA_IMAGES))
-        } else {
-            checkPermission(arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE))
-        }
-    }
-
-
-    fun checkWriteStoragePermission():Boolean {
-      return  checkPermission(arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE))
-    }
-
-
-    fun checkPermission(list:Array<String>):Boolean{
-        for (permission in list) {
-            if (ContextCompat.checkSelfPermission(activity, permission) != PackageManager.PERMISSION_GRANTED) {
-                return false
-            }
-        }
-        return true
-    }
-
-
-
-    fun showToast(text:String){
-        activity.showToast(text)
-    }
-
-
-    private lateinit var permissionCallback: (Boolean) ->Unit
-
-    fun requestPermissions(
-        permissions: Array<String>,
-        callback: (Boolean) -> Unit
-    ) {
-        permissionCallback = callback
-        if (arePermissionsGranted(activity, permissions)) {
-            callback.invoke(true)
-        } else {
-            requestPermissionLauncher(activity).launch(permissions)
-        }
-    }
-
-    fun requestPermissions(
-        fragment: Fragment,
-        permissions: Array<String>,
-        callback: (Boolean)->Unit
-    ) {
-        permissionCallback = callback
-        if (arePermissionsGranted(fragment.requireContext(), permissions)) {
-            callback.invoke(true)
-        } else {
-            requestPermissionLauncher(fragment).launch(permissions)
-        }
-    }
-
-    private fun arePermissionsGranted(context: android.content.Context, permissions: Array<String>): Boolean {
-        for (permission in permissions) {
-            if (ContextCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
-                return false
-            }
-        }
-        return true
-    }
-
-    private fun requestPermissionLauncher(activity: AppCompatActivity): ActivityResultLauncher<Array<String>> {
-        return activity.registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
-            val deniedPermissions = result.filter { !it.value }.map { it.key }
-            if (deniedPermissions.isEmpty()) {
-                permissionCallback.invoke(true)
-            } else {
-                permissionCallback.invoke(false)
-            }
-        }
-    }
-
-    private fun requestPermissionLauncher(fragment: Fragment): ActivityResultLauncher<Array<String>> {
-        return fragment.registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
-            val deniedPermissions = result.filter { !it.value }.map { it.key }
-            if (deniedPermissions.isEmpty()) {
-                permissionCallback.invoke(true)
-            } else {
-                permissionCallback.invoke(false)
-            }
-        }
-    }
-
-
-    fun requestReadImagesPermission(callback: (Boolean)->Unit) {
-        val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            arrayOf(Manifest.permission.READ_MEDIA_IMAGES)
-        } else {
-            arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
-        }
-        requestPermissions(permissions, callback)
-    }
-
-    fun requestReadStoragePermission(callback: (Boolean)->Unit) {
-        if (isReadStoragePermissionGranted()) {
-            callback.invoke(true)
+    fun FragmentActivity.registerActivityForPermissionLauncher() {
+        if (MyPermissionHelper::requestPermissionLauncher.isInitialized) {
             return
         }
+        requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
+            val deniedPermissions = result.filter { !it.value }.map { it.key }
+            if (deniedPermissions.isEmpty()) {
+                permissionCallback(true)
+            } else {
+                if (shouldShowRequestPermissionRationale(deniedPermissions.toTypedArray())) {
+                    showRationaleForPermissions(deniedPermissions.toTypedArray())
+                } else {
+                    showSettingsDialog(deniedPermissions.toTypedArray())
+                }
+                permissionCallback(false)
+            }
+        }
+    }
 
-        // Else request permission
+    fun FragmentActivity.checkPermissions(permissions: Array<String>): Boolean {
+        return permissions.all { permission ->
+            ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
+        }
+    }
+
+    fun FragmentActivity.checkPermissionReadImages(): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            checkPermissions(arrayOf(Manifest.permission.READ_MEDIA_IMAGES))
+        } else {
+            checkPermissions(arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE))
+        }
+    }
+
+    fun FragmentActivity.checkPermissionReadStorage(): Boolean {
         val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             arrayOf(
                 Manifest.permission.READ_MEDIA_IMAGES,
@@ -128,121 +59,119 @@ class MyPermissionHelper(var activity: AppCompatActivity) {
                 Manifest.permission.READ_MEDIA_AUDIO
             )
         } else {
-            arrayOf(
-                Manifest.permission.READ_EXTERNAL_STORAGE
-            )
+            arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
         }
-        requestPermissions(permissions, callback)
+
+        return checkPermissions(permissions)
     }
 
-
-
-    fun requestWriteStoragePermission(callback: (Boolean)->Unit) {
-        val permissions = arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-        requestPermissions(permissions, callback)
-    }
-
-
-    fun requestCameraPermission(callback: (Boolean)->Unit) {
-        val permissions = arrayOf(Manifest.permission.CAMERA)
-        requestPermissions(permissions, callback)
-    }
-
-
-    fun requestRecordAudioPermission(callback: (Boolean)->Unit) {
-        val permissions = arrayOf(Manifest.permission.RECORD_AUDIO)
-        requestPermissions(permissions, callback)
-    }
-
-
-    fun requestLocationPermission(callback: (Boolean)->Unit) {
-        val permissions = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
-        requestPermissions(permissions, callback)
-    }
-
-
-    fun requestLocationForegroundPermission(callback: (Boolean)->Unit) {
-        val permissions = arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION)
-        requestPermissions(permissions, callback)
-    }
-
-
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-    fun requestNotificationPermission(callback: (Boolean)->Unit) {
-        val permissions = arrayOf(Manifest.permission.POST_NOTIFICATIONS)
-        requestPermissions(permissions, callback)
-    }
-
-
-
-    fun requestContactsPermission(callback: (Boolean)->Unit) {
-        val permissions = arrayOf(Manifest.permission.READ_CONTACTS)
-        requestPermissions(permissions, callback)
-    }
-
-
-    fun requestPhoneStatePermission(callback: (Boolean)->Unit) {
-        val permissions = arrayOf(Manifest.permission.READ_PHONE_STATE)
-        requestPermissions(permissions, callback)
-    }
-
-
-    fun requestCallPhonePermission(callback: (Boolean)->Unit) {
-        val permissions = arrayOf(Manifest.permission.CALL_PHONE)
-        requestPermissions(permissions, callback)
-    }
-
-
-    fun requestSendSmsPermission(callback: (Boolean)->Unit) {
-        val permissions = arrayOf(Manifest.permission.SEND_SMS)
-        requestPermissions(permissions, callback)
-    }
-
-
-    fun requestReceiveSmsPermission(callback: (Boolean)->Unit) {
-        val permissions = arrayOf(Manifest.permission.RECEIVE_SMS)
-        requestPermissions(permissions, callback)
-    }
-
-
-    fun requestReadSmsPermission(callback: (Boolean)->Unit) {
-        val permissions = arrayOf(Manifest.permission.READ_SMS)
-        requestPermissions(permissions, callback)
-    }
-
-
-
-
-        fun shouldShowStoragePermissionRationale(activity: Activity): Boolean {
-
-            val shouldShowReadPermissionRationale: Boolean = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                ActivityCompat.shouldShowRequestPermissionRationale(activity, Manifest.permission.READ_MEDIA_IMAGES)
+    fun FragmentActivity.requestPermission(permissions: Array<String>, callback: (Boolean) -> Unit = {}) {
+        permissionCallback = callback
+        if (checkPermissions(permissions)) {
+            callback(true)
+        } else {
+            registerActivityForPermissionLauncher()
+            if (shouldShowRequestPermissionRationale(permissions)) {
+                showRationaleForPermissions(permissions)
             } else {
-                ActivityCompat.shouldShowRequestPermissionRationale(activity, Manifest.permission.READ_EXTERNAL_STORAGE)
+                requestPermissionLauncher.launch(permissions)
             }
+        }
+    }
 
-            val shouldShowWritePermissionRationale: Boolean =
-                ActivityCompat.shouldShowRequestPermissionRationale(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+    fun FragmentActivity.requestPermissionReadImages(callback: (Boolean) -> Unit) {
+        val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            arrayOf(Manifest.permission.READ_MEDIA_IMAGES)
+        } else {
+            arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
+        }
+        requestPermission(permissions, callback)
+    }
 
-            return shouldShowReadPermissionRationale || shouldShowWritePermissionRationale
+    fun FragmentActivity.requestPermissionReadStorage(callback: (Boolean) -> Unit = {}) {
+        registerActivityForPermissionLauncher()
+        val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            arrayOf(
+                Manifest.permission.READ_MEDIA_IMAGES,
+                Manifest.permission.READ_MEDIA_VIDEO,
+                Manifest.permission.READ_MEDIA_AUDIO
+            )
+        } else {
+            arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
+        }
+        requestPermission(permissions, callback)
+    }
+
+    private fun FragmentActivity.showRationaleForPermissions(permissions: Array<String>) {
+        val permissionNames = permissions.joinToString("\n") { getPermissionName(it) }
+        AlertDialog.Builder(this)
+            .setTitle("Permission Required")
+            .setMessage("This app needs\n$permissionNames\npermission to use this functionality.Please grant it.")
+            .setPositiveButton("OK") { _, _ ->
+                requestPermissionLauncher.launch(permissions)
+            }
+            .setNegativeButton("Cancel") { _, _ ->
+                permissionCallback(false)
+            }
+            .show()
+    }
+
+    private fun FragmentActivity.showSettingsDialog(permissions: Array<String>) {
+        val permissionNames = permissions.joinToString("\n") { getPermissionName(it) }
+        AlertDialog.Builder(this)
+            .setTitle("Permission Required")
+            .setMessage("This app needs\n$permissionNames\npermission to use this functionality.Please grant it in the app settings.")
+            .setPositiveButton("Go to Settings") { _, _ ->
+                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                val uri = Uri.fromParts("package", packageName, null)
+                intent.data = uri
+                startActivity(intent)
+            }
+            .setNegativeButton("Cancel") { _, _ ->
+                permissionCallback(false)
+            }
+            .show()
+    }
+
+    private fun FragmentActivity.shouldShowRequestPermissionRationale(permissions: Array<String>): Boolean {
+        return permissions.any { permission ->
+            ActivityCompat.shouldShowRequestPermissionRationale(this, permission)
+        }
+    }
+
+    fun FragmentActivity.shouldShowStoragePermissionRationale(): Boolean {
+        val shouldShowReadPermissionRationale = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_MEDIA_IMAGES)
+        } else {
+            ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_EXTERNAL_STORAGE)
         }
 
+        val shouldShowWritePermissionRationale =
+            ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
 
+        return shouldShowReadPermissionRationale || shouldShowWritePermissionRationale
+    }
 
-
-
-
-
-
-//        public static boolean shouldShowRequestPermissionRationale(
-//        @NonNull Activity activity,
-//        @NonNull String permission
-//        ) {
-//            return ActivityCompat.shouldShowRequestPermissionRationale(activity, permission);
-//        }
-
-
-
-
-
+    private fun getPermissionName(permission: String): String {
+        return when (permission) {
+            Manifest.permission.READ_EXTERNAL_STORAGE -> "Read External Storage"
+            Manifest.permission.WRITE_EXTERNAL_STORAGE -> "Write External Storage"
+            Manifest.permission.READ_MEDIA_IMAGES -> "Read Media Images"
+            Manifest.permission.READ_MEDIA_VIDEO -> "Read Media Video"
+            Manifest.permission.READ_MEDIA_AUDIO -> "Read Media Audio"
+            Manifest.permission.CAMERA -> "Camera"
+            Manifest.permission.RECORD_AUDIO -> "Record Audio"
+            Manifest.permission.ACCESS_FINE_LOCATION -> "Access Fine Location"
+            Manifest.permission.ACCESS_COARSE_LOCATION -> "Access Coarse Location"
+            Manifest.permission.ACCESS_BACKGROUND_LOCATION -> "Access Background Location"
+            Manifest.permission.POST_NOTIFICATIONS -> "Post Notifications"
+            Manifest.permission.READ_CONTACTS -> "Read Contacts"
+            Manifest.permission.READ_PHONE_STATE -> "Read Phone State"
+            Manifest.permission.CALL_PHONE -> "Call Phone"
+            Manifest.permission.SEND_SMS -> "Send SMS"
+            Manifest.permission.RECEIVE_SMS -> "Receive SMS"
+            Manifest.permission.READ_SMS -> "Read SMS"
+            else -> permission
+        }
+    }
 }

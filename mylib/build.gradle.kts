@@ -75,7 +75,7 @@ dependencies {
         implementation("com.google.firebase:firebase-database:20.3.1")
         implementation("com.google.firebase:firebase-storage:20.3.0")
         implementation("com.google.firebase:firebase-auth:22.3.1")
-        implementation("com.google.firebase:firebase-messaging:23.4.1")
+//        implementation("com.google.firebase:firebase-messaging:23.4.1")
         implementation("com.google.firebase:firebase-analytics:21.6.1")
     }
 
@@ -133,11 +133,11 @@ dependencies {
 
     implementation ("com.intuit.sdp:sdp-android:1.1.0")
 
-        //lotties
-            implementation ("com.airbnb.android:lottie:6.2.0")
+    //lotties
+    implementation ("com.airbnb.android:lottie:6.2.0")
 
 
    // country code picker
-    implementation ("com.hbb20:ccp:2.5.0")
+    implementation ("com.hbb20:ccp:2.7.3")
 
 }

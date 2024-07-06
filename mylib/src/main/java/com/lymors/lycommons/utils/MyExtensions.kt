@@ -945,6 +945,21 @@ object MyExtensions {
         val inputMethodManager = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         inputMethodManager.showSoftInput(this, InputMethodManager.SHOW_IMPLICIT)
 
+        this.post{
+            val initialText = this.text.toString()
+            if (initialText.isNotEmpty()){
+                val length = initialText.length
+                this.setSelection(length)
+            }
+        }
+    }
+
+
+    fun EditText.showSoftKeyboardForce() {
+        this.requestFocus()
+        val inputMethodManager = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        inputMethodManager.showSoftInput(this, InputMethodManager.SHOW_IMPLICIT)
+
         if (!inputMethodManager.isActive(this)) {
             inputMethodManager.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0)
         }
@@ -957,9 +972,6 @@ object MyExtensions {
             }
         }
     }
-
-
-
 
 
 
@@ -1053,7 +1065,6 @@ object MyExtensions {
 
 
     fun Any.shrink(): Map<String, Any> {
-        if (this.isNull()) return emptyMap()
         val propertiesMap = mutableMapOf<String, Any>()
         this::class.memberProperties.forEach { prop ->
             prop.isAccessible = true
@@ -1071,13 +1082,39 @@ object MyExtensions {
                 is Char -> if (value != '\u0000') propertiesMap[prop.name] = value // '\u0000' is the null char
                 is Set<*> -> if (value.isNotEmpty()) propertiesMap[prop.name] = value
                 is Map<*, *> -> if (value.isNotEmpty()) propertiesMap[prop.name] = value
-                is View ->  propertiesMap[prop.name] = value
-                is Date -> propertiesMap[prop.name] = value
-                is Any -> if (value::class.isData) propertiesMap[prop.name] = value.shrink()
+                is Enum<*> -> propertiesMap[prop.name] = value.name
+                is Any -> propertiesMap[prop.name] = value.shrink()
             }
         }
         return propertiesMap
     }
+
+
+    fun Any.toMap(): Map<String, Any> {
+        val propertiesMap = mutableMapOf<String, Any>()
+        this::class.memberProperties.forEach { prop ->
+            prop.isAccessible = true
+            val value = prop.getter.call(this)
+            when (value) {
+                is String -> propertiesMap[prop.name] = value
+                is Int ->  propertiesMap[prop.name] = value
+                is Boolean ->  propertiesMap[prop.name] = value
+                is Double ->  propertiesMap[prop.name] = value
+                is Long ->  propertiesMap[prop.name] = value
+                is List<*> ->  propertiesMap[prop.name] = value
+                is Float ->  propertiesMap[prop.name] = value
+                is Short ->  propertiesMap[prop.name] = value
+                is Byte ->  propertiesMap[prop.name] = value
+                is Char ->  propertiesMap[prop.name] = value
+                is Set<*> ->  propertiesMap[prop.name] = value
+                is Map<*, *> -> propertiesMap[prop.name] = value
+                is Enum<*> -> propertiesMap[prop.name] = value.name
+                is Any -> propertiesMap[prop.name] = value.shrink()
+            }
+        }
+        return propertiesMap
+    }
+
 
 
     fun View.setOnNetCheckClickListener(callback: (Boolean) -> Unit) {

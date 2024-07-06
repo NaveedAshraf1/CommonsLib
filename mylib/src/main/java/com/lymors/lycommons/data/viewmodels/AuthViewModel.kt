@@ -28,6 +28,13 @@ class AuthViewModel @Inject constructor(private val authRepositoryWithEmail: Aut
     private var verificationId :String?=null
     private var token :PhoneAuthProvider.ForceResendingToken?=null
     private var phoneNumber :String?=null
+
+
+    fun registerGoogleSignInLauncher(activity: AppCompatActivity){
+        authRepositoryWithGoogle.registerGoogleSignInLauncher(activity)
+    }
+
+
     suspend fun signInWithPhone( context: Activity, phone:String, otpVerifyActivity: Class<*> , mainActivity:Class<*> , onResult:(MyResult<String>) ->Unit){
         Log.i("TAG", "viewmodel signInWithPhone")
         phoneNumber = phone
@@ -98,7 +105,7 @@ class AuthViewModel @Inject constructor(private val authRepositoryWithEmail: Aut
     }
 
     // google
-    fun signInWithGoogle(activity: AppCompatActivity, serverClientId: String, callback: (task: Task<AuthResult>?, account: GoogleSignInAccount?, exception: Exception?) -> Unit) {
+    fun signInWithGoogle(activity: AppCompatActivity, serverClientId: String, callback: ( account: GoogleSignInAccount?, exception: Exception?) -> Unit) {
         authRepositoryWithGoogle.signInWithGoogle(activity,serverClientId, callback)
     }
 

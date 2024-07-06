@@ -104,17 +104,9 @@ object ViewExtensions {
         ).apply {
             this.duration = duration.toLong()
         }
-
-        slideRightAnimation.setAnimationListener(object : Animation.AnimationListener {
-            override fun onAnimationStart(animation: Animation?) {}
-
-            override fun onAnimationRepeat(animation: Animation?) {}
-
-            override fun onAnimationEnd(animation: Animation?) {
-                onEnd(animation ?: slideRightAnimation)
-            }
-        })
-
+        slideRightAnimation.onAnimationComplete {
+            onEnd(slideRightAnimation)
+        }
         this.startAnimation(slideRightAnimation)
     }
 
@@ -128,16 +120,9 @@ object ViewExtensions {
         ).apply {
             this.duration = duration.toLong()
         }
-
-        slideLeftAnimation.setAnimationListener(object : Animation.AnimationListener {
-            override fun onAnimationStart(animation: Animation?) {}
-
-            override fun onAnimationRepeat(animation: Animation?) {}
-
-            override fun onAnimationEnd(animation: Animation?) {
-                onEnd(animation ?: slideLeftAnimation)
-            }
-        })
+        slideLeftAnimation.onAnimationComplete {
+            onEnd(slideLeftAnimation)
+        }
 
         this.startAnimation(slideLeftAnimation)
     }
@@ -278,10 +263,6 @@ object ViewExtensions {
     fun View.setBackgroundDrawableRes(@DrawableRes drawable: Int) {
         background = ContextCompat.getDrawable(context, drawable)
     }
-
-
-
-
 
     fun View.scale(scaleX: Float, scaleY: Float, duration: Long = 300) {
         this.animate().scaleX(scaleX).scaleY(scaleY).setDuration(duration).start()
@@ -924,9 +905,18 @@ object ViewExtensions {
 
 
     // Extension function to fade out a view
-    fun View.fadeOutAnimation(fromAlpha: Float = 1f, toAlpha: Float = 0f, duration: Long = 300) {
+    fun View.animateFadeOut(fromAlpha: Float = 1f, toAlpha: Float = 0f, duration: Long = 300) {
         val fadeOutAnimation = AlphaAnimation(fromAlpha, toAlpha)
         fadeOutAnimation.duration = duration
+        this.startAnimation(fadeOutAnimation)
+    }
+
+    fun View.animateFadeOutHide(fromAlpha: Float = 1f, toAlpha: Float = 0f, duration: Long = 300) {
+        val fadeOutAnimation = AlphaAnimation(fromAlpha, toAlpha)
+        fadeOutAnimation.duration = duration
+        fadeOutAnimation.onAnimationComplete {
+            this.visibility = View.GONE
+        }
         this.startAnimation(fadeOutAnimation)
     }
 
@@ -994,23 +984,54 @@ object ViewExtensions {
     // Extension function to zoom out a view
 
     // Extension function to slide in a view from left
-    fun View.slideInFromLeft(fromX: Float = -1f, toX: Float = 0f, fromY: Float = 0f, toY: Float = 0f, duration: Long = 300) {
-        val slideIn = TranslateAnimation(Animation.RELATIVE_TO_PARENT, fromX, Animation.RELATIVE_TO_PARENT, toX, Animation.RELATIVE_TO_PARENT, fromY, Animation.RELATIVE_TO_PARENT, toY)
+    fun View.slideInFromLeftVisible(fromX: Float = -1f, toX: Float = 0f, fromY: Float = 0f, toY: Float = 0f, duration: Long = 300) {
+        val slideIn = TranslateAnimation(
+            Animation.RELATIVE_TO_PARENT, fromX,
+            Animation.RELATIVE_TO_PARENT, toX,
+            Animation.RELATIVE_TO_PARENT, fromY,
+            Animation.RELATIVE_TO_PARENT, toY
+        )
         slideIn.duration = duration
-        this.startAnimation(slideIn)
         this.visibility = View.VISIBLE
+        this.startAnimation(slideIn)
     }
+
 
     // Extension function to slide out a view to left
-    fun View.slideOutToLeft(fromX: Float = 0f, toX: Float = -1f, fromY: Float = 0f, toY: Float = 0f, duration: Long = 300) {
-        val slideOut = TranslateAnimation(Animation.RELATIVE_TO_PARENT, fromX, Animation.RELATIVE_TO_PARENT, toX, Animation.RELATIVE_TO_PARENT, fromY, Animation.RELATIVE_TO_PARENT, toY)
+    fun View.slideOutToLeftHide(fromX: Float = 0f, toX: Float = -1f, fromY: Float = 0f, toY: Float = 0f, duration: Long = 300) {
+        val slideOut = TranslateAnimation(
+            Animation.RELATIVE_TO_PARENT, fromX,
+            Animation.RELATIVE_TO_PARENT, toX,
+            Animation.RELATIVE_TO_PARENT, fromY,
+            Animation.RELATIVE_TO_PARENT, toY
+        )
         slideOut.duration = duration
+        slideOut.onAnimationComplete {
+            this@slideOutToLeftHide.visibility = View.GONE
+        }
         this.startAnimation(slideOut)
-        this.visibility = View.GONE
     }
 
+    fun Animation.onAnimationComplete(callback: () -> Unit){
+        this.setAnimationListener(object : Animation.AnimationListener {
+            override fun onAnimationStart(animation: Animation?) {
+                // Do nothing
+            }
+            override fun onAnimationEnd(animation: Animation?) {
+            callback.invoke()
+            }
+
+            override fun onAnimationRepeat(animation: Animation?) {
+                // Do nothing
+            }
+        })
+
+
+    }
+
+
     // Extension function to slide in a view from right
-    fun View.slideInFromRight(fromX: Float = 1f, toX: Float = 0f, fromY: Float = 0f, toY: Float = 0f, duration: Long = 300) {
+    fun View.slideInFromRightVisible(fromX: Float = 1f, toX: Float = 0f, fromY: Float = 0f, toY: Float = 0f, duration: Long = 300) {
         val slideIn = TranslateAnimation(Animation.RELATIVE_TO_PARENT, fromX, Animation.RELATIVE_TO_PARENT, toX, Animation.RELATIVE_TO_PARENT, fromY, Animation.RELATIVE_TO_PARENT, toY)
         slideIn.duration = duration
         this.startAnimation(slideIn)
@@ -1018,16 +1039,19 @@ object ViewExtensions {
     }
 
     // Extension function to slide out a view to right
-    fun View.slideOutToRight(fromX: Float = 0f, toX: Float = 1f, fromY: Float = 0f, toY: Float = 0f, duration: Long = 300) {
+    fun View.slideOutToRightHide(fromX: Float = 0f, toX: Float = 1f, fromY: Float = 0f, toY: Float = 0f, duration: Long = 300) {
         val slideOut = TranslateAnimation(Animation.RELATIVE_TO_PARENT, fromX, Animation.RELATIVE_TO_PARENT, toX, Animation.RELATIVE_TO_PARENT, fromY, Animation.RELATIVE_TO_PARENT, toY)
         slideOut.duration = duration
+        slideOut.onAnimationComplete {
+            this.visibility = View.GONE
+        }
         this.startAnimation(slideOut)
         this.visibility = View.GONE
     }
 
     // Extension function to slide in a view from top
 
-    fun EditText.setupQuantityControl(
+    fun EditText.makeItStepper(
         incrementView: View,
         decrementView: View,
         initialValue: Int = 0

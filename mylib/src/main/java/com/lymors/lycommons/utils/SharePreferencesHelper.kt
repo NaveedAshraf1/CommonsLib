@@ -35,6 +35,9 @@ class SharedPreferencesHelper(context: Context) {
         return sharedPreferences.getBoolean(key, defaultValue)
     }
 
+    fun clear(){
+        sharedPreferences.edit().clear().apply()
+    }
 
     // Add more methods for other data types as needed
 }

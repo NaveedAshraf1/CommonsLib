@@ -3,19 +3,26 @@ package com.lymors.commonslib
 
 import android.content.DialogInterface
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat.finishAffinity
 import androidx.core.content.ContextCompat.getDrawable
+import androidx.core.content.ContextCompat.startActivity
 import androidx.lifecycle.lifecycleScope
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.lymors.commonslib.MyUtils.dialogUtil
 import com.lymors.commonslib.databinding.ActivityMainBinding
 import com.lymors.commonslib.databinding.NewUserBinding
 import com.lymors.commonslib.databinding.StudentSampleRowBinding
+import com.lymors.lycommons.data.viewmodels.AuthViewModel
 import com.lymors.lycommons.data.viewmodels.MainViewModel
+import com.lymors.lycommons.data.viewmodels.StorageViewModel
 import com.lymors.lycommons.extensions.ImageViewExtensions.loadImageFromUrl
 import com.lymors.lycommons.extensions.ScreenExtensions.pickedImageUri
 import com.lymors.lycommons.extensions.ScreenExtensions.showToast
@@ -29,7 +36,11 @@ import com.lymors.lycommons.utils.MyExtensions.logT
 import com.lymors.lycommons.utils.MyExtensions.setOptions
 import com.lymors.lycommons.utils.MyExtensions.showSoftKeyboard
 import com.lymors.lycommons.utils.MyExtensions.viewBinding
+import com.lymors.lycommons.utils.MyImagePicker.pickDocument
+import com.lymors.lycommons.utils.MyImagePicker.pickImageByCamera
 import com.lymors.lycommons.utils.MyImagePicker.pickImageByGallery
+import com.lymors.lycommons.utils.MyImagePicker.pickVideo
+import com.lymors.lycommons.utils.MyImagePicker.registerActivityForImageLauncher
 import com.lymors.lycommons.utils.Utils.hideSoftKeyboard
 import com.lymors.lycommons.utils.Utils.setData
 import com.lymors.lycommons.utils.Utils.showCustomLayoutDialog
@@ -44,33 +55,81 @@ import javax.inject.Inject
 class MainActivity : AppCompatActivity() {
 
     private var listOfSelectedViews = arrayListOf<View>()
-    // change your model
-    var listOfSelectedItems = arrayListOf<UserModel>() // if selecting items you will have them in this@MainActivity list now you can delete them
 
-    private var allUsers : List<UserModel> = listOf()
+    // change your model
+    var listOfSelectedItems =
+        arrayListOf<UserModel>() // if selecting items you will have them in this@MainActivity list now you can delete them
+
+    private var allUsers: List<UserModel> = listOf()
 
     @Inject
     lateinit var mainViewModel: MainViewModel
-    lateinit var imagePicker : ImageView
+
+    @Inject
+    lateinit var storageViewModel: StorageViewModel
+
+    @Inject
+    lateinit var authViewModel: AuthViewModel
 
 
     private val binding by viewBinding(ActivityMainBinding::inflate)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        imagePicker = ImageView(this)
-        "onCreate".logT()
+        authViewModel.registerGoogleSignInLauncher(this)
 
-        setContentView(binding.root)
+        registerActivityForImageLauncher()
+//        binding.floating.pickImageByCamera(this) {
+//            pickedImageUri = it
+//        }
 
-        lifecycleScope.launch {
-            mainViewModel.collectAnyModels("users" , UserModel::class.java , 10).collect { users ->
-                "lodtop--size".logT(users.size.toString())
-                showToast(users.size.toString())
-                allUsers = users
-                setUpRecyclerView(allUsers.reversed(), 10)
+        binding.floating.setOnClickListener{
+            authViewModel.signOut(this ,"303214493289-n4fq8hss5ev8j2o75vbaa01103c148kd.apps.googleusercontent.com" ){
+                it.toString().logT()
             }
         }
+
+
+        binding.searchIcon.setOnClickListener {
+
+            authViewModel.signInWithGoogle(this , "303214493289-n4fq8hss5ev8j2o75vbaa01103c148kd.apps.googleusercontent.com"){ account,e ->
+                account?.email?.logT()
+                account?.givenName?.logT()
+                e?.message?.logT("exception came")
+
+            }
+
+
+
+
+
+//            lifecycleScope.launch {
+//                storageViewModel.deleteImageToFirebaseStorage("https://firebasestorage.googleapis.com/v0/b/store-96542.appspot.com/o/images%2Fuploaded_image_1720202829822.jpg?alt=media&token=6ed7de05-1997-4508-b4f8-6f5059c1a0be") {
+//                            it.logT("delete-result")
+//                }
+//            }
+
+//            lifecycleScope.launch {
+//                storageViewModel.uploadImageToFirebaseStorage(pickedImageUri!!) { result ->
+//                    result.whenSuccess {
+//                        showToast(it)
+//                        it.logT("aagya")
+//                    }
+//                    result.whenError {
+//                        showToast(it.message.toString())
+//                    }
+//                }
+//            }
+        }
+
+//        lifecycleScope.launch {
+//            mainViewModel.collectAnyModels("users" , UserModel::class.java , 10).collect { users ->
+//                "lodtop--size".logT(users.size.toString())
+//                showToast(users.size.toString())
+//                allUsers = users
+//                setUpRecyclerView(allUsers.reversed(), 10)
+//            }
+//        }
 
 
         setupBackButton()
@@ -84,7 +143,7 @@ class MainActivity : AppCompatActivity() {
 
         binding.searchVew.onTextChange { query ->
             // filter by searchView
-            var filteredList = allUsers.filter {it.name.contains(query, ignoreCase = true) }
+            var filteredList = allUsers.filter { it.name.contains(query, ignoreCase = true) }
             setUpRecyclerView(filteredList)
         }
 
@@ -92,7 +151,8 @@ class MainActivity : AppCompatActivity() {
 //
 
 
-        binding.floating.setOnClickListener {
+//        binding.floating.setOnClickListener {
+
 //            binding.floating.setVisibleOrInvisible(false)
 //            // load fragment
 //            binding.recyclerview.setVisibleOrInvisible(false)
@@ -103,31 +163,24 @@ class MainActivity : AppCompatActivity() {
 
 //            val dialog = CustomDialogFragment()
 //            dialog.show(supportFragmentManager, "CustomDialogFragment")
-            showNewUserDialog()
+//            showNewUserDialog()
 //            binding.recyclerview.convertToList(binding.sampleLinearLayout,allUsers).convertViewToPdf(this@MainActivity,"mango")
 
 //            binding.recyclerview.convertRecyclerViewToPdf(this@MainActivity,"orange")
-        }
-
-
-
-
-//        binding.searchIcon.setOnClickListener {
-//
-////            mainViewModel.setSearchingState(true)
 //        }
 
-     
+
+//            mainViewModel.setSearchingState(true)
     }
+
 
     override fun onBackPressed() {
 
-        if (mainViewModel.searchingState.value){
+        if (mainViewModel.searchingState.value) {
             mainViewModel.setSearchingState(false)
-        }
-        else if (mainViewModel.longClickedState.value){
+        } else if (mainViewModel.longClickedState.value) {
             resetViews()
-        }else{
+        } else {
             super.onBackPressed()
             finishAffinity()
         }
@@ -169,7 +222,7 @@ class MainActivity : AppCompatActivity() {
     private fun handleLongClickState() {
         // listen to the long clicked state
         lifecycleScope.launch {
-            mainViewModel.longClickedState.collect{
+            mainViewModel.longClickedState.collect {
                 binding.searchIcon.setVisibleOrInvisible(!it)
                 binding.more.setVisibleOrGone(!it)
                 binding.delete.setVisibleOrGone(it)
@@ -188,26 +241,33 @@ class MainActivity : AppCompatActivity() {
     private fun handleDeleteItems() {
         binding.delete.setOnClickListener {
             // surety dialog
-            dialogUtil.showInfoDialog(this,"Are you sure you want to delete selected items?","be care full your are gong to delete ${listOfSelectedItems.size} items","Delete","Cancel",false,object :DialogUtil.DialogClickListener{
-                override fun onClickNo(d: DialogInterface) {
-                    dialogUtil.dialog.dismiss()
-                }
-
-                override fun onClickYes(d: DialogInterface) {
-                    lifecycleScope.launch {
-                        // delete the selected items
-                        listOfSelectedItems.forEach {
-                            withContext(Dispatchers.Main){
-                                val result = mainViewModel.deleteAnyModel("users/${it.key}")
-
-                                result.showInToast(this@MainActivity)
-                            }
-                        }
-                        resetViews()
+            dialogUtil.showInfoDialog(
+                this,
+                "Are you sure you want to delete selected items?",
+                "be care full your are gong to delete ${listOfSelectedItems.size} items",
+                "Delete",
+                "Cancel",
+                false,
+                object : DialogUtil.DialogClickListener {
+                    override fun onClickNo(d: DialogInterface) {
+                        dialogUtil.dialog.dismiss()
                     }
-                }
 
-            })
+                    override fun onClickYes(d: DialogInterface) {
+                        lifecycleScope.launch {
+                            // delete the selected items
+                            listOfSelectedItems.forEach {
+                                withContext(Dispatchers.Main) {
+                                    val result = mainViewModel.deleteAnyModel("users/${it.key}")
+
+                                    result.showInToast(this@MainActivity)
+                                }
+                            }
+                            resetViews()
+                        }
+                    }
+
+                })
 
         }
     }
@@ -215,13 +275,11 @@ class MainActivity : AppCompatActivity() {
     private fun setupBackButton() {
         // <- top left button in tool bar
         binding.back.setOnClickListener {
-            if (mainViewModel.searchingState.value){
+            if (mainViewModel.searchingState.value) {
                 mainViewModel.setSearchingState(false)
-            }
-            else if (mainViewModel.longClickedState.value) {
+            } else if (mainViewModel.longClickedState.value) {
                 resetViews()
-            }
-            else {
+            } else {
                 this@MainActivity.onBackPressed()
             }
         }
@@ -236,10 +294,10 @@ class MainActivity : AppCompatActivity() {
         mainViewModel.setLongClickedState(false)
     }
 
-    private fun setUpRecyclerView(users : List<UserModel> , pageSize : Int = 20) {
+    private fun setUpRecyclerView(users: List<UserModel>, pageSize: Int = 20) {
 
 
-        binding.recyclerview.setData(users,  StudentSampleRowBinding::inflate) { b, item, position ->
+        binding.recyclerview.setData(users, StudentSampleRowBinding::inflate) { b, item, position ->
 
             b.birth.text = position.toString()
 //
@@ -306,8 +364,7 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-
-    private fun showNewUserDialog(title:String = "", userModel: UserModel = UserModel()) {
+    private fun showNewUserDialog(title: String = "", userModel: UserModel = UserModel()) {
 
         showCustomLayoutDialog(this, NewUserBinding::inflate) { dialogBinding, dialogFragment ->
             dialogBinding.apply {
@@ -316,7 +373,7 @@ class MainActivity : AppCompatActivity() {
                 phoneNumber.setText(userModel.phone)
                 gender.setText(userModel.gender)
                 birth.setText(userModel.birth)
-                if (userModel.profileImage.isNotEmpty()){
+                if (userModel.profileImage.isNotEmpty()) {
                     profileImage.loadImageFromUrl(userModel.profileImage)
                 }
 
@@ -326,8 +383,7 @@ class MainActivity : AppCompatActivity() {
 //                    showToast(it.toString())
 //                }
 
-                profileImage.
-                pickImageByGallery(this@MainActivity) {
+                profileImage.pickImageByGallery(this@MainActivity) {
                     profileImage.setImageURI(pickedImageUri)
                 }
 
@@ -341,11 +397,17 @@ class MainActivity : AppCompatActivity() {
                     val phone = dialogBinding.phoneNumber.text.toString().trim()
                     val gender = dialogBinding.gender.text.toString().trim()
                     val birth = dialogBinding.birth.text.toString().trim()
-                    var u = UserModel(userModel.key, name, phone, gender, birth,"")
+                    var u = UserModel(userModel.key, name, phone, gender, birth, "")
 
                     lifecycleScope.launch {
-                        mainViewModel.uploadModelWithImage(this@MainActivity , "users", u, pickedImageUri.toString(),UserModel::profileImage)
-                            }
+                        mainViewModel.uploadModelWithImage(
+                            this@MainActivity,
+                            "users",
+                            u,
+                            pickedImageUri.toString(),
+                            UserModel::profileImage
+                        )
+                    }
                 }
             }
             dialogBinding.cancelBtn.setOnClickListener {
@@ -353,9 +415,8 @@ class MainActivity : AppCompatActivity() {
                 dialogFragment.dismiss()
             }
 
-                // Handle save action
-            }
-
+            // Handle save action
+        }
 
 
 //        dialogUtil.showCustomLayoutDialog(this , NewUserBinding::inflate ){ dBinding , dialog ->
@@ -431,9 +492,6 @@ class MainActivity : AppCompatActivity() {
 
 
 }
-
-
-
 
 
 // Inside a separate file (ImagePickerViewModel.kt)

@@ -46,10 +46,12 @@ import androidx.viewbinding.ViewBinding
 import androidx.viewpager.widget.PagerAdapter
 import androidx.viewpager.widget.ViewPager
 import androidx.viewpager2.widget.ViewPager2
+import com.google.android.exoplayer2.extractor.FlacFrameReader.SampleNumberHolder
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import com.lymors.lycommons.R
+import com.lymors.lycommons.databinding.ProgressDialogBinding
 import com.lymors.lycommons.extensions.ImageViewExtensions.loadImageFromUrl
 import com.lymors.lycommons.utils.MyExtensions.empty
 import com.lymors.lycommons.utils.MyExtensions.logT
@@ -63,12 +65,17 @@ import java.io.InputStream
 import java.lang.reflect.Modifier
 import java.net.Inet4Address
 import java.net.NetworkInterface
+import kotlin.random.Random
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 import kotlin.reflect.full.memberProperties
 
 
 object Utils {
+
+    fun getRandomNumber(from:Int , to:Int):Int{
+        return Random.nextInt(from,to)
+    }
 
 
     fun paste(context: Context): String {
@@ -135,7 +142,34 @@ fun Any.allProperties(): List<String> {
         return if (resId != 0) findViewById(resId) else null
     }
 
+    fun <T : ViewBinding, M> AppCompatActivity.setupIntroScreens(
+        viewPager: ViewPager,
+        bindingFunction: (LayoutInflater) -> T,
+        dataList: List<M>,
+        setupActions: (Int, T, List<M>) -> Unit
+    ): PagerAdapter {
+        val adapter = object : PagerAdapter() {
 
+            override fun instantiateItem(container: ViewGroup, position: Int): Any {
+                val inflater = LayoutInflater.from(container.context)
+                val binding = bindingFunction.invoke(inflater)
+                container.addView(binding.root)
+                setupActions.invoke(position, binding, dataList)
+                return binding.root
+            }
+
+            override fun destroyItem(container: ViewGroup, position: Int, obj: Any) {
+                container.removeView(obj as View)
+            }
+
+            override fun getCount(): Int = dataList.size
+
+            override fun isViewFromObject(view: View, obj: Any): Boolean = view == obj
+        }
+
+        viewPager.adapter = adapter
+        return adapter
+    }
 
     fun <T : ViewBinding> AppCompatActivity.setupIntroScreens(
         viewPager: ViewPager,
@@ -594,6 +628,7 @@ fun Any.allProperties(): List<String> {
         override fun getItemCount(): Int = adapterList.size
 
         override fun onBindViewHolder(holder: DataViewHolder<VB>, position: Int) {
+
             var item = adapterList[position]
             var itemMap = item?.shrink()
             item?.allProperties()?.forEach {
@@ -622,9 +657,6 @@ fun Any.allProperties(): List<String> {
         }
 
     }
-
-
-
 
 
 
@@ -723,9 +755,6 @@ fun Any.allProperties(): List<String> {
     /**
      * this method sets the status bar color
      */
-    fun setStatusBarColor(context: Activity, color:Int= R.color.blue){
-        context.window.statusBarColor= ContextCompat.getColor(context,color)
-    }
 
 
 

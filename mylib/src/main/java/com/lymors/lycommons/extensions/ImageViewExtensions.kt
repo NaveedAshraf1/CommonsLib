@@ -127,13 +127,14 @@ object ImageViewExtensions {
         placeHolder: Int = R.drawable.ic_launcher_background,
         error: Int = R.drawable.ic_launcher_background
     ) {
-        Glide.with(this.context)
-            .load(url)
-            .placeholder(placeHolder)
-            .error(error)
-            .diskCacheStrategy(DiskCacheStrategy.ALL)
-            .into(this)
-
+        if (url.isNotEmpty()){
+            Glide.with(this.context)
+                .load(url)
+                .placeholder(placeHolder)
+                .error(error)
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .into(this)
+        }
     }
 
 

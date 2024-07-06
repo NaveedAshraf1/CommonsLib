@@ -3,8 +3,16 @@ package com.lymors.lycommons.extensions
 import android.content.Context
 import android.util.TypedValue
 import kotlin.math.roundToInt
+import kotlin.random.Random
 
 object NumbersExtensions {
+
+
+
+
+    fun Int.addRandomNumber(from:Int , to:Int){
+        var random = Random.nextInt(from,to)
+    }
 
 
     private val indexMap = mutableMapOf<List<*>, Int>()

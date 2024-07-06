@@ -1,5 +1,6 @@
 package com.lymors.lycommons.data.storage
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
@@ -12,12 +13,13 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
-import androidx.work.await
 import androidx.work.workDataOf
 import com.google.firebase.storage.FirebaseStorage
 import com.lymors.lycommons.utils.MyResult
 import com.lymors.lycommons.utils.Utils.saveImageToInternalStorage
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.util.concurrent.TimeUnit
@@ -29,40 +31,63 @@ class StorageRepositoryImpl @Inject constructor(
     private val storage: FirebaseStorage
 ) : StorageRepository {
 
-    override suspend fun uploadImageToFirebaseStorageWithUri(uri: Uri): MyResult<String> {
-        return enqueueUploadWorker(uri, "images")
+    override suspend fun uploadImageToFirebaseStorageWithUri(uri: Uri , result: (MyResult<String>) -> Unit) {
+        enqueueUploadWorker(uri, "images"){
+            result.invoke(it)
+        }
     }
 
-    override suspend fun uploadDocumentToFirebaseStorage(uri: Uri): MyResult<String> {
-        return enqueueUploadWorker(uri, "documents")
+    override suspend fun uploadDocumentToFirebaseStorage(uri: Uri, result: (MyResult<String>) -> Unit){
+        enqueueUploadWorker(uri, "documents"){
+                    result.invoke(it)
+        }
     }
 
-    override suspend fun uploadImageToFirebaseStorageWithBitmap(bitmap: Bitmap): MyResult<String> {
+    override suspend fun uploadAudioToFirebaseStorage(
+        uri: Uri,
+        result: (MyResult<String>) -> Unit
+    ) {
+        enqueueUploadWorker(uri, "audios"){
+            result.invoke(it)
+        }
+    }
+
+    override suspend fun uploadImageToFirebaseStorageWithBitmap(bitmap: Bitmap, result: (MyResult<String>) -> Unit) {
         val uri = bitmapToUri(bitmap)
-        return enqueueUploadWorker(uri, "images")
+        enqueueUploadWorker(uri, "images"){
+            result.invoke(it)
+        }
     }
 
-    override suspend fun uploadImageToFirebaseStorageWithBitmap(bitArray: ByteArray): MyResult<String> {
-        val uri = bitArray.toUri(context , System.currentTimeMillis().toString())
-        return enqueueUploadWorker(uri, "images")
+    override suspend fun uploadImageToFirebaseStorageWithBitmap(bitArray: ByteArray, result: (MyResult<String>) -> Unit) {
+        val uri = bitArray.toUri(context, System.currentTimeMillis().toString())
+         enqueueUploadWorker(uri, "images"){
+            result.invoke(it)
+        }
     }
 
-    override suspend fun deleteImageToFirebaseStorage(url: String): MyResult<String> {
+    override suspend fun deleteImageToFirebaseStorage(url: String, result: (MyResult<String>) -> Unit) {
         return try {
             val storageRef = storage.getReferenceFromUrl(url)
             val deleteTask = storageRef.delete()
             deleteTask.await()
-            MyResult.Success("Image deleted successfully")
+            result.invoke( MyResult.Success("Image deleted successfully"))
         } catch (e: Exception) {
-            MyResult.Error("Failed to delete image: ${e.message}")
+            result.invoke(  MyResult.Error("Failed to delete image: ${e.message}"))
         }
     }
 
-    override suspend fun uploadVideoToFirebaseStorage(videoUri: Uri, progressCallBack: (Int) -> Unit): MyResult<String> {
-        return enqueueUploadWorker(videoUri, "videos")
+    override suspend fun uploadVideoToFirebaseStorage(
+        videoUri: Uri,
+         result: (MyResult<String>) -> Unit
+        , progressCallBack: (Int) -> Unit) {
+        enqueueUploadWorker(videoUri, "videos"){
+            result.invoke(it)
+        }
     }
 
-    private suspend fun enqueueUploadWorker(uri: Uri, path: String): MyResult<String> {
+    @SuppressLint("RestrictedApi")
+    private suspend fun enqueueUploadWorker(uri: Uri, path: String , result: (MyResult<String>) -> Unit){
         val inputData = workDataOf(
             "uri" to uri.saveImageToInternalStorage(context).toString(),
             "path" to path
@@ -79,24 +104,41 @@ class StorageRepositoryImpl @Inject constructor(
             .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 10, TimeUnit.SECONDS)
             .build()
 
-        WorkManager.getInstance(context).enqueue(uploadWorkRequest)
+        var workmanager = WorkManager.getInstance(context)
 
-        val workInfo = WorkManager.getInstance(context).getWorkInfoById(uploadWorkRequest.id).await()
-        return when (workInfo.state) {
-            WorkInfo.State.SUCCEEDED -> {
-                val downloadUrl = workInfo.outputData.getString("downloadUrl")
-                MyResult.Success(downloadUrl ?: "")
+        workmanager.enqueue(uploadWorkRequest)
+
+
+//        val workInfo = workmanager.getWorkInfoById(uploadWorkRequest.id).await()
+        val workInfoLiveData = workmanager.getWorkInfoByIdLiveData(uploadWorkRequest.id)
+       return withContext(Dispatchers.Main) {
+            workInfoLiveData.observeForever { workInfo ->
+                if (workInfo != null && workInfo.state.isFinished) {
+                    when (workInfo.state) {
+                        WorkInfo.State.SUCCEEDED -> {
+                            val downloadUrl = workInfo.outputData.getString("downloadUrl")
+                            downloadUrl?.let {
+                                result.invoke(MyResult.Success(it))
+                            } ?: result.invoke( MyResult.Error("Failed to get download URL"))
+                        }
+
+                        WorkInfo.State.FAILED -> result.invoke(MyResult.Error("WorkInfo.State.FAILED"))
+                        WorkInfo.State.CANCELLED -> result.invoke(MyResult.Error("WorkInfo.State.CANCELLED"))
+                        WorkInfo.State.BLOCKED -> result.invoke(MyResult.Error("WorkInfo.State.BLOCKED"))
+                        else -> result.invoke(MyResult.Error("Unknown error occurred in workManager"))
+                    }
+                }
             }
-            WorkInfo.State.FAILED -> MyResult.Error("Upload failed ")
-            WorkInfo.State.CANCELLED -> MyResult.Error("Upload cancelled ")
-            else -> MyResult.Error("Unknown error occurred")
+
         }
+
     }
 
     private fun bitmapToUri(bitmap: Bitmap): Uri {
         val byteArrayOutputStream = ByteArrayOutputStream()
         bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
-        val path = MediaStore.Images.Media.insertImage(context.contentResolver, bitmap, "Title", null)
+        val path =
+            MediaStore.Images.Media.insertImage(context.contentResolver, bitmap, "Title", null)
         return Uri.parse(path)
     }
 
@@ -112,11 +154,6 @@ class StorageRepositoryImpl @Inject constructor(
     }
 
 }
-
-
-
-
-
 //class StorageRepositoryImpl @Inject constructor(private val storageReference: StorageReference,private val storage:FirebaseStorage):
 //    StorageRepository {
 //

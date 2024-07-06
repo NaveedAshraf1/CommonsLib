@@ -5,10 +5,11 @@ import android.net.Uri
 import com.lymors.lycommons.utils.MyResult
 
 interface StorageRepository {
-    suspend fun uploadImageToFirebaseStorageWithUri(uri: Uri ): MyResult<String>
-    suspend fun uploadDocumentToFirebaseStorage(uri: Uri): MyResult<String>
-    suspend fun uploadImageToFirebaseStorageWithBitmap(bitmap: Bitmap ): MyResult<String>
-    suspend fun uploadImageToFirebaseStorageWithBitmap(bitArray: ByteArray ): MyResult<String>
-    suspend fun deleteImageToFirebaseStorage(url: String): MyResult<String>
-    suspend fun uploadVideoToFirebaseStorage(videoUri: Uri, progressCallBack: (Int) -> Unit): MyResult<String>
+    suspend fun uploadImageToFirebaseStorageWithUri(uri: Uri , result: (MyResult<String>) -> Unit)
+    suspend fun uploadDocumentToFirebaseStorage(uri: Uri, result: (MyResult<String>) -> Unit)
+    suspend fun uploadAudioToFirebaseStorage(uri: Uri, result: (MyResult<String>) -> Unit)
+    suspend fun uploadImageToFirebaseStorageWithBitmap(bitmap: Bitmap , result: (MyResult<String>) -> Unit)
+    suspend fun uploadImageToFirebaseStorageWithBitmap(bitArray: ByteArray , result: (MyResult<String>) -> Unit)
+    suspend fun deleteImageToFirebaseStorage(url: String, result: (MyResult<String>) -> Unit)
+    suspend fun uploadVideoToFirebaseStorage(videoUri: Uri, result: (MyResult<String>)-> Unit, progressCallBack: (Int) -> Unit)
 }
