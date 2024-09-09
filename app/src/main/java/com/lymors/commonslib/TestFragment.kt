@@ -12,7 +12,6 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import com.lymors.commonslib.MyUtils.dialogUtil
 import com.lymors.commonslib.databinding.FragmentTestBinding
 import com.lymors.commonslib.databinding.NewUserBinding
 import com.lymors.lycommons.data.viewmodels.MainViewModel
@@ -30,7 +29,7 @@ import com.lymors.lycommons.utils.MyExtensions.logT
 import com.lymors.lycommons.utils.MyExtensions.setOptions
 import com.lymors.lycommons.utils.MyExtensions.showSoftKeyboard
 import com.lymors.lycommons.utils.Utils.hideSoftKeyboard
-import com.lymors.lycommons.utils.Utils.showCustomLayoutDialog
+import com.lymors.lycommons.utils.Utils.showCustomLayoutDialogFragment
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -59,6 +58,8 @@ class TestFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+
+
         imagePicker = ImageView(requireActivity())
         "onCreate".logT()
 
@@ -180,30 +181,27 @@ return binding.root
     }
 
     private fun handleDeleteItems() {
-        binding.delete.setOnClickListener {
-            // surety dialog
-            dialogUtil.showInfoDialog(requireActivity(),"Are you sure you want to delete selected items?","be care full your are gong to delete ${listOfSelectedItems.size} items","Delete","Cancel",false,object :DialogUtil.DialogClickListener{
-                override fun onClickNo(d: DialogInterface) {
-                    dialogUtil.dialog.dismiss()
-                }
+//        binding.delete.showInfoDialog("Are you sure you want to delete selected items?","be care full your are gong to delete ${listOfSelectedItems.size} items","Delete","Cancel",false,object :DialogUtil.DialogClickListener{
+//                override fun onClickNo(d: DialogInterface) {
+//                    d.dismiss()
+//                }
+//
+//                override fun onClickYes(d: DialogInterface) {
+//                    lifecycleScope.launch {
+//                        // delete the selected items
+//                        listOfSelectedItems.forEach {
+//                            withContext(Dispatchers.Main){
+//                                val result = mainViewModel.deleteAnyModel("users/${it.key}")
+//
+//                                result.showInToast(requireActivity())
+//                            }
+//                        }
+//                        resetViews()
+//                    }
+//                }
+//
+//            })
 
-                override fun onClickYes(d: DialogInterface) {
-                    lifecycleScope.launch {
-                        // delete the selected items
-                        listOfSelectedItems.forEach {
-                            withContext(Dispatchers.Main){
-                                val result = mainViewModel.deleteAnyModel("users/${it.key}")
-
-                                result.showInToast(requireActivity())
-                            }
-                        }
-                        resetViews()
-                    }
-                }
-
-            })
-
-        }
     }
 
     private fun setupBackButton() {
@@ -305,7 +303,7 @@ return binding.root
 
     private fun showNewUserDialog(title:String = "", userModel: UserModel = UserModel()) {
 
-        showCustomLayoutDialog(requireActivity(), NewUserBinding::inflate) { dialogBinding, dialogFragment ->
+        showCustomLayoutDialogFragment(requireActivity(), NewUserBinding::inflate) { dialogBinding, dialogFragment ->
             dialogBinding.apply {
 //                title.setTextOrGone(title)
                 name.setText(userModel.name)
@@ -326,7 +324,7 @@ return binding.root
 //                    profileImage.setImageURI(requireActivity().pickedImageUri)
 //                }
 
-                cancelBtn.setOnClickListener { dialogUtil.dialog.dismiss() }
+                cancelBtn.setOnClickListener { dialogFragment.dismiss() }
                 saveBtn.setOnClickListener {
 
                     resetViews()

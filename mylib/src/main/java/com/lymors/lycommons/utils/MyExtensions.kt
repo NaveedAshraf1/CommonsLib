@@ -26,6 +26,8 @@ import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
+import android.os.Handler
+import android.os.Looper
 import android.provider.MediaStore
 import android.text.SpannableStringBuilder
 import android.text.style.ForegroundColorSpan
@@ -78,7 +80,10 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 import com.lymors.lycommons.R
+import com.lymors.lycommons.extensions.NumbersExtensions.toDoubleOrDefault
+import com.lymors.lycommons.extensions.StringExtensions.toIntOrDefault
 import com.lymors.lycommons.managers.DataStoreManager
+import com.lymors.lycommons.utils.MyExtensions.showSoftKeyboard
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -102,6 +107,53 @@ import kotlin.reflect.jvm.isAccessible
 
 
 object MyExtensions {
+
+//    fun Double.roundTo(digitsAfterDecimal: Int): String {
+//        return if (this % 1.0 == 0.0) {
+//            this.toInt().toString()
+//        } else {
+//            var l =  String.format("%.${digitsAfterDecimal}f", this)
+//            if (l.endsWith(".000")) l= l.removeSuffix(".000")
+//            if (l.endsWith(".00")) l= l.removeSuffix(".00")
+//            if (l.endsWith(".0")) l= l.removeSuffix(".0")
+//
+//            l
+//        }
+//    }
+    fun Double.roundTo(digitsAfterDecimal: Int): String {
+        return if (this % 1.0 == 0.0) {
+            this.toInt().toString()
+        } else {
+            var roundedValue = String.format("%.${digitsAfterDecimal}f", this)
+            // Remove trailing zeros after the decimal point
+            roundedValue = roundedValue.replace(Regex("0+$"), "")
+            // If it ends with a dot, remove the dot
+            if (roundedValue.endsWith(".")) {
+                roundedValue = roundedValue.removeSuffix(".")
+            }
+            roundedValue
+        }
+    }
+
+
+
+    fun EditText.getTextAsInt(): Int {
+        val text = text.toString().trim()
+        return if (text.isEmpty()) {
+            0
+        } else {
+            text.toIntOrDefault()
+        }
+    }
+
+    fun EditText.getTextAsDouble(afterDecimal:Int): Double {
+        val text = text.toString().trim()
+        return if (text.isEmpty()) {
+            0.0
+        } else {
+            text.toDoubleOrDefault().roundTo(afterDecimal).toDoubleOrDefault()
+        }
+    }
 
 
     fun AppCompatActivity.replaceFragment(frameLayout: FrameLayout,fragment: Fragment, addToBackStack: Boolean) {
@@ -696,8 +748,6 @@ object MyExtensions {
     }
 
 
-
-
     inline fun <reified T : Any> T.deepCopy(): T {
         val jsonString = Gson().toJson(this)
         return Gson().fromJson(jsonString, T::class.java)
@@ -780,7 +830,8 @@ object MyExtensions {
         tabLayout: TabLayout,
         viewPager2: ViewPager2,
         tabTextList: List<String>,
-        fragments: List<Fragment>
+        fragments: List<Fragment>,
+        initialPosition: Int = 0
     ) {
         viewPager2.adapter = object : androidx.viewpager2.adapter.FragmentStateAdapter(this) {
             override fun getItemCount(): Int = fragments.size
@@ -792,6 +843,7 @@ object MyExtensions {
         TabLayoutMediator(tabLayout, viewPager2) { tab, position ->
             tab.text = tabTextList[position]
         }.attach()
+        viewPager2.setCurrentItem(initialPosition, false)
     }
 
 
@@ -810,10 +862,10 @@ object MyExtensions {
 
 
 
-    val Fragment.dialogUtil: DialogUtil
-        get() = DialogUtil()
-    val Activity.dialogUtil: DialogUtil
-        get() = DialogUtil()
+//    val Fragment.dialogUtil: DialogUtil
+//        get() = DialogUtil()
+//    val Activity.dialogUtil: DialogUtil
+//        get() = DialogUtil()
 
     val Activity.dataStore: DataStoreManager
         get() = DataStoreManager(this)
@@ -849,6 +901,9 @@ object MyExtensions {
             }
         }
     }
+
+
+
 
 
     @SuppressLint("ClickableViewAccessibility")
@@ -924,12 +979,14 @@ object MyExtensions {
         circularReveal.start()
     }
 
-    fun Context.showToast(message: Any , duration:Int = Toast.LENGTH_SHORT) {
-        var v = this
+    fun Context.showToast(message: Any, duration: Int = Toast.LENGTH_SHORT, gravity: Int = Gravity.BOTTOM) {
         CoroutineScope(Dispatchers.Main).launch {
-            Toast.makeText(v, message.toString(), duration).show()
+            val toast = Toast.makeText(this@showToast, message.toString(), duration)
+            toast.setGravity(gravity, 0, 0)
+            toast.show()
         }
     }
+
 
 
 
@@ -954,25 +1011,68 @@ object MyExtensions {
         }
     }
 
-
-    fun EditText.showSoftKeyboardForce() {
-        this.requestFocus()
-        val inputMethodManager = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        inputMethodManager.showSoftInput(this, InputMethodManager.SHOW_IMPLICIT)
-
-        if (!inputMethodManager.isActive(this)) {
-            inputMethodManager.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0)
+    fun EditText.setCursorToEndOnFocus(){
+        this.setOnFocusChangeListener { v, hasFocus ->
+            if (hasFocus){
+                this.post{
+                    val initialText = this.text.toString()
+                    if (initialText.isNotEmpty()){
+                        val length = initialText.length
+                        this.setSelection(length)
+                    }
+                }
+            }
         }
 
-        this.post{
-            val initialText = this.text.toString()
-            if (initialText.isNotEmpty()){
-                val length = initialText.length
-                this.setSelection(length)
+        this.setOnClickListener {
+            this.post{
+                val initialText = this.text.toString()
+                if (initialText.isNotEmpty()){
+                    val length = initialText.length
+                    this.setSelection(length)
+                }
             }
         }
     }
 
+    fun EditText.onFocus(callback: () -> Unit){
+        this.setOnFocusChangeListener { v, hasFocus ->
+            if (hasFocus){
+                callback.invoke()
+            }
+        }
+    }
+
+
+
+
+
+    fun EditText.showSoftKeyboardForce() {
+        runDelay {
+            this.requestFocus()
+            val inputMethodManager = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            inputMethodManager.showSoftInput(this, InputMethodManager.SHOW_IMPLICIT)
+
+            if (!inputMethodManager.isActive(this)) {
+                inputMethodManager.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0)
+            }
+
+            this.post{
+                val initialText = this.text.toString()
+                if (initialText.isNotEmpty()){
+                    val length = initialText.length
+                    this.setSelection(length)
+                }
+            }
+        }
+    }
+
+
+fun runDelay(delay:Long =400 , callback: () -> Unit){
+    Handler(Looper.getMainLooper()).postDelayed({
+        callback.invoke()
+    }, delay)
+}
 
 
 
@@ -1048,15 +1148,6 @@ object MyExtensions {
 
 
 
-
-
-
-
-
-
-
-
-
     fun <T> List<T>.toArrayList(): ArrayList<T> {
         val arrayList = ArrayList<T>()
         arrayList.addAll(this)
@@ -1068,27 +1159,33 @@ object MyExtensions {
         val propertiesMap = mutableMapOf<String, Any>()
         this::class.memberProperties.forEach { prop ->
             prop.isAccessible = true
-            val value = prop.getter.call(this)
-            when (value) {
-                is String -> if (value.isNotEmpty()) propertiesMap[prop.name] = value
-                is Int -> if (value != 0) propertiesMap[prop.name] = value
-                is Boolean -> if (value) propertiesMap[prop.name] = value
-                is Double -> if (value != 0.0) propertiesMap[prop.name] = value
-                is Long -> if (value != 0L) propertiesMap[prop.name] = value
-                is List<*> -> if (value.isNotEmpty()) propertiesMap[prop.name] = value
-                is Float -> if (value != 0.0f) propertiesMap[prop.name] = value
-                is Short -> if (value != 0.toShort()) propertiesMap[prop.name] = value
-                is Byte -> if (value != 0.toByte()) propertiesMap[prop.name] = value
-                is Char -> if (value != '\u0000') propertiesMap[prop.name] = value // '\u0000' is the null char
-                is Set<*> -> if (value.isNotEmpty()) propertiesMap[prop.name] = value
-                is Map<*, *> -> if (value.isNotEmpty()) propertiesMap[prop.name] = value
-                is Enum<*> -> propertiesMap[prop.name] = value.name
-                is Any -> propertiesMap[prop.name] = value.shrink()
+            if (!prop.name.startsWith("_")) { // Filter out properties starting with "_"
+                val value = prop.getter.call(this)
+                if (value!=null)  {
+                    when (value) {
+                        is String -> if (value.isNotEmpty()) propertiesMap[prop.name] = value
+                        is Int -> if (value != 0) propertiesMap[prop.name] = value
+                        is Boolean -> if (value) propertiesMap[prop.name] = value
+                        is Double -> if (value != 0.0) propertiesMap[prop.name] = value
+                        is Long -> if (value != 0L) propertiesMap[prop.name] = value
+                        is Array<*> -> if (value.isNotEmpty()) propertiesMap[prop.name] = value
+                        is ArrayList<*> -> if (value.isNotEmpty()) propertiesMap[prop.name] = value
+                        is List<*> -> if (value.isNotEmpty()) propertiesMap[prop.name] = value
+                        is Float -> if (value != 0.0f) propertiesMap[prop.name] = value
+                        is Short -> if (value != 0.toShort()) propertiesMap[prop.name] = value
+                        is Byte -> if (value != 0.toByte()) propertiesMap[prop.name] = value
+                        is Char -> if (value != '\u0000') propertiesMap[prop.name] = value // '\u0000' is the null char
+                        is Set<*> -> if (value.isNotEmpty()) propertiesMap[prop.name] = value
+                        is Map<*, *> -> if (value.isNotEmpty()) propertiesMap[prop.name] = value
+                        is Enum<*> -> propertiesMap[prop.name] = value.name
+                        is Any -> propertiesMap[prop.name] = value.shrink()
+                    }
+                }
+
             }
         }
         return propertiesMap
     }
-
 
     fun Any.toMap(): Map<String, Any> {
         val propertiesMap = mutableMapOf<String, Any>()

@@ -19,6 +19,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
+import android.widget.CheckBox
 import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -40,6 +41,14 @@ import nl.joery.animatedbottombar.AnimatedBottomBar
 import java.util.WeakHashMap
 
 object ScreenExtensions {
+
+
+    fun Activity.refresh(){
+        finish()
+        overridePendingTransition(0, 0)
+        startActivity(intent)
+        overridePendingTransition(0, 0)
+    }
 
 
     inline fun <reified MB : ViewBinding, DB : ViewBinding> Activity.setUpDrawer(
@@ -204,6 +213,10 @@ object ScreenExtensions {
         startActivity(intent)
     }
 
+    fun CheckBox.toggle(){
+        isChecked = !this.isChecked
+    }
+
 
     fun Fragment.launchActivity(destination: Class<*>, key: String, data: Parcelable? = null) {
         // Create an Intent to launch the target activity
@@ -234,18 +247,6 @@ object ScreenExtensions {
         startActivity(intent)
     }
 
-
-
-
-    // activity
-    // . showToast(message: String)
-    fun Activity.showToast(message: Any , length: Int = Toast.LENGTH_SHORT) {
-        Toast.makeText(this, message.toString(), Toast.LENGTH_SHORT).show()
-    }
-    fun ComponentActivity.getPermissionLauncher(): ActivityResultLauncher<String> {
-        return this.registerForActivityResult(ActivityResultContracts.RequestPermission()) {}
-    }
-
     fun Activity.startActivity(clazz: Class<*>) {
         startActivity(Intent(this, clazz))
     }
@@ -257,9 +258,23 @@ object ScreenExtensions {
     }
 
     // . setStatusBarColor(color: Int)
-    fun Activity.setStatusBarColor(color: Int) {
-        window.statusBarColor = color
+    fun Activity.setStatusBarColor(backgroundColor: Int = R.color.white, darkTextColor: Boolean = true) {
+        // Set the status bar background color
+        this.window.statusBarColor = ContextCompat.getColor(this, backgroundColor)
+
+        // Set the status bar text color to light or dark
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val decor = window.decorView
+            if (darkTextColor) {
+                // If lightTextColor is true, set the text color to dark
+                decor.systemUiVisibility = decor.systemUiVisibility or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+            } else {
+                // Otherwise, set the text color to light
+                decor.systemUiVisibility = decor.systemUiVisibility and View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv()
+            }
+        }
     }
+
 
     // . setActionBarTitle(title: String)
     fun Activity.setActionBarTitle(title: String) {

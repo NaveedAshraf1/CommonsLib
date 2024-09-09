@@ -19,7 +19,6 @@ import javax.inject.Inject
 import kotlin.coroutines.resume
 import kotlin.reflect.KProperty
 
-
 class MainViewModel @Inject constructor(private val mainRepo: MainRepository) : ViewModel() {
     private val _longClickedState = MutableStateFlow<Boolean>(false)
     val longClickedState = _longClickedState.asStateFlow()
@@ -69,7 +68,7 @@ class MainViewModel @Inject constructor(private val mainRepo: MainRepository) : 
             if (map.containsKey(clazz) && map[clazz]?.path ==path && map[clazz]?.more == numberOfItems ) {
                 continuation.resume(map[clazz]?.stateFlow as StateFlow<List<T>>)
             } else {
-                val mutableStateFlow = MutableStateFlow<List<T>>(emptyList())
+                val mutableStateFlow = MutableStateFlow<List<T>>(mutableListOf())
                 val stateFlow = mutableStateFlow.asStateFlow()
                 val a = AlphaModel(path, mutableStateFlow , numberOfItems )
                 a.stateFlow = stateFlow
@@ -92,12 +91,14 @@ class MainViewModel @Inject constructor(private val mainRepo: MainRepository) : 
 
     private  val _mapFlow = MutableStateFlow(emptyMap<String,Any>())
     val mapFlow = _mapFlow.asStateFlow()
-    fun collectMap(child: String) {
+
+    fun collectMap(child: String): StateFlow<Map<String,Any>> {
         viewModelScope.launch {
             mainRepo.collectMap<Any>(child).collect{
                 _mapFlow.value = it
             }
         }
+        return mapFlow
     }
 
     suspend fun <T> getAnyData(path: String, clazz: Class<T>): T? {
@@ -156,19 +157,18 @@ class MainViewModel @Inject constructor(private val mainRepo: MainRepository) : 
             val modelKeyResult = uploadAnyModel(realTimePath, model)
             if (modelKeyResult is MyResult.Error) {
                 return@async modelKeyResult // Return the error result immediately
+            }else{
+                if (modelKeyResult is MyResult.Success) {
+                    if (imageUri.isNotEmpty()){
+                        val imagePath = "$realTimePath/${modelKeyResult.data}/${property.name}"
+                        uploadImageUsingWorkManager(context, imageUri, imagePath)
+                    }
+                    return@async modelKeyResult
+                }
+                return@async modelKeyResult
             }
-
-           modelKeyResult.whenSuccess {
-               if (imageUri.isNotEmpty()){
-                   val imagePath = "$realTimePath/$it/${property.name}"
-                   uploadImageUsingWorkManager(context, imageUri, imagePath)
-               }
-            }
-            return@async MyResult.Success("Data uploaded successfully")
         }.await()
     }
-
-
 
 }
 
@@ -176,7 +176,7 @@ class MainViewModel @Inject constructor(private val mainRepo: MainRepository) : 
 data class AlphaModel<T>(
     var path: String,
     var _stateFlow:MutableStateFlow<List<T>>,
-    var more:Int = 0
+    var more:Int = 0,
     ){
     var stateFlow:StateFlow<List<T>> = _stateFlow.asStateFlow()
 }

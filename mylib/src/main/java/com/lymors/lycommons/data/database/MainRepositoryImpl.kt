@@ -8,14 +8,20 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.GenericTypeIndicator
 import com.google.firebase.database.Query
 import com.google.firebase.database.ValueEventListener
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import com.lymors.lycommons.utils.MyExtensions.logT
 import com.lymors.lycommons.utils.MyExtensions.shrink
 import com.lymors.lycommons.utils.MyResult
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+
+
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.tasks.await
 import java.security.InvalidParameterException
@@ -31,7 +37,7 @@ class MainRepositoryImpl @Inject constructor(
     private val databaseReference: DatabaseReference
 ) : MainRepository {
 
-
+    val gson: Gson = GsonBuilder().setPrettyPrinting().create()
     override suspend fun <T : Any> uploadAllModelsAtOnce(path: String, models: List<T>): MyResult<String> {
         if (!path.isValidPath()){
             return MyResult.Error("$path path is invalid for firebase")
@@ -103,7 +109,9 @@ class MainRepositoryImpl @Inject constructor(
         path.logT("collectAnyModel->path ", "path")
         numberOfItems.logT("numberOfItems", "path")
         clazz.simpleName.logT("clazz.simpleName")
-
+if (!path.isValidPath()){
+    throw InvalidParameterException("$path path is invalid for firebase")
+}
         val query:Query =  if (numberOfItems == 0){
             databaseReference.child(path)
         }else{
@@ -112,15 +120,18 @@ class MainRepositoryImpl @Inject constructor(
 
         val valueEventListener = object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
-                dataSnapshot.logT("collectAnyModel->dataSnapshot:", "firebase")
-                val messagesList = mutableListOf<T>()
-               dataSnapshot.children.forEach {
+                CoroutineScope(Dispatchers.IO).launch {
+                gson.toJson(dataSnapshot.value).logT("collectAnyModel->dataSnapshot:", "firebase")
+                }
+                val messagesList = arrayListOf<T>()
+               dataSnapshot.children.filterNotNull().forEach {
                    val message = it.getValue(clazz)
                    message?.let { m ->
                        messagesList.add(m)
                    }
                }
                 trySend(messagesList).isSuccess
+
             }
 
             override fun onCancelled(databaseError: DatabaseError) {
@@ -155,14 +166,13 @@ class MainRepositoryImpl @Inject constructor(
                         }
                     }
                 }
+
                 databaseReference.child(path).child(newKey).setValue(model.shrink())
                 MyResult.Success(newKey)
             } else {
                 databaseReference.child(path).setValue(model)
                 MyResult.Success(path.split("/").last())
             }
-
-
         } catch (e: Exception) {
             MyResult.Error(e.message.toString())
         }
@@ -185,10 +195,13 @@ class MainRepositoryImpl @Inject constructor(
     }
 
     override fun <T> collectAModel(path: String, clazz: Class<T>): Flow<T> = callbackFlow {
+        if (!path.isValidPath()){
+            throw InvalidParameterException("$path path is invalid for firebase")
+        }
         path.logT("collectAModel->path","path")
         val valueEventListener = object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
-                dataSnapshot.logT("collectAModel->dataSnapshot","firebase")
+                gson.toJson(dataSnapshot.value).logT("collectAModel->dataSnapshot","firebase")
                 val message = dataSnapshot.getValue(clazz)
                 if (message != null) {
                     trySend(message).isSuccess
@@ -213,13 +226,30 @@ class MainRepositoryImpl @Inject constructor(
        path.logT("getAnyData->path","path")
         return try {
             val snapshot = databaseReference.child(path).get().await()
-            snapshot.logT("getAnyData->snapshot","firebase")
+            gson.toJson(snapshot.value).logT("getAnyData->snapshot","firebase")
             snapshot.getValue(clazz)
         } catch (e: Exception) {
             Log.e("TAG", "Failed to retrieve data: ${e.message}")
             null
         }
     }
+
+    override suspend fun <T> getDataList(path: String, clazz: Class<T>): List<T> {
+        if (!path.isValidPath()) {
+            throw InvalidParameterException("$path path is invalid for Firebase")
+        }
+        path.logT("getDataList->path", "path")
+        return try {
+            val snapshot = databaseReference.child(path).get().await()
+            gson.toJson(snapshot.value).logT("getDataList->snapshot", "firebase")
+            // Check if the snapshot has children and map them to a list of the desired class type
+            snapshot.children.mapNotNull { it.getValue(clazz) }
+        } catch (e: Exception) {
+            Log.e("TAG", "Failed to retrieve data list: ${e.message}")
+            emptyList()
+        }
+    }
+
 
     override suspend fun <T> getModelsWithChildren(path: String, clazz: Class<T>):Flow< List<T> > = callbackFlow {
         if (!path.isValidPath()){
@@ -230,8 +260,8 @@ class MainRepositoryImpl @Inject constructor(
         val valueEventListener = object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 val studentsList = mutableListOf<T>()
-                for (classSnap in dataSnapshot.children) {
-                    classSnap.logT("getModelsWithChildren->classSnap", "firebase")
+                for (classSnap in dataSnapshot.children.filterNotNull()) {
+                    gson.toJson(classSnap.value).logT("getModelsWithChildren->classSnap", "firebase")
                     for (studentSnap in classSnap.children){
                         val studentModel = studentSnap.getValue(clazz)
                         studentModel?.let {

@@ -49,6 +49,7 @@ import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.ContextCompat
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
+import com.lymors.lycommons.extensions.ViewExtensions.zoomOutVisibleFadeOut
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -402,7 +403,7 @@ object ViewExtensions {
         // Set the duration of the animation
         animator.duration = duration
 
-        // Set a listener to make the view invisible after the animation ends
+        // Set a listener to make the view ible after the animation ends
         animator.addListener(object : AnimatorListenerAdapter() {
             override fun onAnimationEnd(animation: Animator) {
                 this@fadeOutInvisible.visibility = View.INVISIBLE
@@ -421,8 +422,6 @@ object ViewExtensions {
         scaleX = 0f
         scaleY = 0f
 
-        // Set visibility to VISIBLE before starting the animation
-        visibility = View.VISIBLE
 
         // Animate zooming out and fading in
         animate()
@@ -431,6 +430,9 @@ object ViewExtensions {
             .alpha(1f)
             .setDuration(duration)
             .setInterpolator(AccelerateDecelerateInterpolator())
+            .withEndAction {
+                this.visibility = View.VISIBLE  // Set visibility to GONE after animation
+            }
             .start()
     }
 
@@ -832,7 +834,7 @@ object ViewExtensions {
     }
 
 
-    fun View.showSnackbar(message: String) {
+    fun View.showSnackBar(message: String) {
         Snackbar.make(this, message, Snackbar.LENGTH_SHORT).show()
     }
 

@@ -10,12 +10,24 @@ import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.lymors.lycommons.utils.MyResult
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 class AuthRepositoryWithEmailImpl @Inject constructor(private val auth:FirebaseAuth):
     AuthRepositoryWithEmail {
+
+    override suspend fun resetPassword(email: String): MyResult<String> {
+        return try {
+            auth.sendPasswordResetEmail(email).await()
+            MyResult.Success("Password reset email sent successfully")
+        } catch (e: Exception) {
+            MyResult.Error(e.message.toString())
+        }
+    }
+
+
     override suspend fun signUpUserWithEmailAndPassword(email: String, password: String): MyResult<String> = suspendCoroutine { cont ->
         auth.createUserWithEmailAndPassword(email, password)
             .addOnSuccessListener {

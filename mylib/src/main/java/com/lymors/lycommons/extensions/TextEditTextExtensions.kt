@@ -12,6 +12,7 @@ import android.text.TextWatcher
 import android.text.method.LinkMovementMethod
 import android.util.TypedValue
 import android.view.MotionEvent
+import android.view.ScaleGestureDetector
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
@@ -32,6 +33,19 @@ import kotlin.math.pow
 import kotlin.math.sqrt
 
 object TextEditTextExtensions {
+
+
+
+    fun EditText.disable() {
+        isFocusable = false
+        inputType = InputType.TYPE_NULL
+        isFocusableInTouchMode = false
+        isClickable = false
+        isCursorVisible = false
+        keyListener = null
+    }
+
+
 
     fun EditText.getFullNumber(countryCodePicker: CountryCodePicker):String{
         countryCodePicker.registerCarrierNumberEditText(this)
@@ -56,14 +70,14 @@ object TextEditTextExtensions {
     fun TextView.showCountdownTimer(
         totalTimeInMillis: Long,
         onFinish: (Unit) -> Unit = {},
-        onTicked: (Long) -> Unit = {}
+        onTicked: ((Long) -> Unit)? = null
     ) {
         object : CountDownTimer(totalTimeInMillis, 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 val seconds = millisUntilFinished / 1000 % 60
                 val minutes = millisUntilFinished / (60 * 1000) % 60
                 val hours = millisUntilFinished / (60 * 60 * 1000)
-                onTicked(millisUntilFinished)
+                onTicked?.invoke(millisUntilFinished)
 
                 val timeText = String.format("%02d:%02d:%02d", hours, minutes, seconds)
                 text = timeText
@@ -260,6 +274,25 @@ object TextEditTextExtensions {
             true
         }
 
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    fun View.enablePinchZoom() {
+        var scaleFactor = 1.0f
+        val scaleGestureDetector = ScaleGestureDetector(context, object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
+            override fun onScale(detector: ScaleGestureDetector): Boolean {
+                scaleFactor *= detector.scaleFactor
+                scaleFactor = scaleFactor.coerceAtLeast(0.1f).coerceAtMost(10.0f) // Limit scale factor
+                this@enablePinchZoom.scaleX = scaleFactor
+                this@enablePinchZoom.scaleY = scaleFactor
+                return true
+            }
+        })
+
+        this.setOnTouchListener { _, event ->
+            scaleGestureDetector.onTouchEvent(event)
+            true
+        }
     }
 
 

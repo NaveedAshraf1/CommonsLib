@@ -8,4 +8,5 @@ interface AuthRepositoryWithEmail {
     suspend fun signUpUserWithEmailAndPassword(email:String, password:String): MyResult<String>
     suspend fun loginUserWithEmailAndPassword(email:String, password:String): MyResult<String>
 
+    suspend fun resetPassword(email: String): MyResult<String>
 }

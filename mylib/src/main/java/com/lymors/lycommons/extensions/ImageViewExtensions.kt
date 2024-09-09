@@ -124,8 +124,8 @@ object ImageViewExtensions {
     // imageview
     fun ImageView.loadImageFromUrl(
         url: String,
-        placeHolder: Int = R.drawable.ic_launcher_background,
-        error: Int = R.drawable.ic_launcher_background
+        placeHolder: Int = R.drawable.placeholder,
+        error: Int = R.drawable.placeholder
     ) {
         if (url.isNotEmpty()){
             Glide.with(this.context)
@@ -144,13 +144,6 @@ object ImageViewExtensions {
             .into(this)
     }
 
-
-    fun ImageView.makeCircular() {
-        Glide.with(this.context)
-            .load(this.drawable)
-            .apply(RequestOptions.circleCropTransform())
-            .into(this)
-    }
 
     // Extension function to load a drawable resource into an ImageView using Glide
     fun ImageView.loadDrawable(@DrawableRes resId: Int) {

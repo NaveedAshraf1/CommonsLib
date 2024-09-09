@@ -29,6 +29,7 @@ class GenericDialogFragment<B : ViewBinding>(
         savedInstanceState: Bundle?
     ): View {
         _binding = bindingInflater.invoke(inflater, container, false)
+
         return binding.root
     }
 

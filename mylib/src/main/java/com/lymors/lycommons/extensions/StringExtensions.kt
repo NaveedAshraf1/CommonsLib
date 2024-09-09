@@ -8,7 +8,6 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.net.Uri
-import android.os.Build
 import android.speech.tts.TextToSpeech
 import android.text.Html
 import android.text.Spanned
@@ -36,9 +35,30 @@ import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.PBEKeySpec
 import javax.crypto.spec.SecretKeySpec
+import android.os.Build
+import android.util.Base64
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.util.zip.GZIPInputStream
+import java.util.zip.GZIPOutputStream
 
 
 object StringExtensions {
+
+    fun String.compress(): String {
+        val outputStream = ByteArrayOutputStream()
+        GZIPOutputStream(outputStream).bufferedWriter().use { it.write(this) }
+        val compressedBytes = outputStream.toByteArray()
+        return Base64.encodeToString(compressedBytes, Base64.NO_WRAP)
+    }
+
+    fun String.decompress(): String {
+        val compressedBytes = Base64.decode(this, Base64.NO_WRAP)
+        val inputStream = ByteArrayInputStream(compressedBytes)
+        val gzipInputStream = GZIPInputStream(inputStream)
+        return gzipInputStream.bufferedReader().readText()
+    }
+
 
 
     fun String.copyToClipboard(context: Context) {
@@ -173,8 +193,7 @@ object StringExtensions {
     }
 
     fun String.isValidEmail(): Boolean {
-        val emailRegex = Regex("[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}")
-        return matches(emailRegex)
+        return android.util.Patterns.EMAIL_ADDRESS.matcher(this).matches()
     }
 
     //Convert a string to an integer (or return a default value if conversion fails)

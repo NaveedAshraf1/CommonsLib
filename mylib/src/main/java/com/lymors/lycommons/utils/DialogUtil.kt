@@ -1,321 +1,199 @@
 package com.lymors.lycommons.utils
-
-
-import android.app.ActionBar.LayoutParams
-import android.app.Activity
 import android.app.AlertDialog
-import android.app.Dialog
 import android.app.ProgressDialog
 import android.content.Context
 import android.content.DialogInterface
-import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
 import android.view.LayoutInflater
-import android.view.ViewGroup
+import android.view.View
 import android.widget.LinearLayout
-import androidx.appcompat.app.AppCompatActivity
+import android.widget.PopupWindow
+import android.widget.ProgressBar
+import android.widget.TextView
 import androidx.core.content.ContextCompat
-import androidx.core.view.children
 import androidx.viewbinding.ViewBinding
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.textfield.TextInputEditText
-import com.google.android.material.textfield.TextInputLayout
-import com.lymors.lycommons.R
-import com.lymors.lycommons.utils.MyExtensions.createButton
-import com.lymors.lycommons.utils.MyExtensions.createLinearLayout
-import com.lymors.lycommons.utils.MyExtensions.createTextView
 
-class DialogUtil {
+object DialogUtil {
 
-    lateinit var dialog: Dialog
-
-    interface DialogClickListener {
-        fun onClickYes(d: DialogInterface)
-        fun onClickNo(d: DialogInterface)
-    }
-
-    interface EditTextDialogClickListener {
-        fun onClickYes(d: DialogInterface, texts: ArrayList<String>)
-        fun onClickNo(d: DialogInterface)
+    fun Context.alertDialog(
+        title: String = "Confirm",
+        message: String = "Are you sure you want to proceed?",
+        positiveText: String = "Ok",
+        negativeText: String = "Cancel"
+    ): AlertDialog {
+        return AlertDialog.Builder(this)
+            .setTitle(title)
+            .setMessage(message)
+            .setCancelable(false)
+            .setPositiveButton(positiveText, null)
+            .setNegativeButton(negativeText, null)
+            .create()
     }
 
 
-    fun showAlertDialogRounded(
-        context: Context,
+    fun Context.alertDialogMaterial(
         title: String,
         message: String,
-        cancelable: Boolean = false
-    ) {
-        val alertDialogBuilder = MaterialAlertDialogBuilder(context)
-        alertDialogBuilder.setTitle(title)
-        alertDialogBuilder.setMessage(message)
-        alertDialogBuilder.setCancelable(cancelable)
-        alertDialogBuilder.setPositiveButton("OK") { dialog, _ ->
-            dialog.dismiss()
-        }
-
-        alertDialogBuilder.setNegativeButton("Cancel") { dialog, _ ->
-            dialog.dismiss()
-        }
-        val alertDialog = alertDialogBuilder.create()
-        alertDialog.show()
-        dialog = alertDialog
+        positiveText: String = "Ok",
+        negativeText: String = "Cancel"
+    ): androidx.appcompat.app.AlertDialog {
+        val alertDialogBuilder = MaterialAlertDialogBuilder(this)
+            .setTitle(title)
+            .setMessage(message)
+            .setCancelable(false)
+            .setPositiveButton(positiveText, null)
+            .setNegativeButton(negativeText, null)
+        return alertDialogBuilder.create()
     }
 
 
-    inline fun <reified T : ViewBinding> showCustomLayoutDialog(
-        context: AppCompatActivity,
-        crossinline bindingInflater: (LayoutInflater) -> T,
-        cancelable: Boolean = true,
-        callback: (T, Dialog) -> Unit
-    ): Dialog {
-        val binding = bindingInflater.invoke((context).layoutInflater)
-        dialog = MaterialAlertDialogBuilder(context)
-            .setView(binding.root)
-            .setCancelable(cancelable)
-            .show()
-
-
-        // Set the dialog background to white
-        dialog.window?.setBackgroundDrawable(
-            ContextCompat.getDrawable(
-                context,
-                R.drawable.rounderd_corner
-            )
-        )
-
-        val width = (context.resources.displayMetrics.widthPixels * 0.9).toInt()
-        dialog.window?.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
-        callback.invoke(binding, dialog)
-        return dialog
-    }
-
-
-
-
-    inline fun <reified T : ViewBinding> showCustomLayoutDialog(
-        context: Activity,
-        crossinline bindingInflater: (LayoutInflater) -> T,
-        cancelable: Boolean = true
-    ): T {
-        val binding = bindingInflater.invoke((context).layoutInflater)
-        dialog = MaterialAlertDialogBuilder(context)
-            .setView(binding.root)
-            .setCancelable(cancelable)
-            .show()
-
-        // Set the dialog background to white
-        dialog.window?.setBackgroundDrawable(
-            ContextCompat.getDrawable(
-                context,
-                R.drawable.rounderd_corner
-            )
-        )
-
-        val width = (context.resources.displayMetrics.widthPixels * 0.9).toInt()
-        dialog.window?.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
-        return binding
-    }
-
-
-    fun showAlertDialog(
-        context: Context,
-        title: String,
-        message: String,
-        cancelable: Boolean = false
-    ) {
-        val alertDialogBuilder = createAlertDialog(context, title, message, cancelable)
-        alertDialogBuilder.setPositiveButton("OK") { dialog, _ ->
-            dialog.dismiss()
-        }
-        alertDialogBuilder.setNegativeButton("Cancel") { dialog, _ ->
-            dialog.dismiss()
-        }
-        val alertDialog = alertDialogBuilder.create()
-        alertDialog.show()
-    }
-
-
-    fun showInfoDialog(
-        context: Context,
-        title: String,
-        message: String,
-        positiveButtonLabel: String = "Ok",
-        negativeButtonLabel: String = "Cancel",
-        cancelable: Boolean,
-        obj: DialogClickListener
-    ) {
-        val alertDialogBuilder = createAlertDialog(context, title, message, cancelable)
-        alertDialogBuilder.setPositiveButton(positiveButtonLabel) { dialog, _ ->
-            obj.onClickYes(dialog)
-        }
-
-        alertDialogBuilder.setNegativeButton(negativeButtonLabel) { dialog, _ ->
-            obj.onClickNo(dialog)
-        }
-
-        val alertDialog = alertDialogBuilder.create()
-        alertDialog.show()
-    }
-
-
-    fun showEditTextDialog(
-        context: Context,
-        title: String,
-        hints: List<String>,
-        obj: EditTextDialogClickListener
-    ) {
-        val textFields = ArrayList<String>()
-        val dialog = createAlertDialog(context, "", "")
-        val verticalLinearLayout =
-            createLinearLayout(context, LinearLayout.VERTICAL, Gravity.CENTER)
-
-        // Set title
-        val titleTextView = createTextView(
-            context,
-            title,
-            Gravity.CENTER_HORIZONTAL,
-            LayoutParams.WRAP_CONTENT,
-            LayoutParams.WRAP_CONTENT,
-            30f,
-            0,
-            25,
-            0,
-            10,
-            true
-        )
-        titleTextView.setTextColor(ContextCompat.getColor(context, R.color.cement))
-        verticalLinearLayout.addView(titleTextView)
-
-        // Set all TextInputLayouts
-        val editTextLinearLayout =
-            createLinearLayout(context, LinearLayout.VERTICAL, Gravity.CENTER)
-        hints.forEach { hint ->
-            val textInputLayout = TextInputLayout(context)
-
-            textInputLayout.apply {
-
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-                ).apply {
-                    setMargins(20, 10, 20, 0)
-                }
-                // Set hint text color using ColorStateList
-                val hintColor = ContextCompat.getColor(context, R.color.cement)
-                val hintColorStateList = ColorStateList.valueOf(hintColor)
-                textInputLayout.defaultHintTextColor = hintColorStateList
-                boxStrokeWidth = 2
-                boxStrokeColor = ContextCompat.getColor(context, R.color.cement)
-                boxBackgroundMode = TextInputLayout.BOX_BACKGROUND_OUTLINE
-                boxBackgroundColor = ContextCompat.getColor(context, android.R.color.white)
-            }
-
-            val textInputEditText = TextInputEditText(context)
-            textInputEditText.apply {
-
-                layoutParams = LinearLayout.LayoutParams(
-
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT,
-
-                    )
-                setTextColor(ContextCompat.getColor(context, R.color.cement))
-                setHintTextColor(ContextCompat.getColor(context, R.color.cement))
-            }
-
-            textInputEditText.hint = hint
-            textInputLayout.addView(textInputEditText)
-            editTextLinearLayout.addView(textInputLayout)
-        }
-
-        verticalLinearLayout.addView(editTextLinearLayout)
-
-
-        val buttonsLinear =
-            createLinearLayout(context, LinearLayout.HORIZONTAL, Gravity.END, right = 20)
-        val b1 = createButton(
-            context,
-            capitalizeFirstLetter("save"),
-            Gravity.CENTER,
-            LayoutParams.WRAP_CONTENT,
-            LayoutParams.WRAP_CONTENT
-        ).apply {
-            isAllCaps = false
-        }
-        val b2 = createButton(
-            context,
-            capitalizeFirstLetter("cancel"),
-            Gravity.CENTER,
-            LayoutParams.WRAP_CONTENT,
-            LayoutParams.WRAP_CONTENT
-        ).apply {
-            isAllCaps = false
-        }
-
-        buttonsLinear.addView(b2)
-        buttonsLinear.addView(b1)
-        verticalLinearLayout.addView(buttonsLinear)
-
-        dialog.setView(verticalLinearLayout)
-        val alertDialog = dialog.create()
-        alertDialog.show()
-        b1.setOnClickListener {
-            editTextLinearLayout.children.forEach {
-                val text = (it as TextInputLayout).editText!!.text.toString()
-                textFields.add(text)
-            }
-            obj.onClickYes(alertDialog, textFields)
-        }
-        b2.setOnClickListener {
-            obj.onClickNo(alertDialog)
+    fun android.app.AlertDialog.setOnPositiveListener(onConfirm: () -> Unit) {
+        setButton(DialogInterface.BUTTON_POSITIVE, "Ok") { dialog, _ ->
+            onConfirm()
         }
     }
 
-    private fun capitalizeFirstLetter(text: String): String {
-        return text.lowercase()
-            .replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
-    }
-
-
-    fun createAlertDialog(
-        context: Context,
-        title: String,
-        message: String,
-        cancelable: Boolean = false
-    ): AlertDialog.Builder {
-        val alertDialogBuilder = AlertDialog.Builder(context)
-        alertDialogBuilder.setTitle(title)
-        if (message.isNotEmpty()) {
-            alertDialogBuilder.setMessage(message)
+    fun android.app.AlertDialog.setOnNegativeListener(onCancel: () -> Unit ) {
+        setButton(DialogInterface.BUTTON_NEGATIVE, "Cancel") { dialog, _ ->
+            onCancel()
         }
+    }
 
-        alertDialogBuilder.setCancelable(cancelable)
-        return alertDialogBuilder
+    fun androidx.appcompat.app.AlertDialog.setOnPositiveListener(onConfirm: () -> Unit) {
+        setButton(AlertDialog.BUTTON_POSITIVE, "Ok") { dialog, _ ->
+            onConfirm()
+        }
+    }
+
+    fun androidx.appcompat.app.AlertDialog.setOnNegativeListener(onCancel: () -> Unit) {
+        setButton(AlertDialog.BUTTON_NEGATIVE, "Cancel") { dialog, _ ->
+            onCancel()
+        }
     }
 
 
-    fun showProgressDialog(
-        context: Context,
-        message: String,
-        cancelable: Boolean = true,
+    fun Context.showProgressDialog(
+        message: String = "Please wait...",
         transparent: Boolean = false,
-        progressColor: Int = R.color.gray50
-    ): Dialog {
-        var progressDialog = ProgressDialog(context)
+    ): ProgressDialog {
+        val progressDialog = ProgressDialog(this)
         if (transparent) {
             progressDialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
         }
-        progressDialog.setCancelable(cancelable)
-        progressDialog.setProgressStyle(R.style.MyDatePickerDialogStyle)
+        progressDialog.setCancelable(false)
         progressDialog.setMessage(message)
-        progressDialog.show()
         return progressDialog
     }
 
 
+
+
+    fun Context.progressDialogMaterial(message: String = "Please wait.."): androidx.appcompat.app.AlertDialog {
+        val layout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER
+            setPadding(50, 50, 50, 50)
+        }
+        val progressBar = ProgressBar(this).apply {
+            isIndeterminate = true
+        }
+        val textView = TextView(this).apply {
+            text = message
+            setPadding(20, 20, 20, 20)
+            gravity = Gravity.CENTER
+        }
+        layout.addView(progressBar)
+        layout.addView(textView)
+
+        val progressDialog = MaterialAlertDialogBuilder(this)
+            .setView(layout)
+            .setCancelable(false)
+            .create()
+        return progressDialog
+    }
+
+
+    inline fun <T : ViewBinding> Context.showCustomLayoutDialog(
+        crossinline bindingInflater: (LayoutInflater) -> T,
+        gravity: Int = Gravity.CENTER,
+        crossinline callback: (T, PopupWindow) -> Unit = { _, _ -> }
+    ) {
+
+        val inflater: LayoutInflater = LayoutInflater.from(this)
+        val binding: T = bindingInflater(inflater)
+        val screenWidth = (this.resources.displayMetrics).widthPixels
+        val width = (screenWidth * 0.9).toInt()
+        val height = LinearLayout.LayoutParams.WRAP_CONTENT
+        val popupWindow = PopupWindow(binding.root, width, height, true)
+        popupWindow.elevation = 10f
+        popupWindow.setBackgroundDrawable(
+            ContextCompat.getDrawable(
+                this,
+                android.R.color.transparent
+            )
+        )
+        popupWindow.showAtLocation(binding.root, gravity, 0, 0)
+        callback(binding, popupWindow)
+
+    }
+
+
+
+    inline fun <T : ViewBinding> View.showCustomPopup(
+        crossinline bindingInflater: (LayoutInflater) -> T,
+        crossinline callback: (T, PopupWindow) -> Unit = { _, _ -> }
+    ) {
+        setOnClickListener {
+            val inflater: LayoutInflater = LayoutInflater.from(context)
+            val binding: T = bindingInflater(inflater)
+            val width = LinearLayout.LayoutParams.WRAP_CONTENT
+            val height = LinearLayout.LayoutParams.WRAP_CONTENT
+            val popupWindow = PopupWindow(binding.root, width, height, true)
+            popupWindow.elevation = 20f
+            popupWindow.setBackgroundDrawable(
+                ContextCompat.getDrawable(
+                    context,
+                    android.R.color.transparent
+                )
+            )
+            popupWindow.showAsDropDown(this)
+            callback(binding, popupWindow)
+        }
+    }
+
+
+
+    fun <T : ViewBinding> Context.showBottomSheet(
+        bindingInflater: (LayoutInflater) -> T,
+        callback: (T, BottomSheetDialog) -> Unit = { _, _ -> }
+    ): BottomSheetDialog {
+        val bottomSheetDialog = BottomSheetDialog(this)
+        val binding = bindingInflater(LayoutInflater.from(this))
+        bottomSheetDialog.setContentView(binding.root)
+        bottomSheetDialog.setCancelable(true)
+        bottomSheetDialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+
+        bottomSheetDialog.setOnShowListener {
+            val roundedBackground = GradientDrawable().apply {
+                shape = GradientDrawable.RECTANGLE
+                cornerRadii = floatArrayOf(80f, 80f, 80f, 80f, 0f, 0f, 0f, 0f)
+            }
+            binding.root.setBackgroundDrawable(roundedBackground)
+        }
+
+        bottomSheetDialog.show()
+        callback(binding, bottomSheetDialog)
+        return bottomSheetDialog
+    }
+
+
+
+
+
+
 }
-
-

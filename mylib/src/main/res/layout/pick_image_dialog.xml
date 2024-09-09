@@ -31,7 +31,7 @@
             android:padding="0dp"
             android:text="Select Image Source"
             android:textColor="@color/gray30"
-            android:textSize="20sp"
+            android:textSize="@dimen/_17ssp"
             android:textStyle="normal" />
 
         <View
@@ -51,7 +51,7 @@
             android:padding="0dp"
             android:text="Pick from Gallery"
             android:textColor="@color/light_blue_40"
-            android:textSize="19sp"
+            android:textSize="@dimen/_16ssp"
             android:textStyle="normal" />
 
         <View
@@ -71,7 +71,7 @@
             android:padding="0dp"
             android:text="Use Camera"
             android:textColor="@color/light_blue_40"
-            android:textSize="19sp"
+            android:textSize="@dimen/_16ssp"
             android:textStyle="normal" />
 
         <View
@@ -93,7 +93,7 @@
             android:layout_marginBottom="@dimen/_5sdp"
             android:text="Cancel"
             android:textColor="@color/light_blue_40"
-            android:textSize="20sp"
+            android:textSize="@dimen/_16ssp"
             android:textStyle="bold" />
     </LinearLayout>
 

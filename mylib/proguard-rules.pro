@@ -1,21 +1,32 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
-
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
+## Keep public classes and methods for API usage
+#-keep public class com.example.mylibrary.** {
+#    public *;
 #}
-
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
+#
+## Keep class members for all public classes
+#-keepclassmembers public class com.example.mylibrary.** {
+#    public *;
+#}
+#
+## Obfuscate everything else
+#-dontwarn **
+#
+## Optionally, keep debug information
 #-keepattributes SourceFile,LineNumberTable
+#
+## Enable obfuscation and optimization
+#-optimizationpasses 5
+#-dontusemixedcaseclassnames
+#-dontpreverify
+#-verbose
+#-optimizations !code/simplification/arithmetic,!field/*,!class/merging/*
+# Keep all other classes without obfuscation
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+
+# Keep everything by default
+-keep class * { *; }
+-keep interface * { *; }
+
+# Allow obfuscation only for com.lymors.lycommons.data.database.MainRepositoryImpl
+-keep,allowobfuscation class com.lymors.lycommons.data.database.MainRepositoryImpl { *; }
+

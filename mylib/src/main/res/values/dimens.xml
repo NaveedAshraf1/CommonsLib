@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="dialog_margin">5</dimen>
+    <dimen name="title_size">@dimen/_15sdp</dimen>
+    <dimen name="heading_size">@dimen/_18sdp</dimen>
+    <dimen name="icon_size">@dimen/_25sdp</dimen>
+    <dimen name="textview_size">15sp</dimen>
+    <dimen name="toolbar_height">?attr/actionBarSize</dimen>
+    <dimen name="action_bar_size">?attr/actionBarSize</dimen>
 
 </resources>

@@ -14,7 +14,7 @@ interface MainRepository {
     suspend fun < T : Any> collectMap(path:String): Flow<Map<String , T>>
     suspend fun <T> getAnyData(path:String, clazz: Class<T>): T?
     suspend fun<T> getModelsWithChildren(path:String , clazz:Class<T>): Flow<List<T>>
-
+    suspend fun <T> getDataList(path: String, clazz: Class<T>): List<T>
     fun <T> collectAnyModel(path: String, clazz: Class<T>, numberOfItems: Int = 0): Flow<List<T>>
 
     suspend fun <T : Any> uploadAllModelsAtOnce(path: String, models: List<T>): MyResult<String>

@@ -22,6 +22,7 @@ import androidx.fragment.app.FragmentActivity
 import com.github.dhaval2404.imagepicker.ImagePicker
 import com.lymors.lycommons.databinding.PickImageDialogBinding
 import com.lymors.lycommons.extensions.ScreenExtensions.pickedImageUri
+import com.lymors.lycommons.utils.MyExtensions.logT
 import com.lymors.lycommons.utils.MyPermissionHelper.registerActivityForPermissionLauncher
 import com.lymors.lycommons.utils.MyPermissionHelper.requestPermission
 import com.lymors.lycommons.utils.MyPermissionHelper.requestPermissionReadImages
@@ -37,9 +38,6 @@ object MyImagePicker {
 
     fun FragmentActivity.registerActivityForImageLauncher() {
         registerActivityForPermissionLauncher()
-        if (::pickImageLauncher.isInitialized) {
-            return
-        }
         pickImageLauncher =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
                 if (result.resultCode == AppCompatActivity.RESULT_OK) {
@@ -47,16 +45,14 @@ object MyImagePicker {
                     onImagePicked?.invoke(uri)
                     pickedImageUri = uri
                 } else {
+                    "pickedImageUri is null".logT()
                     onImagePicked?.invoke(null)
                 }
             }
     }
 
+
     fun FragmentActivity.registerActivityForMultipleImagesLauncher() {
-        registerActivityForPermissionLauncher()
-        if (::pickMultipleImageLauncher.isInitialized) {
-            return
-        }
         pickMultipleImageLauncher =
             registerForActivityResult(ActivityResultContracts.GetMultipleContents()) { uriList ->
                 onMultipleImagePicked?.invoke(uriList)
@@ -105,13 +101,13 @@ object MyImagePicker {
             val binding = PickImageDialogBinding.inflate(activity.layoutInflater)
             dialog.setContentView(binding.root)
 
-
             binding.pickFromGallery.pickImageByGallery(activity) {
                 onImagePicked(it)
                 dialog.dismiss()
             }
 
             binding.cancelButton.setOnClickListener {
+                onImagePicked.invoke(null)
                 dialog.dismiss()
             }
 
@@ -208,6 +204,11 @@ object MyImagePicker {
                 dialog.dismiss()
             }
 
+            binding.cancelButton.setOnClickListener {
+                onImagePicked.invoke(null)
+                dialog.dismiss()
+            }
+
             // Calculate 90% of the screen width
             val displayMetrics = DisplayMetrics()
             activity.windowManager.defaultDisplay.getMetrics(displayMetrics)
@@ -263,7 +264,7 @@ object MyImagePicker {
                 if (it) {
                     onImagePicked = callback
                     val intent = Intent(Intent.ACTION_GET_CONTENT)
-                    intent.type = "/"
+                    intent.type = "*/*"
                     pickImageLauncher.launch(intent)
                 }
             }

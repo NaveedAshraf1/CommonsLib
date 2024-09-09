@@ -21,6 +21,7 @@ import com.lymors.lycommons.data.storage.StorageRepositoryImpl
 import com.lymors.lycommons.data.viewmodels.AuthViewModel
 import com.lymors.lycommons.data.viewmodels.MainViewModel
 import com.lymors.lycommons.data.viewmodels.StorageViewModel
+import com.lymors.lycommons.utils.JsonDataRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -32,6 +33,19 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object Module {
+
+    @Provides
+    @Singleton
+    fun provideContext(@ApplicationContext context: Context): Context {
+        return context
+    }
+
+    @Provides
+    @Singleton
+    fun provideJsonDataRepository( context: Context): JsonDataRepository {
+        return JsonDataRepository(context)
+    }
+
 
     @Provides
     @Singleton

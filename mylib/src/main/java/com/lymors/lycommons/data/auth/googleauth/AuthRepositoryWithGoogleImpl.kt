@@ -3,14 +3,12 @@ package com.lymors.lycommons.data.auth.googleauth
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.FragmentActivity
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
-import com.google.android.gms.tasks.Task
-import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import com.lymors.lycommons.utils.MyExtensions.logT
@@ -23,10 +21,10 @@ class AuthRepositoryWithGoogleImpl @Inject constructor(private val auth: Firebas
     private lateinit var signInLauncher: ActivityResultLauncher<Intent>
     private var onSignInResult: (( account: GoogleSignInAccount?, exception: Exception?) -> Unit)? = null
 
-    override fun registerGoogleSignInLauncher(activity: AppCompatActivity) {
+    override fun registerGoogleSignInLauncher(activity: FragmentActivity) {
         "registerGoogleSignInLauncher".logT()
         signInLauncher = activity.registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == AppCompatActivity.RESULT_OK) {
+            if (result.resultCode == FragmentActivity.RESULT_OK) {
                 val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
                 try {
                     val account = task.getResult(ApiException::class.java)
@@ -41,7 +39,7 @@ class AuthRepositoryWithGoogleImpl @Inject constructor(private val auth: Firebas
         }
     }
 
-    override fun signInWithGoogle(activity: AppCompatActivity, serverClientId: String, callback: ( account: GoogleSignInAccount?, exception: Exception?) -> Unit) {
+    override fun signInWithGoogle(activity: FragmentActivity, serverClientId: String, callback: ( account: GoogleSignInAccount?, exception: Exception?) -> Unit) {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(serverClientId)
             .requestEmail()
@@ -53,7 +51,7 @@ class AuthRepositoryWithGoogleImpl @Inject constructor(private val auth: Firebas
     }
 
     override fun getGoogleAccount(
-        activity: AppCompatActivity,
+        activity: FragmentActivity,
         serverClientId: String,
         accountCallback: (account: GoogleSignInAccount?) -> Unit
     ) {
@@ -68,7 +66,7 @@ class AuthRepositoryWithGoogleImpl @Inject constructor(private val auth: Firebas
 
 
     // Sign out method
-    override fun signOut(activity: AppCompatActivity ,  serverClientId: String , onSignOutResult:(MyResult<String>) ->Unit) {
+    override fun signOut(activity: FragmentActivity ,  serverClientId: String , onSignOutResult:(MyResult<String>) ->Unit) {
         auth.signOut() // Firebase sign out
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(serverClientId)
@@ -86,7 +84,7 @@ class AuthRepositoryWithGoogleImpl @Inject constructor(private val auth: Firebas
         }
     }
 
-    private fun firebaseAuthWithGoogle(activity: AppCompatActivity, account: GoogleSignInAccount?) {
+    private fun firebaseAuthWithGoogle(activity: FragmentActivity, account: GoogleSignInAccount?) {
         val credential = GoogleAuthProvider.getCredential(account?.idToken, null)
         auth.signInWithCredential(credential)
             .addOnCompleteListener(activity) { task ->

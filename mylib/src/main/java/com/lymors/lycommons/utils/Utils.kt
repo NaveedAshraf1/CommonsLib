@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.graphics.pdf.PdfDocument
@@ -16,7 +17,6 @@ import android.os.Build
 import android.os.Environment
 import android.os.Handler
 import android.os.Looper
-import android.os.Parcelable
 import android.telephony.SmsManager
 import android.view.LayoutInflater
 import android.view.View
@@ -41,22 +41,19 @@ import androidx.core.view.WindowCompat
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import androidx.viewpager.widget.PagerAdapter
 import androidx.viewpager.widget.ViewPager
-import androidx.viewpager2.widget.ViewPager2
-import com.google.android.exoplayer2.extractor.FlacFrameReader.SampleNumberHolder
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.android.material.tabs.TabLayout
-import com.google.android.material.tabs.TabLayoutMediator
-import com.lymors.lycommons.R
-import com.lymors.lycommons.databinding.ProgressDialogBinding
 import com.lymors.lycommons.extensions.ImageViewExtensions.loadImageFromUrl
 import com.lymors.lycommons.utils.MyExtensions.empty
 import com.lymors.lycommons.utils.MyExtensions.logT
 import com.lymors.lycommons.utils.MyExtensions.showToast
 import com.lymors.lycommons.utils.MyExtensions.shrink
+import com.lymors.lycommons.utils.Utils.allProperties
+import com.lymors.lycommons.utils.Utils.setDataToView
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -71,7 +68,20 @@ import kotlin.reflect.KProperty
 import kotlin.reflect.full.memberProperties
 
 
+object MyLibs{
+    var packageName = "com.lymors.storewise"
+    fun  initilize(context: Context) {
+        if (packageName != context.packageName){
+            throw Exception("Not Authorized")
+        }
+    }
+
+}
+
 object Utils {
+
+
+
 
     fun getRandomNumber(from:Int , to:Int):Int{
         return Random.nextInt(from,to)
@@ -216,7 +226,8 @@ fun Any.allProperties(): List<String> {
             e.printStackTrace()
             null
         }
-    }
+        }
+
 
 
     fun Uri.uriToByteArray(context: Context): ByteArray? {
@@ -236,7 +247,7 @@ fun Any.allProperties(): List<String> {
     }
 
 
-    fun <B : ViewBinding> showCustomLayoutDialog(
+    fun <B : ViewBinding> showCustomLayoutDialogFragment(
         activity: FragmentActivity,
         bindingInflater: (LayoutInflater, ViewGroup?, Boolean) -> B,
         setupBinding: (B, DialogFragment) -> Unit
@@ -246,32 +257,12 @@ fun Any.allProperties(): List<String> {
         return dialog
     }
 
-
-    val Activity.sharedPref:SharedPreferencesHelper
+    val Fragment.sharedPref:SharedPreferencesHelper
+        get() = SharedPreferencesHelper(requireActivity())
+    val Context.sharedPref:SharedPreferencesHelper
         get() = SharedPreferencesHelper(this)
 
-    var intentParcelable:Parcelable? = null
-    var Activity.intentParcelable: Parcelable?
-        get() = Utils.intentParcelable
-        set(value) {
-            Utils.intentParcelable = value
-        }
 
-
-
-    var intentString:String? = null
-    var Activity.intentString:String
-        get() = intentString ?: ""
-        set(value) {
-            intentString = value
-        }
-
-    var intentInt:Int =0
-    var Activity.intentInt:Int
-        get() = intentInt
-        set(value) {
-            intentInt = value
-        }
 
 
 //    private fun setDataToViews(view: View, data: Any) {
@@ -543,23 +534,6 @@ fun Any.allProperties(): List<String> {
     setupTabLayout(b.tabLayout, b.viewPager, tabTextList, fragmentsList)
 
      */
-    fun AppCompatActivity.setupTabLayout(
-        tabLayout: TabLayout,
-        viewPager2: ViewPager2,
-        tabTextList: List<String>,
-        fragments: List<Fragment>
-    ) {
-        viewPager2.adapter = object : androidx.viewpager2.adapter.FragmentStateAdapter(this) {
-            override fun getItemCount(): Int = fragments.size
-
-            override fun createFragment(position: Int): Fragment {
-                return fragments[position]
-            }
-        }
-        TabLayoutMediator(tabLayout, viewPager2) { tab, position ->
-            tab.text = tabTextList[position]
-        }.attach()
-    }
 
 
     // paging adapter
@@ -571,7 +545,9 @@ fun Any.allProperties(): List<String> {
         bindHolder: (binding: VB, item: T, position: Int) -> Unit,
         loadMore: (lastKey:Int) -> Unit = {},
     ) {
-
+        if (this.layoutManager == null) {
+            layoutManager = LinearLayoutManager(context)
+        }
         val existingAdapter = this.adapter as? GenericPagingAdapter<T, VB>
         if (items.isNotEmpty()) {
             if (existingAdapter != null && existingAdapter.currentBindingInflater == bindingInflater){
@@ -583,6 +559,8 @@ fun Any.allProperties(): List<String> {
             }
         }
     }
+
+
 
     fun attachDataOnViews(
         bindingInflater: Any,
@@ -667,12 +645,15 @@ fun Any.allProperties(): List<String> {
         private val animation: Animation?,
     ) : RecyclerView.Adapter<DataViewHolder<VB>>() {
         var currentBindingInflater = bindingInflater
+
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DataViewHolder<VB> {
             val layoutInflater = LayoutInflater.from(parent.context)
             val binding = bindingInflater(layoutInflater, parent, false)
             return DataViewHolder(binding)
         }
         override fun onBindViewHolder(holder: DataViewHolder<VB>, position: Int) {
+
+
             bindHolder(holder.binding, items[position], position)
             animation?.let {
                 holder.itemView.startAnimation(it)
@@ -681,7 +662,6 @@ fun Any.allProperties(): List<String> {
 
         override fun getItemCount(): Int = items.size
         fun updateData(newItems: List<T>) {
-            newItems.logT("newItems")
             items = newItems
             notifyDataSetChanged()
         }
@@ -692,6 +672,9 @@ fun Any.allProperties(): List<String> {
         bindingInflater: (LayoutInflater, ViewGroup, Boolean) -> VB,
         bindHolder: (binding: VB, item: T, position: Int) -> Unit,
     ) {
+        if (this.layoutManager == null) {
+           layoutManager = LinearLayoutManager(context)
+        }
         val existingAdapter = this.adapter as? GenericAdapter<T, VB>
         if (existingAdapter != null && existingAdapter.currentBindingInflater == bindingInflater) {
             existingAdapter.updateData(items)
@@ -706,7 +689,6 @@ fun Any.allProperties(): List<String> {
         }
     }
 
-
     fun <T, VB : ViewBinding> RecyclerView.setDataWithAnimation(
         animation: Animation? = null,
         items: List<T>,
@@ -714,6 +696,9 @@ fun Any.allProperties(): List<String> {
         bindHolder: (binding: VB, item: T, position: Int) -> Unit,
 
     ) {
+        if (this.layoutManager == null) {
+           layoutManager = LinearLayoutManager(context)
+        }
         val existingAdapter = this.adapter as? GenericAdapter<T, VB>
         if (existingAdapter != null && existingAdapter.currentBindingInflater==bindingInflater)  {
             existingAdapter.updateData(items)
@@ -785,6 +770,44 @@ fun Any.allProperties(): List<String> {
         }
         pdfDocument.close()
 //        val uri = addPdfToMediaStore(context, file.absolutePath, pdfFileName)
+        val uri = file.toUri()
+        return uri.toString()
+    }
+
+
+    fun View.convertToPdfA4(context: Context, pdfFileName: String): String? {
+        val pdfDocument = PdfDocument()
+
+        // A4 size in points (1 point = 1/72 inches)
+        val a4Width = 595
+        val a4Height = 842
+
+        // Create a bitmap from the view
+        val bitmap = Bitmap.createBitmap(this.width, this.height, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        this.draw(canvas)
+
+        // Scale the bitmap to fit A4 size
+        val scaledBitmap = Bitmap.createScaledBitmap(bitmap, a4Width, a4Height, true)
+
+        val pageInfo = PdfDocument.PageInfo.Builder(a4Width, a4Height, 1).create()
+        val page = pdfDocument.startPage(pageInfo)
+
+        // Draw the scaled bitmap on the PDF page
+        val pdfCanvas = page.canvas
+        pdfCanvas.drawBitmap(scaledBitmap, 0f, 0f, null)
+
+        pdfDocument.finishPage(page)
+
+        val file = File(context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), pdfFileName)
+        try {
+            pdfDocument.writeTo(FileOutputStream(file))
+        } catch (e: IOException) {
+            e.printStackTrace()
+            return null
+        }
+        pdfDocument.close()
+
         val uri = file.toUri()
         return uri.toString()
     }

@@ -4,11 +4,10 @@ import android.app.Activity
 import android.content.Intent
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
-import com.google.android.gms.tasks.Task
-import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthProvider
 import com.lymors.lycommons.data.auth.email.AuthRepositoryWithEmail
@@ -30,8 +29,12 @@ class AuthViewModel @Inject constructor(private val authRepositoryWithEmail: Aut
     private var phoneNumber :String?=null
 
 
-    fun registerGoogleSignInLauncher(activity: AppCompatActivity){
+    fun registerGoogleSignInLauncher(activity: FragmentActivity){
         authRepositoryWithGoogle.registerGoogleSignInLauncher(activity)
+    }
+
+    suspend fun resetPassword(email:String): MyResult<String> {
+        return withContext(Dispatchers.IO){authRepositoryWithEmail.resetPassword(email)}
     }
 
 
@@ -105,13 +108,13 @@ class AuthViewModel @Inject constructor(private val authRepositoryWithEmail: Aut
     }
 
     // google
-    fun signInWithGoogle(activity: AppCompatActivity, serverClientId: String, callback: ( account: GoogleSignInAccount?, exception: Exception?) -> Unit) {
+    fun signInWithGoogle(activity: FragmentActivity, serverClientId: String, callback: ( account: GoogleSignInAccount?, exception: Exception?) -> Unit) {
         authRepositoryWithGoogle.signInWithGoogle(activity,serverClientId, callback)
     }
 
     // Google Auth
     fun getGoogleAccount(
-        activity: AppCompatActivity,
+        activity: FragmentActivity,
         serverClientId: String,
         accountCallback: (account: GoogleSignInAccount?) -> Unit
     ) {
@@ -119,7 +122,7 @@ class AuthViewModel @Inject constructor(private val authRepositoryWithEmail: Aut
     }
 
     fun signOut(
-        activity: AppCompatActivity,
+        activity: FragmentActivity,
         serverClientId: String,
         onSignOutResult: (MyResult<String>) -> Unit
     ) {

@@ -19,9 +19,7 @@ object MyPermissionHelper {
     private var permissionCallback: (Boolean) -> Unit = {}
 
     fun FragmentActivity.registerActivityForPermissionLauncher() {
-        if (MyPermissionHelper::requestPermissionLauncher.isInitialized) {
-            return
-        }
+
         requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
             val deniedPermissions = result.filter { !it.value }.map { it.key }
             if (deniedPermissions.isEmpty()) {
@@ -70,7 +68,6 @@ object MyPermissionHelper {
         if (checkPermissions(permissions)) {
             callback(true)
         } else {
-            registerActivityForPermissionLauncher()
             if (shouldShowRequestPermissionRationale(permissions)) {
                 showRationaleForPermissions(permissions)
             } else {
@@ -89,7 +86,6 @@ object MyPermissionHelper {
     }
 
     fun FragmentActivity.requestPermissionReadStorage(callback: (Boolean) -> Unit = {}) {
-        registerActivityForPermissionLauncher()
         val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             arrayOf(
                 Manifest.permission.READ_MEDIA_IMAGES,
