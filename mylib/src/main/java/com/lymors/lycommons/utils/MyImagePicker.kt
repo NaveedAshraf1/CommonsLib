@@ -22,7 +22,7 @@ import androidx.fragment.app.FragmentActivity
 import com.github.dhaval2404.imagepicker.ImagePicker
 import com.lymors.lycommons.databinding.PickImageDialogBinding
 import com.lymors.lycommons.extensions.ScreenExtensions.pickedImageUri
-import com.lymors.lycommons.utils.MyExtensions.logT
+import com.lymors.lycommons.extensions.MyExtensions.logT
 import com.lymors.lycommons.utils.MyPermissionHelper.registerActivityForPermissionLauncher
 import com.lymors.lycommons.utils.MyPermissionHelper.requestPermission
 import com.lymors.lycommons.utils.MyPermissionHelper.requestPermissionReadImages

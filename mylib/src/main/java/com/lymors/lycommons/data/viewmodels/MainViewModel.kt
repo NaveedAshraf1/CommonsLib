@@ -4,9 +4,10 @@ package com.lymors.lycommons.data.viewmodels
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.android.gms.maps.model.LatLng
 import com.lymors.lycommons.data.database.MainRepository
 import com.lymors.lycommons.extensions.ImageViewExtensions.uploadImageUsingWorkManager
-import com.lymors.lycommons.utils.MyExtensions.isNull
+import com.lymors.lycommons.extensions.MyExtensions.isNull
 import com.lymors.lycommons.utils.MyResult
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
@@ -59,6 +60,13 @@ class MainViewModel @Inject constructor(private val mainRepo: MainRepository) : 
 
     suspend fun deleteAnyModel(child: String): MyResult<String> {
         return mainRepo.deleteAnyModel(child)
+    }
+
+    suspend fun <T : Any> uploadAllModelsAtOnce(path: String, models: List<T>): MyResult<String> {
+        return mainRepo.uploadAllModelsAtOnce(path, models)
+    }
+    suspend fun <T> getAllChildByKeys(path: String, keys: List<String>, clazz: Class<T>): List<T> {
+        return mainRepo.getAllChildByKeys(path, keys, clazz)
     }
 
 
@@ -152,6 +160,10 @@ class MainViewModel @Inject constructor(private val mainRepo: MainRepository) : 
         }
     }
 
+    suspend fun updateAnyModel(path: String, updatedMap: Map<String, Any>): MyResult<String>{
+        return mainRepo.updateAnyModel(path, updatedMap)
+    }
+
     suspend fun <P> uploadModelWithImage(context: Context, realTimePath: String, model: Any, imageUri: String, property: KProperty<P>): MyResult<String> {
         return viewModelScope.async {
             val modelKeyResult = uploadAnyModel(realTimePath, model)
@@ -168,6 +180,11 @@ class MainViewModel @Inject constructor(private val mainRepo: MainRepository) : 
                 return@async modelKeyResult
             }
         }.await()
+    }
+
+
+    suspend fun <T> getDataList(path: String, clazz: Class<T>): List<T> {
+        return mainRepo.getDataList(path, clazz)
     }
 
 }

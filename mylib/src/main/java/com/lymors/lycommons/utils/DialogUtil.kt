@@ -1,5 +1,6 @@
 package com.lymors.lycommons.utils
 import android.app.AlertDialog
+import android.app.Dialog
 import android.app.ProgressDialog
 import android.content.Context
 import android.content.DialogInterface
@@ -77,7 +78,7 @@ object DialogUtil {
     }
 
 
-    fun Context.showProgressDialog(
+    fun Context.progressDialog(
         message: String = "Please wait...",
         transparent: Boolean = false,
     ): ProgressDialog {
@@ -121,15 +122,16 @@ object DialogUtil {
     inline fun <T : ViewBinding> Context.showCustomLayoutDialog(
         crossinline bindingInflater: (LayoutInflater) -> T,
         gravity: Int = Gravity.CENTER,
+        isCancelable:Boolean = true,
         crossinline callback: (T, PopupWindow) -> Unit = { _, _ -> }
-    ) {
-
+    ):PopupWindow {
         val inflater: LayoutInflater = LayoutInflater.from(this)
         val binding: T = bindingInflater(inflater)
         val screenWidth = (this.resources.displayMetrics).widthPixels
         val width = (screenWidth * 0.9).toInt()
         val height = LinearLayout.LayoutParams.WRAP_CONTENT
         val popupWindow = PopupWindow(binding.root, width, height, true)
+        popupWindow.isOutsideTouchable = isCancelable
         popupWindow.elevation = 10f
         popupWindow.setBackgroundDrawable(
             ContextCompat.getDrawable(
@@ -139,6 +141,7 @@ object DialogUtil {
         )
         popupWindow.showAtLocation(binding.root, gravity, 0, 0)
         callback(binding, popupWindow)
+        return popupWindow
 
     }
 

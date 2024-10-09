@@ -170,7 +170,13 @@ object ScreenExtensions {
     }
 
 
-
+    fun Activity.launchActivityClearNewTask(destination: Class<*>, key: String = "", data: String = "") {
+        val intent = Intent(this, destination)
+        if (key.isNotEmpty()) {
+            intent.putExtra(key, data)
+        }
+        startActivity(intent)
+    }
 
 
 
@@ -279,16 +285,6 @@ object ScreenExtensions {
     // . setActionBarTitle(title: String)
     fun Activity.setActionBarTitle(title: String) {
         actionBar?.title = title
-    }
-
-    // . requestPermission(permission: String, requestCode: Int)
-    fun Activity.requestPermission(permission: Array<String>, requestCode: Int) {
-        ActivityCompat.requestPermissions(this, permission, requestCode)
-    }
-
-    // . checkPermission(permission: String)
-    fun Activity.checkPermission(permission: String): Boolean {
-        return ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
     }
 
     fun Activity.openAppSettings() {

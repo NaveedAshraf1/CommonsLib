@@ -6,7 +6,7 @@ import androidx.work.Worker
 import androidx.work.WorkerParameters
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.storage.FirebaseStorage
-import com.lymors.lycommons.utils.MyExtensions.logT
+import com.lymors.lycommons.extensions.MyExtensions.logT
 
 class FirebaseUploadWorker(
     context: Context,

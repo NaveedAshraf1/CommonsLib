@@ -19,7 +19,7 @@ import com.google.zxing.BarcodeFormat
 import com.google.zxing.MultiFormatWriter
 import com.google.zxing.WriterException
 import com.google.zxing.common.BitMatrix
-import com.lymors.lycommons.utils.MyExtensions.empty
+import com.lymors.lycommons.extensions.MyExtensions.empty
 import org.json.JSONArray
 import org.json.JSONObject
 import org.mariuszgromada.math.mxparser.Expression
@@ -44,6 +44,26 @@ import java.util.zip.GZIPOutputStream
 
 
 object StringExtensions {
+
+    fun String?.orEmpty(): String {
+        return this ?: ""
+    }
+
+
+
+    fun Boolean.ifTrue(block : () -> Unit){
+        if (this) block()
+    }
+
+    fun Boolean.ifFalse(block : () -> Unit){
+        if (!this) block()
+    }
+
+    fun String.child(string:String):String{
+
+        return "$this/$string"
+    }
+
 
     fun String.compress(): String {
         val outputStream = ByteArrayOutputStream()

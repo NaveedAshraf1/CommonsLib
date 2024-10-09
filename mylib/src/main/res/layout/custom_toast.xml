@@ -1,0 +1,19 @@
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="#CC000000"
+    android:backgroundTint="#CC000000"
+    app:cardCornerRadius="@dimen/_5sdp"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/toast_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="#FFFFFF"
+        android:layout_margin="@dimen/_8sdp"
+        android:text="this is a dummy text notification "
+        android:textSize="16sp" />
+
+</com.google.android.material.card.MaterialCardView>

@@ -9,6 +9,6 @@ interface AuthRepositoryWithGoogle {
     fun registerGoogleSignInLauncher(activity: FragmentActivity)
     fun signInWithGoogle(activity: FragmentActivity, serverClientId: String, callback: ( account: GoogleSignInAccount?, exception: Exception?) -> Unit)
     fun getGoogleAccount(activity: FragmentActivity,serverClientId: String, accountCallback: ( account: GoogleSignInAccount?) ->Unit)
-    fun signOut(activity: FragmentActivity,     serverClientId: String , onSignOutResult:(MyResult<String>) ->Unit)
+    fun signOutFromGoogle(activity: FragmentActivity,     serverClientId: String , onSignOutResult:(MyResult<String>) ->Unit)
 
 }

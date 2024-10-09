@@ -2,6 +2,9 @@ package com.lymors.lycommons.utils
 
 import android.content.Context
 import android.widget.Toast
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 sealed class MyResult<out T : Any> {
 
@@ -45,11 +48,12 @@ sealed class MyResult<out T : Any> {
     }
 
     fun showInToast(context: Context, duration: Int = Toast.LENGTH_SHORT) {
-        when (this) {
-            is Success<*> ->{Toast.makeText(context, data.toString(), duration).show()}
-            is Error -> {Toast.makeText(context, msg, duration).show()}
-        }
-
+       CoroutineScope(Dispatchers.Main).launch {
+           when (this@MyResult) {
+               is Success<*> ->{Toast.makeText(context, data.toString(), duration).show()}
+               is Error -> {Toast.makeText(context, msg, duration).show()}
+           }
+       }
     }
 
 

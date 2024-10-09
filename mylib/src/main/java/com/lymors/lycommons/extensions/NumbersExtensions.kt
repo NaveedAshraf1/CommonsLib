@@ -8,6 +8,13 @@ import kotlin.random.Random
 object NumbersExtensions {
 
 
+    fun Double?.orEmpty(): Double {
+        return this ?: 0.0
+    }
+
+    fun Double?.ifEmpty(callback: () -> Double): Double {
+        return if (this == null || this == 0.0) callback.invoke() else this
+    }
 
 
     fun Int.addRandomNumber(from:Int , to:Int){

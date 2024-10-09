@@ -11,7 +11,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
-import com.lymors.lycommons.utils.MyExtensions.logT
+import com.lymors.lycommons.extensions.MyExtensions.logT
 import com.lymors.lycommons.utils.MyResult
 import javax.inject.Inject
 
@@ -20,30 +20,50 @@ class AuthRepositoryWithGoogleImpl @Inject constructor(private val auth: Firebas
     private lateinit var googleSignInClient: GoogleSignInClient
     private lateinit var signInLauncher: ActivityResultLauncher<Intent>
     private var onSignInResult: (( account: GoogleSignInAccount?, exception: Exception?) -> Unit)? = null
+    private var onGetGoogleAccountCallback: ((account: GoogleSignInAccount?) -> Unit)? = null
+
+    private fun createGoogleSignInOptions(serverClientId: String): GoogleSignInOptions {
+        return GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken(serverClientId)
+            .requestEmail()
+            .build()
+    }
 
     override fun registerGoogleSignInLauncher(activity: FragmentActivity) {
-        "registerGoogleSignInLauncher".logT()
         signInLauncher = activity.registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == FragmentActivity.RESULT_OK) {
                 val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
                 try {
                     val account = task.getResult(ApiException::class.java)
+
+                    // Invoke Firebase authentication
                     firebaseAuthWithGoogle(activity, account)
-                    onSignInResult?.invoke( account, null)
+
+                    // Invoke the callback for getGoogleAccount
+                    onGetGoogleAccountCallback?.invoke(account)
+
+                    // Invoke the callback for signInWithGoogle (if set)
+                    onSignInResult?.invoke(account, null)
                 } catch (e: ApiException) {
-                    onSignInResult?.invoke( null, e)
+                    // Invoke the callback for getGoogleAccount with null account
+                    onGetGoogleAccountCallback?.invoke(null)
+
+                    // Invoke the callback for signInWithGoogle (if set) with exception
+                    onSignInResult?.invoke(null, e)
                 }
             } else {
-                onSignInResult?.invoke( null, Exception("Sign in canceled"))
+                // Invoke the callback for getGoogleAccount with null account
+                onGetGoogleAccountCallback?.invoke(null)
+
+                // Invoke the callback for signInWithGoogle (if set) with exception
+                onSignInResult?.invoke(null, Exception("Sign in canceled resultCode:${result.resultCode} ${result.data}"))
             }
         }
     }
 
-    override fun signInWithGoogle(activity: FragmentActivity, serverClientId: String, callback: ( account: GoogleSignInAccount?, exception: Exception?) -> Unit) {
-        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestIdToken(serverClientId)
-            .requestEmail()
-            .build()
+
+    override fun signInWithGoogle(activity: FragmentActivity, serverClientId: String, callback: (account: GoogleSignInAccount?, exception: Exception?) -> Unit) {
+        val gso = createGoogleSignInOptions(serverClientId)
         googleSignInClient = GoogleSignIn.getClient(activity, gso)
         onSignInResult = callback
         val signInIntent = googleSignInClient.signInIntent
@@ -60,13 +80,17 @@ class AuthRepositoryWithGoogleImpl @Inject constructor(private val auth: Firebas
             .requestEmail()
             .build()
         googleSignInClient = GoogleSignIn.getClient(activity, gso)
+
+        // Store the callback
+        onGetGoogleAccountCallback = accountCallback
+
         val signInIntent = googleSignInClient.signInIntent
         signInLauncher.launch(signInIntent)
     }
 
 
     // Sign out method
-    override fun signOut(activity: FragmentActivity ,  serverClientId: String , onSignOutResult:(MyResult<String>) ->Unit) {
+    override fun signOutFromGoogle(activity: FragmentActivity ,  serverClientId: String , onSignOutResult:(MyResult<String>) ->Unit) {
         auth.signOut() // Firebase sign out
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(serverClientId)
@@ -85,15 +109,19 @@ class AuthRepositoryWithGoogleImpl @Inject constructor(private val auth: Firebas
     }
 
     private fun firebaseAuthWithGoogle(activity: FragmentActivity, account: GoogleSignInAccount?) {
-        val credential = GoogleAuthProvider.getCredential(account?.idToken, null)
-        auth.signInWithCredential(credential)
-            .addOnCompleteListener(activity) { task ->
-                if (task.isSuccessful) {
-                    onSignInResult?.invoke(account , null)
-                } else {
-                    onSignInResult?.invoke( account, task.exception)
+        account?.idToken?.let { token ->
+            val credential = GoogleAuthProvider.getCredential(token, null)
+            auth.signInWithCredential(credential)
+                .addOnCompleteListener(activity) { task ->
+                    if (task.isSuccessful) {
+                        onSignInResult?.invoke(account, null)
+                    } else {
+                        onSignInResult?.invoke(account, task.exception)
+                    }
                 }
-            }
+        } ?: run {
+            onSignInResult?.invoke(null, Exception("Account ID token is null"))
+        }
     }
 
 

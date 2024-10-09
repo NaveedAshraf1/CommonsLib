@@ -1,11 +1,16 @@
 package com.lymors.lycommons.data.database
 
 
+import com.google.android.gms.maps.model.LatLng
+import com.lymors.lycommons.data.viewmodels.LocationModel
 import com.lymors.lycommons.utils.MyResult
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 
 interface MainRepository {
-    suspend fun checkExists(path: String): MyResult<String>
+  suspend fun updateAnyModel(path: String, updatedMap: Map<String, Any>): MyResult<String>
+  suspend fun checkExists(path: String): MyResult<String>
+    suspend fun <T> getAllChildByKeys(path: String, keys: List<String>, clazz: Class<T>): List<T>
     suspend fun<T : Any> queryModelByAProperty(path: String , property: String, value: String , clazz: Class<T>): T?
     suspend fun< T :Any> uploadAnyModel(path:String, model: T): MyResult<String>
     suspend fun deleteAnyModel(path:String): MyResult<String>

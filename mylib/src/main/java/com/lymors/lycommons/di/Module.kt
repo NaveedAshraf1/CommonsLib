@@ -14,11 +14,14 @@ import com.lymors.lycommons.data.auth.googleauth.AuthRepositoryWithGoogle
 import com.lymors.lycommons.data.auth.googleauth.AuthRepositoryWithGoogleImpl
 import com.lymors.lycommons.data.auth.phone.AuthRepositoryWithPhone
 import com.lymors.lycommons.data.auth.phone.AuthRepositoryWithPhoneImpl
+import com.lymors.lycommons.data.database.LocationRepository
+import com.lymors.lycommons.data.database.LocationRepositoryImpl
 import com.lymors.lycommons.data.database.MainRepository
 import com.lymors.lycommons.data.database.MainRepositoryImpl
 import com.lymors.lycommons.data.storage.StorageRepository
 import com.lymors.lycommons.data.storage.StorageRepositoryImpl
 import com.lymors.lycommons.data.viewmodels.AuthViewModel
+import com.lymors.lycommons.data.viewmodels.LocationViewModel
 import com.lymors.lycommons.data.viewmodels.MainViewModel
 import com.lymors.lycommons.data.viewmodels.StorageViewModel
 import com.lymors.lycommons.utils.JsonDataRepository
@@ -34,11 +37,27 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object Module {
 
+
+    @Provides
+    @Singleton
+    fun provideLocationRepository(mainRepository: MainRepository): LocationRepository {
+        return LocationRepositoryImpl(mainRepository)
+    }
+
+
     @Provides
     @Singleton
     fun provideContext(@ApplicationContext context: Context): Context {
         return context
     }
+
+
+    @Provides
+    @Singleton
+    fun provideLocationViewModel(locationRepository: LocationRepository): LocationViewModel {
+        return LocationViewModel(locationRepository)
+    }
+
 
     @Provides
     @Singleton

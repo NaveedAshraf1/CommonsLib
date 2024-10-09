@@ -470,7 +470,22 @@ object ViewExtensions {
         ).start()
         visibility = View.VISIBLE
     }
+    fun View.slideUpShow(duration: Long = 300) {
+        this.visibility = View.VISIBLE
+        this.translationY = this.height.toFloat()
+        this.animate()
+            .translationY(0f)
+            .setDuration(duration)
+            .start()
+    }
 
+    fun View.slideDownHide(duration: Long = 300) {
+        this.animate()
+            .translationY(this.height.toFloat())
+            .setDuration(duration)
+            .start()
+        this.postDelayed({ this.visibility = View.GONE }, duration)
+    }
 
 
     fun View.slideInFromBottom(duration: Long = 300L) {
@@ -482,6 +497,11 @@ object ViewExtensions {
     fun View.slideOutToRightGone(duration: Long = 300L){
         val translationX = width.toFloat()
         animate().translationX(0f).setDuration(duration).setInterpolator(AccelerateDecelerateInterpolator()).start()
+        visibility = View.GONE
+    }
+    fun View.slideOutToBottomGone(duration: Long = 300L){
+        val translationY = height.toFloat()
+        animate().translationY(0f).setDuration(duration).setInterpolator(AccelerateDecelerateInterpolator()).start()
         visibility = View.GONE
     }
 

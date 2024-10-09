@@ -1,4 +1,4 @@
-package com.lymors.lycommons.utils
+package com.lymors.lycommons.extensions
 
 
 import android.animation.Animator
@@ -29,10 +29,18 @@ import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.provider.MediaStore
+import android.text.Spannable
+import android.text.SpannableString
 import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.TextPaint
+import android.text.method.LinkMovementMethod
+import android.text.style.AbsoluteSizeSpan
+import android.text.style.ClickableSpan
 import android.text.style.ForegroundColorSpan
 import android.text.style.RelativeSizeSpan
 import android.text.style.StyleSpan
+import android.text.style.UnderlineSpan
 import android.util.DisplayMetrics
 import android.util.Log
 import android.util.TypedValue
@@ -68,6 +76,10 @@ import androidx.core.graphics.drawable.DrawableCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentTransaction
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import androidx.viewpager.widget.ViewPager
@@ -79,17 +91,18 @@ import com.google.android.material.textfield.TextInputEditText
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
+import com.google.maps.model.LatLng
 import com.lymors.lycommons.R
 import com.lymors.lycommons.extensions.NumbersExtensions.toDoubleOrDefault
 import com.lymors.lycommons.extensions.StringExtensions.toIntOrDefault
 import com.lymors.lycommons.managers.DataStoreManager
-import com.lymors.lycommons.utils.MyExtensions.showSoftKeyboard
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
@@ -97,6 +110,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.lang.reflect.Type
+import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -107,6 +121,206 @@ import kotlin.reflect.jvm.isAccessible
 
 
 object MyExtensions {
+
+
+    fun TextView.appendText(text: CharSequence, size: Float = 8f,  color: Int = resources.getColor(com.lymors.lycommons.R.color.gray60)) {
+        val spannable = SpannableString(text)
+
+        // Apply color
+        spannable.setSpan(
+            ForegroundColorSpan(color),
+            0,
+            text.length,
+            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+
+        // Apply size
+        spannable.setSpan(
+            RelativeSizeSpan(size / this.textSize),  // Scaling the size relative to current text size
+            0,
+            text.length,
+            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+
+        // Append the styled text
+        this.append(spannable)
+    }
+
+
+
+
+    fun TextView.appendSpannable(
+        text: String,
+        color: Int,
+        textSize: Float = 25f,
+        onClick: () -> Unit
+    ) {
+        val spannable = SpannableString(text)
+        spannable.setSpan(
+            object : ClickableSpan() {
+                override fun onClick(view: View) {
+                    onClick()
+                }
+
+                override fun updateDrawState(ds: TextPaint) {
+                    super.updateDrawState(ds)
+                    ds.color = resources.getColor(color)
+                    ds.isUnderlineText = true
+                    ds.textSize = textSize
+                }
+            },
+            0,
+            text.length,
+            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        append(spannable)
+        movementMethod = LinkMovementMethod.getInstance()
+    }
+
+    fun TextView.appendBold(
+        text: String,
+        textSize: Float
+    ) {
+        val spannable = SpannableString(text)
+        spannable.setSpan(
+            StyleSpan(Typeface.BOLD),
+            0,
+            text.length,
+            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        spannable.setSpan(
+            AbsoluteSizeSpan(textSize.toInt()),
+            0,
+            text.length,
+            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        append(spannable)
+    }
+
+    fun TextView.appendItalic(
+        text: String,
+        textSize: Float
+    ) {
+        val spannable = SpannableString(text)
+        spannable.setSpan(
+            StyleSpan(Typeface.ITALIC),
+            0,
+            text.length,
+            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        spannable.setSpan(
+            AbsoluteSizeSpan(textSize.toInt()),
+            0,
+            text.length,
+            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        append(spannable)
+    }
+
+    fun TextView.appendUnderline(
+        text: String,
+        textSize: Float
+    ) {
+        val spannable = SpannableString(text)
+        spannable.setSpan(
+            UnderlineSpan(),
+            0,
+            text.length,
+            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        spannable.setSpan(
+            AbsoluteSizeSpan(textSize.toInt()),
+            0,
+            text.length,
+            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        append(spannable)
+    }
+
+    fun TextView.makeTextClickable(
+        textToMakeClickable: String,
+        color: Int,
+        textSize: Float,
+        onClick: () -> Unit
+    ) {
+        val text = text.toString()
+        val index = text.indexOf(textToMakeClickable)
+        if (index != -1) {
+            val spannable = SpannableString(text)
+            spannable.setSpan(
+                object : ClickableSpan() {
+                    override fun onClick(view: View) {
+                        onClick()
+                    }
+
+                    override fun updateDrawState(ds: TextPaint) {
+                        super.updateDrawState(ds)
+                        ds.color = resources.getColor(color)
+                        ds.isUnderlineText = true
+                        ds.textSize = textSize
+                    }
+                },
+                index,
+                index + textToMakeClickable.length,
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+            this.text = spannable
+            movementMethod = LinkMovementMethod.getInstance()
+        }
+    }
+
+    fun Activity.launchActivityClearNewTask(destination: Class<*>, key: String = "", data: String = "") {
+        val intent = Intent(this, destination)
+        if (key.isNotEmpty()) {
+            intent.putExtra(key, data)
+        }
+        startActivity(intent)
+    }
+
+
+
+    inline fun <T> List<T>?.ifNotEmpty(callback: () -> Unit) {
+        if (!this.isNullOrEmpty()) {
+            callback.invoke()
+        }
+    }
+
+    inline fun <T> List<T>?.ifEmpty(callback: () -> Unit) {
+        if (this.isNullOrEmpty()) {
+            callback.invoke()
+        }
+    }
+
+
+
+    fun calculateNewAverage(previousAverage: Double, totalAmount: Int, newAmount: Double): Double {
+        return ((previousAverage * totalAmount) + newAmount) / (totalAmount + 1)
+    }
+    fun com.google.android.gms.maps.model.LatLng.toLatLang(): LatLng {
+        return LatLng(this.latitude, this.longitude)
+    }
+
+
+
+
+    fun Any?.ifNull(block: () -> Unit) {
+        if (this != null) block.invoke()
+    }
+    fun LifecycleOwner.launchWhenResumed(block: suspend () -> Unit) {
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                block()
+            }
+        }
+    }
+
+    fun LifecycleOwner.launchWhenCreated(block: suspend () -> Unit) {
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.CREATED) {
+                block()
+            }
+        }
+    }
 
 //    fun Double.roundTo(digitsAfterDecimal: Int): String {
 //        return if (this % 1.0 == 0.0) {
@@ -235,7 +449,11 @@ object MyExtensions {
     }
 
 
-
+    fun Any.ifNotNull(callback: () -> Unit){
+        if (this != null){
+            callback.invoke()
+        }
+    }
 
     fun Any?.isNull() = this == null
     fun Any?.isNotNull() = this != null
@@ -753,9 +971,12 @@ object MyExtensions {
         return Gson().fromJson(jsonString, T::class.java)
     }
 
-
     fun Any.logT(append:String = "" , tag:String = "TAG"){
+        if (this == null){
+            Log.i(tag, "$append:null")
+        }else{
         Log.i(tag, "$append:$this")
+        }
     }
 
 
@@ -768,10 +989,6 @@ object MyExtensions {
             }
         }
     }
-
-
-
-
 
 
     fun JSONObject.toPrettyString(): String {
@@ -979,12 +1196,24 @@ object MyExtensions {
         circularReveal.start()
     }
 
-    fun Context.showToast(message: Any, duration: Int = Toast.LENGTH_SHORT, gravity: Int = Gravity.BOTTOM) {
+    fun Context.showToast(message: Any, duration: Int = Toast.LENGTH_SHORT) {
         CoroutineScope(Dispatchers.Main).launch {
             val toast = Toast.makeText(this@showToast, message.toString(), duration)
-            toast.setGravity(gravity, 0, 0)
             toast.show()
         }
+    }
+
+    fun Context.showLongTextToast(text: String, gravity: Int = Gravity.BOTTOM) {
+        val inflater = LayoutInflater.from(this)
+        val layout = inflater.inflate(R.layout.custom_toast, null)
+        val textView = layout.findViewById<TextView>(R.id.toast_text)
+        textView.text = text
+
+        val toast = Toast(this)
+        toast.duration = Toast.LENGTH_LONG
+        toast.view = layout
+        toast.setGravity(gravity, 0, 100) // Set gravity and offsets (x, y)
+        toast.show()
     }
 
 
@@ -1168,17 +1397,18 @@ fun runDelay(delay:Long =400 , callback: () -> Unit){
                         is Boolean -> if (value) propertiesMap[prop.name] = value
                         is Double -> if (value != 0.0) propertiesMap[prop.name] = value
                         is Long -> if (value != 0L) propertiesMap[prop.name] = value
-                        is Array<*> -> if (value.isNotEmpty()) propertiesMap[prop.name] = value
-                        is ArrayList<*> -> if (value.isNotEmpty()) propertiesMap[prop.name] = value
-                        is List<*> -> if (value.isNotEmpty()) propertiesMap[prop.name] = value
+                        is Array<*> -> if (value.isNotEmpty()) propertiesMap[prop.name] = value.map { it?.shrink() }
+                        is ArrayList<*> -> if (value.isNotEmpty()) propertiesMap[prop.name] = value.map { it.shrink() }
+                        is List<*> -> if (value.isNotEmpty()) propertiesMap[prop.name] = value.map { it?.shrink() }
                         is Float -> if (value != 0.0f) propertiesMap[prop.name] = value
                         is Short -> if (value != 0.toShort()) propertiesMap[prop.name] = value
                         is Byte -> if (value != 0.toByte()) propertiesMap[prop.name] = value
                         is Char -> if (value != '\u0000') propertiesMap[prop.name] = value // '\u0000' is the null char
-                        is Set<*> -> if (value.isNotEmpty()) propertiesMap[prop.name] = value
-                        is Map<*, *> -> if (value.isNotEmpty()) propertiesMap[prop.name] = value
+                        is Set<*> -> if (value.isNotEmpty()) propertiesMap[prop.name] = value.map { it?.shrink() }
+                        is Map<*, *> -> if (value.isNotEmpty()) propertiesMap[prop.name] = value.mapValues { it.value?.shrink() }
                         is Enum<*> -> propertiesMap[prop.name] = value.name
-                        is Any -> propertiesMap[prop.name] = value.shrink()
+                        is LatLng -> if (value.lat != 0.0 || value.lng != 0.0) propertiesMap[prop.name] = LatLng(value.lat , value.lng)
+                        else -> propertiesMap[prop.name] = value.shrink()
                     }
                 }
 
@@ -1252,24 +1482,40 @@ fun runDelay(delay:Long =400 , callback: () -> Unit){
         }
     }
 
-
-
-
-    // Extension function to check if the device is connected to the internet
-    fun Context.isNetworkAvailable(): Boolean {
-        val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val network = connectivityManager.activeNetwork ?: return false
-            val activeNetwork = connectivityManager.getNetworkCapabilities(network) ?: return false
-            activeNetwork.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-        } else {
-            @Suppress("DEPRECATION")
-            val networkInfo = connectivityManager.activeNetworkInfo ?: return false
-            @Suppress("DEPRECATION")
-            networkInfo.isConnected
+    suspend fun Context.isInternetAccessible(): Boolean {
+        return try {
+            val url = URL("https://www.google.com")
+            val connection = withContext(Dispatchers.IO) { url.openConnection() }
+            connection.connectTimeout = 5000 // 5 seconds
+            withContext(Dispatchers.IO) { connection.connect() }
+            true
+        } catch (e: Exception) {
+            false
         }
     }
 
+    fun Context.isNetworkAvailable(): Boolean {
+        return try {
+            val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            val network = connectivityManager.activeNetwork ?: return false
+            val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
+            capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+                    (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
+                            capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR))
+        } catch (e: NullPointerException) {
+            // Handle NullPointerException
+            Log.e("NetworkAvailability", "NullPointerException occurred", e)
+            false
+        } catch (e: SecurityException) {
+            // Handle SecurityException
+            Log.e("NetworkAvailability", "SecurityException occurred", e)
+            false
+        } catch (e: Exception) {
+            // Handle any other exceptions
+            Log.e("NetworkAvailability", "Exception occurred", e)
+            false
+        }
+    }
 
     // Extension function to start an activity with a delay
     fun Context.startActivityWithDelay(delayMillis: Long, targetActivity: Class<out Activity>) {

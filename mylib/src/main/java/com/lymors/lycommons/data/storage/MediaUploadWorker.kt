@@ -8,10 +8,9 @@ import androidx.work.WorkerParameters
 import com.google.firebase.FirebaseException
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
-import com.lymors.lycommons.utils.MyExtensions.logT
+import com.lymors.lycommons.extensions.MyExtensions.logT
 import com.lymors.lycommons.utils.MyResult
 import kotlinx.coroutines.tasks.await
-import javax.inject.Inject
 
 class MediaUploadWorker(
     context: Context,

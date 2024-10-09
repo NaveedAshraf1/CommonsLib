@@ -48,12 +48,10 @@ import androidx.viewpager.widget.PagerAdapter
 import androidx.viewpager.widget.ViewPager
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.lymors.lycommons.extensions.ImageViewExtensions.loadImageFromUrl
-import com.lymors.lycommons.utils.MyExtensions.empty
-import com.lymors.lycommons.utils.MyExtensions.logT
-import com.lymors.lycommons.utils.MyExtensions.showToast
-import com.lymors.lycommons.utils.MyExtensions.shrink
-import com.lymors.lycommons.utils.Utils.allProperties
-import com.lymors.lycommons.utils.Utils.setDataToView
+import com.lymors.lycommons.extensions.MyExtensions.empty
+import com.lymors.lycommons.extensions.MyExtensions.logT
+import com.lymors.lycommons.extensions.MyExtensions.showToast
+import com.lymors.lycommons.extensions.MyExtensions.shrink
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream

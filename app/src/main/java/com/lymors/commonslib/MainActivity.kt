@@ -1,7 +1,6 @@
 package com.lymors.commonslib
 
 
-import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
@@ -10,35 +9,28 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat.getDrawable
 import androidx.lifecycle.lifecycleScope
+import com.firebase.geofire.GeoFire
+import com.firebase.geofire.GeoLocation
+import com.google.firebase.database.FirebaseDatabase
 import com.lymors.commonslib.databinding.ActivityMainBinding
-import com.lymors.commonslib.databinding.NewUserBinding
 import com.lymors.commonslib.databinding.StudentSampleRowBinding
 import com.lymors.lycommons.data.viewmodels.AuthViewModel
 import com.lymors.lycommons.data.viewmodels.MainViewModel
 import com.lymors.lycommons.data.viewmodels.StorageViewModel
-import com.lymors.lycommons.extensions.ImageViewExtensions.loadImageFromUrl
 import com.lymors.lycommons.extensions.ScreenExtensions.pickedImageUri
-import com.lymors.lycommons.extensions.ScreenExtensions.showToast
 import com.lymors.lycommons.extensions.TextEditTextExtensions.onTextChange
-import com.lymors.lycommons.extensions.ViewExtensions.attachDatePicker
 import com.lymors.lycommons.extensions.ViewExtensions.setVisibleOrGone
 import com.lymors.lycommons.extensions.ViewExtensions.setVisibleOrInvisible
-import com.lymors.lycommons.utils.DialogUtil
-import com.lymors.lycommons.utils.MyExtensions.hideSoftKeyboard
-import com.lymors.lycommons.utils.MyExtensions.logT
-import com.lymors.lycommons.utils.MyExtensions.setOptions
-import com.lymors.lycommons.utils.MyExtensions.showSoftKeyboard
-import com.lymors.lycommons.utils.MyExtensions.showToast
-import com.lymors.lycommons.utils.MyExtensions.viewBinding
-import com.lymors.lycommons.utils.MyImagePicker.pickImageByGallery
+import com.lymors.lycommons.extensions.MyExtensions.hideSoftKeyboard
+import com.lymors.lycommons.extensions.MyExtensions.logT
+import com.lymors.lycommons.extensions.MyExtensions.showSoftKeyboard
+import com.lymors.lycommons.extensions.MyExtensions.showToast
+import com.lymors.lycommons.extensions.MyExtensions.viewBinding
 import com.lymors.lycommons.utils.MyImagePicker.registerActivityForImageLauncher
 import com.lymors.lycommons.utils.Utils.hideSoftKeyboard
 import com.lymors.lycommons.utils.Utils.setData
-import com.lymors.lycommons.utils.Utils.showCustomLayoutDialogFragment
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 
@@ -68,6 +60,12 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         authViewModel.registerGoogleSignInLauncher(this)
+
+
+
+        val geoFire = GeoFire(FirebaseDatabase.getInstance().reference)
+        geoFire.setLocation("drivers_location/key2", GeoLocation(23.3522, 7.54377))
+
 
         registerActivityForImageLauncher()
 //        binding.floating.pickImageByCamera(this) {

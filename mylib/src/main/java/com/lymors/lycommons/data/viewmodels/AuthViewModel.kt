@@ -121,12 +121,12 @@ class AuthViewModel @Inject constructor(private val authRepositoryWithEmail: Aut
         authRepositoryWithGoogle.getGoogleAccount(activity, serverClientId, accountCallback)
     }
 
-    fun signOut(
+    fun signOutFromGoogle(
         activity: FragmentActivity,
         serverClientId: String,
         onSignOutResult: (MyResult<String>) -> Unit
     ) {
-        authRepositoryWithGoogle.signOut(activity, serverClientId, onSignOutResult)
+        authRepositoryWithGoogle.signOutFromGoogle(activity, serverClientId, onSignOutResult)
     }
 
 

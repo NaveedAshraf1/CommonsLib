@@ -2,7 +2,6 @@
 package com.lymors.commonslib
 
 
-import android.content.DialogInterface
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -23,17 +22,14 @@ import com.lymors.lycommons.extensions.TextEditTextExtensions.onTextChange
 import com.lymors.lycommons.extensions.ViewExtensions.attachDatePicker
 import com.lymors.lycommons.extensions.ViewExtensions.setVisibleOrGone
 import com.lymors.lycommons.extensions.ViewExtensions.setVisibleOrInvisible
-import com.lymors.lycommons.utils.DialogUtil
-import com.lymors.lycommons.utils.MyExtensions.hideSoftKeyboard
-import com.lymors.lycommons.utils.MyExtensions.logT
-import com.lymors.lycommons.utils.MyExtensions.setOptions
-import com.lymors.lycommons.utils.MyExtensions.showSoftKeyboard
+import com.lymors.lycommons.extensions.MyExtensions.hideSoftKeyboard
+import com.lymors.lycommons.extensions.MyExtensions.logT
+import com.lymors.lycommons.extensions.MyExtensions.setOptions
+import com.lymors.lycommons.extensions.MyExtensions.showSoftKeyboard
 import com.lymors.lycommons.utils.Utils.hideSoftKeyboard
 import com.lymors.lycommons.utils.Utils.showCustomLayoutDialogFragment
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 

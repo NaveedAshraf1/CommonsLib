@@ -38,8 +38,8 @@ import com.bumptech.glide.request.RequestOptions
 import com.google.android.material.textfield.TextInputLayout
 import com.lymors.lycommons.R
 import com.lymors.lycommons.utils.FirebaseUploadWorker
-import com.lymors.lycommons.utils.MyExtensions.logT
-import com.lymors.lycommons.utils.MyExtensions.toBitmap
+import com.lymors.lycommons.extensions.MyExtensions.logT
+import com.lymors.lycommons.extensions.MyExtensions.toBitmap
 import com.lymors.lycommons.utils.Utils.saveImageToInternalStorage
 import java.io.File
 import java.io.FileOutputStream
@@ -50,9 +50,7 @@ import kotlin.math.sqrt
 
 object ImageViewExtensions {
 
-
     fun uploadImageUsingWorkManager(context: Context, uri: String, path:String = "") {
-
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
