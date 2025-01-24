@@ -30,6 +30,10 @@ class LocationViewModel @Inject constructor(private val locationRepository: Loca
     fun cancelGeoQueryListener() {
         locationRepository.cancelGeoQueryListener()
     }
+    suspend fun getAllLocationsInARadius(path: String, center: LatLng, radius: Double,):List<LocationModel> {
+        return locationRepository.getAllLocationsInARadius(path, center, radius)
+
+    }
 
     fun collectAllLocationsInARadius(path: String, center: LatLng, radius: Double, movedKey: (LocationModel) -> Unit = {}):StateFlow<List<LocationModel>> {
         viewModelScope.launch {

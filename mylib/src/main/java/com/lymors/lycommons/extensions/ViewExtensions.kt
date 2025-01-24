@@ -737,7 +737,63 @@ object ViewExtensions {
         this.isSelected = false
     }
 
+    fun View.attachDateTimePicker(
+        callback: (Calendar) -> Unit = {}
+    ) {
 
+        fun openDateTimePickerDialog() {
+            val context = this.context
+            val calendar = Calendar.getInstance()
+            val year = calendar.get(Calendar.YEAR)
+            val month = calendar.get(Calendar.MONTH)
+            val day = calendar.get(Calendar.DAY_OF_MONTH)
+            val hour = calendar.get(Calendar.HOUR_OF_DAY)
+            val minute = calendar.get(Calendar.MINUTE)
+
+            val datePickerDialog = DatePickerDialog(
+                context,
+                R.style.Theme_Holo_Light_Dialog_NoActionBar,
+                { _, selectedYear, selectedMonth, selectedDay ->
+                    val timePickerDialog = TimePickerDialog(
+                        context,
+                        R.style.Theme_Holo_Light_Dialog_NoActionBar,
+                        { _, selectedHour, selectedMinute ->
+                            val selectedDateTime = Calendar.getInstance()
+                            selectedDateTime.set(selectedYear, selectedMonth, selectedDay)
+                            selectedDateTime.set(Calendar.HOUR_OF_DAY, selectedHour)
+                            selectedDateTime.set(Calendar.MINUTE, selectedMinute)
+                            callback(selectedDateTime)
+                        }, hour, minute, false
+                    )
+
+                    timePickerDialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+                    timePickerDialog.setTitle("Select Time")
+                    timePickerDialog.show()
+                }, year, month, day
+            )
+
+            datePickerDialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+            datePickerDialog.setTitle("Select Date")
+            datePickerDialog.show()
+        }
+
+        if (this is EditText) {
+            this.inputType = InputType.TYPE_NULL
+            this.isCursorVisible = false
+            this.onFocusChangeListener = View.OnFocusChangeListener { _, hasFocus ->
+                if (hasFocus) {
+                    openDateTimePickerDialog()
+                }
+            }
+            this.setOnClickListener {
+                openDateTimePickerDialog()
+            }
+        } else {
+            this.setOnClickListener {
+                openDateTimePickerDialog()
+            }
+        }
+    }
 
     fun View.attachDatePicker(pattern:String = "dd-MM-yyyy",callback: (Date) -> Unit = {}) {
 
@@ -785,8 +841,6 @@ object ViewExtensions {
                 openDatePickerDialog()
             }
         }
-
-
     }
 
 

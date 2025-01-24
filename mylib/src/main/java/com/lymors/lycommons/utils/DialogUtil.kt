@@ -53,14 +53,14 @@ object DialogUtil {
     }
 
 
-    fun android.app.AlertDialog.setOnPositiveListener(onConfirm: () -> Unit) {
-        setButton(DialogInterface.BUTTON_POSITIVE, "Ok") { dialog, _ ->
+    fun android.app.AlertDialog.setOnPositiveListener(text:String = "OK" , onConfirm: () -> Unit = {dismiss()}) {
+        setButton(DialogInterface.BUTTON_POSITIVE, text) { dialog, _ ->
             onConfirm()
         }
     }
 
-    fun android.app.AlertDialog.setOnNegativeListener(onCancel: () -> Unit ) {
-        setButton(DialogInterface.BUTTON_NEGATIVE, "Cancel") { dialog, _ ->
+    fun android.app.AlertDialog.setOnNegativeListener(text:String = "Cancel" , onCancel: () -> Unit = {dismiss()} ) {
+        setButton(DialogInterface.BUTTON_NEGATIVE, text) { dialog, _ ->
             onCancel()
         }
     }

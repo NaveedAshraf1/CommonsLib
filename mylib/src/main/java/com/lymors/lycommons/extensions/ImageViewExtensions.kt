@@ -27,6 +27,7 @@ import androidx.lifecycle.LiveData
 import androidx.work.Constraints
 import androidx.work.Data
 import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequest
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkInfo
@@ -49,6 +50,28 @@ import kotlin.math.floor
 import kotlin.math.sqrt
 
 object ImageViewExtensions {
+
+    // Helper method to create a WorkRequest for uploading an image
+    fun createImageUploadWorkRequest(
+        imageUri: String,
+        path: String
+    ): OneTimeWorkRequest {
+        val data = Data.Builder()
+            .putString("uri", imageUri) // Pass the image URI
+            .putString("path", path)    // Pass the path to store the image
+            .build()
+
+        return OneTimeWorkRequestBuilder<FirebaseUploadWorker>()
+            .setInputData(data)
+            .setConstraints(
+                Constraints.Builder()
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                    .build()
+            )
+            .addTag("FirebaseUpload") // Tagging work requests for monitoring
+            .build()
+    }
+
 
     fun uploadImageUsingWorkManager(context: Context, uri: String, path:String = "") {
         val constraints = Constraints.Builder()
@@ -82,9 +105,6 @@ object ImageViewExtensions {
                 outputData.logT("outputData")
             }
         }
-
-
-
     }
 
 
@@ -132,6 +152,9 @@ object ImageViewExtensions {
                 .error(error)
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .into(this)
+        }else{
+            Glide.with(this.context)
+                .load(placeHolder).into(this)
         }
     }
 

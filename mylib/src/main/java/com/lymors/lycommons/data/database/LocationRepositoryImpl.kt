@@ -1,5 +1,6 @@
 package com.lymors.lycommons.data.database
 
+import android.annotation.SuppressLint
 import android.util.Log
 import com.firebase.geofire.GeoFire
 import com.firebase.geofire.GeoLocation
@@ -7,6 +8,7 @@ import com.firebase.geofire.GeoQuery
 import com.firebase.geofire.GeoQueryEventListener
 import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.DatabaseException
 import com.google.firebase.database.FirebaseDatabase
 import com.lymors.lycommons.data.viewmodels.LocationModel
 import com.lymors.lycommons.extensions.MyExtensions.logT
@@ -15,19 +17,22 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
-class LocationRepositoryImpl(val mainRepository: MainRepository):LocationRepository {
-
-
+class LocationRepositoryImpl(private val mainRepository: MainRepository):LocationRepository {
 
 
     private var geoFire = GeoFire(FirebaseDatabase.getInstance().reference)
 
     override suspend fun uploadLocation( child: String,key:String, latitude: Double, longitude: Double) {
+        child.child(key).logT("uploadLocation->path", "path")
         geoFire.setLocation(child.child(key), GeoLocation(latitude, longitude))
     }
 
     override suspend fun getLocationOfAKey(child: String,key: String, callback: (LatLng?) -> Unit) {
+        child.child(key).logT("getLocationOfAKey->path", "path")
         geoFire.getLocation(child.child(key), object : com.firebase.geofire.LocationCallback {
             override fun onLocationResult(key: String?, location: GeoLocation?) {
                 if (location != null) {
@@ -49,52 +54,67 @@ class LocationRepositoryImpl(val mainRepository: MainRepository):LocationReposit
     }
 
     override suspend fun collectALocation(child: String, key: String, callback: (LocationModel) -> Unit) {
+        child.child(key).logT("collectALocation->path", "path")
         val path = "$child/$key/l"
         mainRepository.collectAnyModel(path = path, clazz = Double::class.java).collect{
+            if (it.isNotEmpty()){
             callback.invoke(LocationModel(key,it[0],it[1]))
+            }
         }
     }
 
-    override suspend fun getAllLocationsInARadius(path:String, center: LatLng, radius: Double, callback: (List<LocationModel>) -> Unit) {
+    override suspend fun getAllLocationsInARadius(path: String, center: LatLng, radius: Double): List<LocationModel> {
+        path.logT("getAllLocationsInARadius->path", "path")
         val geoF = GeoFire(FirebaseDatabase.getInstance().reference.child(path))
-        val geoQuery= geoF.queryAtLocation(GeoLocation(center.latitude, center.longitude), radius)
-        val listOfLocationsInARadius = mutableListOf<LocationModel>()
+        val geoQuery = geoF.queryAtLocation(GeoLocation(center.latitude, center.longitude), radius)
 
-        var geoQueryListener = object : GeoQueryEventListener {
-            override fun onKeyEntered(key: String, location: GeoLocation) {
-                key.logT("onKeyEntered")
-                listOfLocationsInARadius.add(LocationModel(key, location.latitude, location.longitude))
-            }
+        locations.clear() // Clear previous locations
 
-            override fun onKeyExited(key: String) {
-                key.logT("onKeyExited")
-                val target = listOfLocationsInARadius.find { it.key == key }
-                listOfLocationsInARadius.remove(target)
-            }
+        return suspendCancellableCoroutine { continuation ->
+            val geoQueryListener = object : GeoQueryEventListener {
+                override fun onKeyEntered(key: String, location: GeoLocation) {
+                    key.logT("onKeyEntered")
+                    locations[key] = LocationModel(key, location.latitude, location.longitude)
+                }
 
-            override fun onKeyMoved(key: String, location: GeoLocation) {
-                // Handle key movement if needed
-            }
+                override fun onKeyExited(key: String) {
+                    key.logT("onKeyExited")
+                    locations.remove(key)
+                }
 
-            override fun onGeoQueryReady() {
-                callback(listOfLocationsInARadius)
-                if (geoQuery != null){
-                    geoQuery.removeGeoQueryEventListener(geoQueryListener)
+                override fun onKeyMoved(key: String, location: GeoLocation) {
+                    // Handle key movement if needed
+
+                    locations[key] = LocationModel(key, location.latitude, location.longitude)
+                }
+
+                override fun onGeoQueryReady() {
+                    continuation.resume(locations.values.toList())
+                    geoQuery.removeGeoQueryEventListener(this)
+                }
+
+                @SuppressLint("RestrictedApi")
+                override fun onGeoQueryError(error: DatabaseError) {
+                    continuation.resumeWithException(DatabaseException(error.message))
+                    locations.clear() // Clear locations on error
                 }
             }
-
-            override fun onGeoQueryError(error: DatabaseError) {
-                // Handle errors
+            geoQuery.addGeoQueryEventListener(geoQueryListener)
+            continuation.invokeOnCancellation {
+                geoQuery.removeGeoQueryEventListener(geoQueryListener)
             }
         }
-        geoQuery.addGeoQueryEventListener(geoQueryListener)
     }
+
+
 
     val locations = mutableMapOf<String , LocationModel>()
     var geoQuery: GeoQuery? = null
     var geoQueryListener: GeoQueryEventListener? = null
 
     override fun collectAllLocationsInARadius(path: String, center: LatLng, radius: Double, movedKey: (LocationModel) -> Unit): Flow<List<LocationModel>> = callbackFlow {
+       path.logT("collectAllLocationsInARadius->path", "path")
+
         val geoFire = GeoFire(FirebaseDatabase.getInstance().reference.child(path))
         val geoQuery = geoFire.queryAtLocation(GeoLocation(center.latitude, center.longitude), radius)
 

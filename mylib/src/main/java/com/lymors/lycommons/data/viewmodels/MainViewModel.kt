@@ -4,8 +4,11 @@ package com.lymors.lycommons.data.viewmodels
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.work.OneTimeWorkRequest
+import androidx.work.WorkManager
 import com.google.android.gms.maps.model.LatLng
 import com.lymors.lycommons.data.database.MainRepository
+import com.lymors.lycommons.extensions.ImageViewExtensions.createImageUploadWorkRequest
 import com.lymors.lycommons.extensions.ImageViewExtensions.uploadImageUsingWorkManager
 import com.lymors.lycommons.extensions.MyExtensions.isNull
 import com.lymors.lycommons.utils.MyResult
@@ -21,10 +24,10 @@ import kotlin.coroutines.resume
 import kotlin.reflect.KProperty
 
 class MainViewModel @Inject constructor(private val mainRepo: MainRepository) : ViewModel() {
-    private val _longClickedState = MutableStateFlow<Boolean>(false)
+    private val _longClickedState = MutableStateFlow(false)
     val longClickedState = _longClickedState.asStateFlow()
 
-    private val _query = MutableStateFlow<String>("")
+    private val _query = MutableStateFlow("")
     val query = _query.asStateFlow()
 
 
@@ -170,6 +173,9 @@ class MainViewModel @Inject constructor(private val mainRepo: MainRepository) : 
             if (modelKeyResult is MyResult.Error) {
                 return@async modelKeyResult // Return the error result immediately
             }else{
+                if (imageUri.isEmpty()) {
+                   return@async MyResult.Error("imageUri is empty")
+                }
                 if (modelKeyResult is MyResult.Success) {
                     if (imageUri.isNotEmpty()){
                         val imagePath = "$realTimePath/${modelKeyResult.data}/${property.name}"
@@ -180,6 +186,22 @@ class MainViewModel @Inject constructor(private val mainRepo: MainRepository) : 
                 return@async modelKeyResult
             }
         }.await()
+    }
+
+
+    fun uploadImagesToFirebaseStorage(context: Context, path: String, imagesMap: HashMap<String, String> // Map of field names to URIs onCompletion: () -> Unit
+    ) {
+        viewModelScope.launch {
+            val workManager = WorkManager.getInstance(context)
+            val workRequests = mutableListOf<OneTimeWorkRequest>()
+
+            for ((fieldName, imageUri) in imagesMap) {
+                val workRequest = createImageUploadWorkRequest( imageUri, "$path/$fieldName")
+                workRequests.add(workRequest)
+            }
+            // Enqueue all the work requests
+            workManager.enqueue(workRequests)
+        }
     }
 
 

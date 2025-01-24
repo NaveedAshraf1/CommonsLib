@@ -37,6 +37,8 @@ import javax.crypto.spec.PBEKeySpec
 import javax.crypto.spec.SecretKeySpec
 import android.os.Build
 import android.util.Base64
+import androidx.core.content.ContextCompat.startActivity
+import com.lymors.lycommons.R
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.util.zip.GZIPInputStream
@@ -44,6 +46,21 @@ import java.util.zip.GZIPOutputStream
 
 
 object StringExtensions {
+    fun String.sendInMail(context: Context , subject:String = "",mail:String){
+        val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
+            data = Uri.parse("mailto:")
+            putExtra(Intent.EXTRA_EMAIL, arrayOf(mail))
+            putExtra(Intent.EXTRA_SUBJECT, subject)
+            putExtra(Intent.EXTRA_TEXT, this)
+        }
+        emailIntent.setPackage("com.google.android.gm")
+
+        if (emailIntent.resolveActivity(context.packageManager) != null) {
+            context.startActivity(emailIntent)
+        } else {
+           context. startActivity(Intent.createChooser(emailIntent, "Choose email app"))
+        }
+    }
 
     fun String?.orEmpty(): String {
         return this ?: ""

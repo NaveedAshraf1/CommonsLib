@@ -1,12 +1,15 @@
 package com.lymors.lycommons.utils
 
+import android.app.Activity
 import android.app.Dialog
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.net.Uri
+import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.DisplayMetrics
@@ -17,6 +20,7 @@ import android.view.Window
 import android.view.WindowManager
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.FragmentActivity
 import com.github.dhaval2404.imagepicker.ImagePicker
@@ -27,6 +31,8 @@ import com.lymors.lycommons.utils.MyPermissionHelper.registerActivityForPermissi
 import com.lymors.lycommons.utils.MyPermissionHelper.requestPermission
 import com.lymors.lycommons.utils.MyPermissionHelper.requestPermissionReadImages
 import com.lymors.lycommons.utils.MyPermissionHelper.requestPermissionReadStorage
+import java.io.File
+import java.io.FileOutputStream
 
 object MyImagePicker {
     private lateinit var pickImageLauncher: ActivityResultLauncher<Intent>
@@ -159,17 +165,47 @@ object MyImagePicker {
     }
 
 
+//    fun View.pickImageByCameraCropped(
+//        activity: FragmentActivity,
+//        onImagePicked: (Uri?) -> Unit = {}
+//    ) {
+//        this.setOnClickListener {
+//            activity.requestPermission(
+//                arrayOf(
+//                    android.Manifest.permission.CAMERA,
+//                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+//                )
+//            ) {
+//                if (it) {
+//                    this@MyImagePicker.onImagePicked = onImagePicked
+//                    ImagePicker.with(activity)
+//                        .cameraOnly()
+//                        .crop()
+//                        .createIntent { intent ->
+//                            pickImageLauncher.launch(intent)
+//                        }
+//                }
+//            }
+//        }
+//    }
+
+
     fun View.pickImageByCameraCropped(
         activity: FragmentActivity,
         onImagePicked: (Uri?) -> Unit = {}
     ) {
         this.setOnClickListener {
-            activity.requestPermission(
+            val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                arrayOf(android.Manifest.permission.CAMERA)
+            } else {
                 arrayOf(
                     android.Manifest.permission.CAMERA,
                     android.Manifest.permission.WRITE_EXTERNAL_STORAGE
                 )
-            ) {
+            }
+
+
+            activity.requestPermission(permissions) {
                 if (it) {
                     this@MyImagePicker.onImagePicked = onImagePicked
                     ImagePicker.with(activity)

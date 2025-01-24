@@ -73,7 +73,7 @@ class MainActivity : AppCompatActivity() {
 //        }
 
 lifecycleScope.launch {
-        mainViewModel.uploadAnyModel("testpath" , ContactModel("","name","fullNumber","","")).whenSuccess {
+        mainViewModel.uploadAnyModel("testpath" , UserModel("","name","fullNumber","","")).whenSuccess {
             it.logT("did")
         }
 }

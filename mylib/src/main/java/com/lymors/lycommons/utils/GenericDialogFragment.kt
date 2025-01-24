@@ -1,15 +1,23 @@
 package com.lymors.lycommons.utils
 
+import android.app.Dialog
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.Window
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentManager
 import androidx.viewbinding.ViewBinding
+import com.lymors.lycommons.extensions.MyExtensions
+import com.lymors.lycommons.extensions.MyExtensions.dp
 
 class GenericDialogFragment<B : ViewBinding>(
     private val bindingInflater: (LayoutInflater, ViewGroup?, Boolean) -> B,
+    val gravity: Int = Gravity.CENTER,
     private val setupBinding: (B, DialogFragment) -> Unit
 ) : DialogFragment() {
 
@@ -17,9 +25,6 @@ class GenericDialogFragment<B : ViewBinding>(
         show(manager, tag)
     }
 
-    fun dismissDialog() {
-        dismiss()
-    }
 
     private var _binding: B? = null
     private val binding get() = _binding!!
@@ -40,11 +45,14 @@ class GenericDialogFragment<B : ViewBinding>(
 
     override fun onStart() {
         super.onStart()
-        dialog?.window?.setLayout(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT
-        )
+        dialog?.window?.apply {
+            setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+            setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+            setGravity(gravity)
+            decorView.setPadding(16.dp, 0, 16.dp, 0)
+        }
     }
+
 
     override fun onDestroyView() {
         super.onDestroyView()

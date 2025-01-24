@@ -16,6 +16,7 @@ firebaseDatabase = "21.0.0"
 playServicesMaps = "19.0.0"
 playServicesLocation = "21.3.0"
 geofireAndroid = "3.2.0"
+firebaseFirestore = "25.1.1"
 [libraries]
 
 
@@ -35,6 +36,7 @@ firebase-database = { group = "com.google.firebase", name = "firebase-database",
 play-services-maps = { group = "com.google.android.gms", name = "play-services-maps", version.ref = "playServicesMaps" }
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
 geofire-android = { group = "com.firebase", name = "geofire-android", version.ref = "geofireAndroid" }
+firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore", version.ref = "firebaseFirestore" }
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 jetbrainsKotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }

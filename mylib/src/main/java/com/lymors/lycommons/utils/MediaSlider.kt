@@ -4,6 +4,8 @@ import android.content.Context
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -11,12 +13,15 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
+import androidx.viewpager.widget.PagerAdapter
+import androidx.viewpager.widget.ViewPager
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import com.bumptech.glide.Glide
@@ -338,6 +343,62 @@ fun Int.dpToPx(context: Context): Int {
 //
 //
 
+
+object MediaSlider{
+    fun LinearLayout.imageSlider(context: Context, images: List<Int>) {
+        val viewPager = ViewPager(context)
+        this.addView(viewPager)
+
+        val adapter = ImageSliderAdapter(context, images)
+        viewPager.adapter = adapter
+
+        // Auto-sliding
+        val handler = Handler(Looper.getMainLooper())
+        val runnable = object : Runnable {
+            override fun run() {
+                val currentPage = viewPager.currentItem
+                val totalPages = adapter.count
+                if (currentPage < totalPages - 1) {
+                    viewPager.currentItem = currentPage + 1
+                } else {
+                    viewPager.currentItem = 0
+                }
+                handler.postDelayed(this, 3000) // Slide every 3 seconds
+            }
+        }
+        handler.post(runnable)
+    }
+
+}
+
+
+
+private class ImageSliderAdapter(
+    private val context: Context,
+    private val images: List<Int>
+) : PagerAdapter() {
+
+    override fun getCount(): Int {
+        return images.size
+    }
+
+    override fun isViewFromObject(view: View, `object`: Any): Boolean {
+        return view === `object`
+    }
+
+    override fun instantiateItem(container: ViewGroup, position: Int): Any {
+        val inflater = LayoutInflater.from(context)
+        val view = inflater.inflate(R.layout.slider_item, container, false)
+        val imageView = view.findViewById<ImageView>(R.id.imageView)
+        imageView.setImageResource(images[position])
+        container.addView(view)
+        return view
+    }
+
+    override fun destroyItem(container: ViewGroup, position: Int, `object`: Any) {
+        container.removeView(`object` as View)
+    }
+}
 
 
 

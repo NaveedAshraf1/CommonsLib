@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:ccp="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:elevation="4dp"
-    android:orientation="horizontal"
+    android:orientation="vertical"
     app:strokeWidth="3dp">
-    
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -26,13 +25,13 @@
             app:cardElevation="5dp"
             app:strokeColor="@color/black"
             app:strokeWidth="1dp">
-            
+
         </com.google.android.material.card.MaterialCardView>
 
         <Space
             android:layout_width="wrap_content"
             android:layout_height="1dp"
-            android:layout_marginHorizontal="10dp"
+            android:layout_marginHorizontal="2dp"
             android:layout_marginTop="11dp"
             android:layout_weight="1"
             android:background="#BFC0C1" />
@@ -51,7 +50,7 @@
         <Space
             android:layout_width="wrap_content"
             android:layout_height="1dp"
-            android:layout_marginHorizontal="10dp"
+            android:layout_marginHorizontal="2dp"
             android:layout_marginTop="11dp"
             android:layout_weight="1"
             android:background="#BFC0C1" />
@@ -72,7 +71,7 @@
         <Space
             android:layout_width="wrap_content"
             android:layout_height="1dp"
-            android:layout_marginHorizontal="10dp"
+            android:layout_marginHorizontal="2dp"
             android:layout_marginTop="11dp"
             android:layout_weight="1"
             android:background="#BFC0C1" />
@@ -87,6 +86,192 @@
             app:cardElevation="5dp"
             app:strokeColor="@color/black"
             app:strokeWidth="1dp"></com.google.android.material.card.MaterialCardView>
+
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/_5sdp"
+        android:orientation="horizontal">
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/schedule_a_ride"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/_32sdp"
+            android:layout_gravity="center"
+            android:layout_marginStart="@dimen/_5sdp"
+            android:layout_weight="1"
+            android:backgroundTint="@color/light_orange"
+            app:cardCornerRadius="@dimen/_6sdp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/orange_60"
+            app:strokeWidth="2dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="@dimen/_30sdp"
+                    android:layout_height="@dimen/_30sdp"
+                    android:layout_gravity="center"
+                    android:layout_marginHorizontal="4dp"
+                    android:layout_marginVertical="4dp"
+                    android:padding="@dimen/_6sdp"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/baseline_calendar_month_24" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginEnd="@dimen/_9sdp"
+                    android:fontFamily="sans-serif"
+                    android:gravity="center"
+                    android:text="Withdraw"
+                    android:textColor="@color/black"
+                    android:textSize="17sp"
+                    android:textStyle="normal" />
+
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/book_a_ride_button"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/_32sdp"
+            android:layout_gravity="center"
+            android:layout_marginStart="@dimen/_10sdp"
+            android:layout_marginEnd="@dimen/_2sdp"
+            android:layout_weight="1"
+            android:backgroundTint="@color/light_orange"
+            app:cardCornerRadius="@dimen/_6sdp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/orange_60"
+            app:strokeWidth="2dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="@dimen/_30sdp"
+                    android:layout_height="@dimen/_30sdp"
+                    android:layout_gravity="center"
+                    android:layout_marginHorizontal="4dp"
+                    android:layout_marginVertical="4dp"
+                    android:padding="@dimen/_6sdp"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/baseline_settings_24" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginEnd="@dimen/_9sdp"
+                    android:fontFamily="sans-serif"
+                    android:gravity="center"
+                    android:text="Withdraw"
+                    android:textColor="@color/black"
+                    android:textSize="17sp"
+                    android:textStyle="normal" />
+
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+
+        <!--                            <com.google.android.material.button.MaterialButton-->
+        <!--                                android:id="@+id/book_a_ride_button"-->
+        <!--                                android:layout_width="wrap_content"-->
+        <!--                                android:layout_weight="1"-->
+        <!--                                android:layout_height="wrap_content"-->
+        <!--                                android:layout_gravity="center"-->
+        <!--                                android:layout_marginHorizontal="@dimen/_4sdp"-->
+        <!--                                android:layout_marginTop="@dimen/_10sdp"-->
+        <!--                                android:layout_marginBottom="@dimen/_10sdp"-->
+        <!--                                android:backgroundTint="@color/light_orange"-->
+        <!--                                android:gravity="center"-->
+        <!--                                app:strokeWidth="1.5dp"-->
+        <!--                                android:drawableLeft="@drawable/baseline_local_taxi_24"-->
+        <!--                                app:strokeColor="@color/orange_button"-->
+        <!--                                android:text="@string/book_a_ride"-->
+        <!--                                android:textColor="@color/gray60"-->
+        <!--                                app:cornerRadius="@dimen/_5sdp"-->
+        <!--                                app:elevation="@dimen/_3sdp" />-->
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="4dp"
+        android:layout_marginVertical="4dp"
+        android:orientation="horizontal">
+        <Space
+             android:layout_width="wrap_content"
+             android:layout_height="1dp"
+             android:layout_weight="1"
+             android:layout_marginHorizontal="10dp"
+             android:layout_marginTop="11dp"
+             android:background="#BFC0C1" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif"
+            android:gravity="center"
+            android:layout_gravity="center"
+            android:padding="0dp"
+            android:text="Hello"
+            android:textSize="17sp"
+            android:textStyle="normal" />
+        <Space
+             android:layout_width="wrap_content"
+             android:layout_height="1dp"
+             android:layout_weight="1"
+             android:layout_marginHorizontal="10dp"
+             android:layout_marginTop="11dp"
+             android:background="#BFC0C1" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:layout_gravity="center"
+            android:padding="4dp"
+            android:text="How Are your"
+            android:textSize="17sp"
+            android:textStyle="normal" />
+        <Space
+             android:layout_width="wrap_content"
+             android:layout_height="1dp"
+             android:layout_weight="1"
+             android:layout_marginHorizontal="10dp"
+             android:layout_marginTop="11dp"
+             android:background="#BFC0C1" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif"
+            android:gravity="center"
+            android:layout_gravity="center"
+            android:padding="0dp"
+            android:text="here"
+            android:textSize="17sp"
+            android:textStyle="normal" />
+        <Space
+             android:layout_width="wrap_content"
+             android:layout_height="1dp"
+             android:layout_weight="1"
+             android:layout_marginHorizontal="10dp"
+             android:layout_marginTop="11dp"
+             android:background="#BFC0C1" />
 
 
     </LinearLayout>

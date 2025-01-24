@@ -10,6 +10,6 @@ interface LocationRepository {
     suspend fun collectALocation(child: String, key: String, callback: (LocationModel) -> Unit)
     fun collectAllLocationsInARadius(path:String, center: LatLng, radius: Double, movedKey: (LocationModel) -> Unit = {}):Flow<List<LocationModel>>
     fun cancelGeoQueryListener()
-    suspend fun getAllLocationsInARadius(path:String, center: LatLng, radius: Double, callback: (List<LocationModel>) -> Unit)
+    suspend fun getAllLocationsInARadius(path:String, center: LatLng, radius: Double): List<LocationModel>
 
 }

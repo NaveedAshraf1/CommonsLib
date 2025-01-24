@@ -172,6 +172,7 @@ object ScreenExtensions {
 
     fun Activity.launchActivityClearNewTask(destination: Class<*>, key: String = "", data: String = "") {
         val intent = Intent(this, destination)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         if (key.isNotEmpty()) {
             intent.putExtra(key, data)
         }
@@ -195,73 +196,14 @@ object ScreenExtensions {
         startActivity(intent)
     }
 
-    fun Activity.launchActivity(destination: Class<*>, key: String, data: Map<String,String>) {
-        val intent = Intent(this, destination)
-        if (key.isNotEmpty()) {
-            data.keys.forEach {
-                if (it.isNotEmpty()){
-                    intent.putExtra(it, data[it])
-                }
-            }
-        }
-        startActivity(intent)
-    }
 
-    fun Fragment.launchActivity(destination: Class<*>, key: String, data: Map<String,String>) {
-        val intent = Intent(requireActivity(), destination)
-        if (key.isNotEmpty()) {
-            data.keys.forEach {
-                if (it.isNotEmpty()){
-                    intent.putExtra(it, data[it])
-                }
-            }
-        }
-        startActivity(intent)
-    }
 
     fun CheckBox.toggle(){
         isChecked = !this.isChecked
     }
 
 
-    fun Fragment.launchActivity(destination: Class<*>, key: String, data: Parcelable? = null) {
-        // Create an Intent to launch the target activity
-        val intent = Intent(requireContext(), destination)
 
-        // Put the data into the Intent using the specified key
-        if (key.isNotEmpty() && data != null) {
-            intent.putExtra(key, data)
-        }
-
-        // Start the activity with the created Intent
-        startActivity(intent)
-    }
-
-
-
-
-    fun Fragment.launchActivity(destination:Class<*>, key: String = "", data:String = "") {
-        // Create an Intent to launch the target activity
-        val intent = Intent(requireContext(), destination)
-
-        // Put the data into the Intent using the specified key
-        if (key.isNotEmpty()){
-            intent.putExtra(key, data)
-        }
-
-        // Start the activity with the created Intent
-        startActivity(intent)
-    }
-
-    fun Activity.startActivity(clazz: Class<*>) {
-        startActivity(Intent(this, clazz))
-    }
-
-    fun Activity.startActivity(clazz: Class<*>, key: String, data: String) {
-        var i = Intent(this, clazz)
-        i.putExtra(key, data)
-        startActivity(i)
-    }
 
     // . setStatusBarColor(color: Int)
     fun Activity.setStatusBarColor(backgroundColor: Int = R.color.white, darkTextColor: Boolean = true) {
@@ -269,15 +211,13 @@ object ScreenExtensions {
         this.window.statusBarColor = ContextCompat.getColor(this, backgroundColor)
 
         // Set the status bar text color to light or dark
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val decor = window.decorView
-            if (darkTextColor) {
-                // If lightTextColor is true, set the text color to dark
-                decor.systemUiVisibility = decor.systemUiVisibility or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-            } else {
-                // Otherwise, set the text color to light
-                decor.systemUiVisibility = decor.systemUiVisibility and View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv()
-            }
+        val decor = window.decorView
+        if (darkTextColor) {
+            // If lightTextColor is true, set the text color to dark
+            decor.systemUiVisibility = decor.systemUiVisibility or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+        } else {
+            // Otherwise, set the text color to light
+            decor.systemUiVisibility = decor.systemUiVisibility and View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv()
         }
     }
 
@@ -307,7 +247,7 @@ object ScreenExtensions {
     }
 
 
-    fun Activity.setTransparentStatusBar() {
+    fun Activity.setStatusBarTransparent() {
         window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
         window.statusBarColor = Color.TRANSPARENT
     }

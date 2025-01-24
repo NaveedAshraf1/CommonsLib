@@ -18,6 +18,7 @@ import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.telephony.SmsManager
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewAnimationUtils
@@ -47,6 +48,7 @@ import androidx.viewbinding.ViewBinding
 import androidx.viewpager.widget.PagerAdapter
 import androidx.viewpager.widget.ViewPager
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.lymors.lycommons.R
 import com.lymors.lycommons.extensions.ImageViewExtensions.loadImageFromUrl
 import com.lymors.lycommons.extensions.MyExtensions.empty
 import com.lymors.lycommons.extensions.MyExtensions.logT
@@ -245,12 +247,21 @@ fun Any.allProperties(): List<String> {
     }
 
 
+    fun Activity.setUpBottomNavigationColor(color: Int=R.color.gray10){
+        window.navigationBarColor= ContextCompat.getColor(this,color)
+    }
+
+
+
     fun <B : ViewBinding> showCustomLayoutDialogFragment(
         activity: FragmentActivity,
         bindingInflater: (LayoutInflater, ViewGroup?, Boolean) -> B,
+        isCancelable: Boolean = true,
+        gravity: Int = Gravity.CENTER,
         setupBinding: (B, DialogFragment) -> Unit
     ):GenericDialogFragment<B> {
-        val dialog = GenericDialogFragment(bindingInflater, setupBinding)
+        val dialog = GenericDialogFragment(bindingInflater,gravity, setupBinding)
+        dialog.isCancelable = isCancelable
         dialog.show(activity.supportFragmentManager, "GenericDialogFragment")
         return dialog
     }
@@ -360,18 +371,17 @@ fun Any.allProperties(): List<String> {
     }
 
 
-    fun sendMessage(number: String, message: String) {
-        if (number.isEmpty() || message.isEmpty()) {
-            val byteArray = message.toByteArray(charset("UTF-16"))
+    fun String.sendInMessage(number: String) {
+        if (number.isEmpty() || this.isEmpty()) {
+            "number or message is empty".logT()
+        } else {
+            val byteArray = this.toByteArray(charset("UTF-16"))
             val sms = String(byteArray, charset("UTF-16"))
             val smsManager: SmsManager = SmsManager.getDefault()
             val smsArray = smsManager.divideMessage(sms)
             smsManager.sendMultipartTextMessage(
                 number, null, smsArray, null, null
             )
-        } else {
-            "number or message is empty".logT()
-
         }
     }
 

@@ -12,6 +12,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
+import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
@@ -93,6 +94,7 @@ import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 import com.google.maps.model.LatLng
 import com.lymors.lycommons.R
+import com.lymors.lycommons.extensions.MyExtensions.shrink
 import com.lymors.lycommons.extensions.NumbersExtensions.toDoubleOrDefault
 import com.lymors.lycommons.extensions.StringExtensions.toIntOrDefault
 import com.lymors.lycommons.managers.DataStoreManager
@@ -269,14 +271,6 @@ object MyExtensions {
         }
     }
 
-    fun Activity.launchActivityClearNewTask(destination: Class<*>, key: String = "", data: String = "") {
-        val intent = Intent(this, destination)
-        if (key.isNotEmpty()) {
-            intent.putExtra(key, data)
-        }
-        startActivity(intent)
-    }
-
 
 
     inline fun <T> List<T>?.ifNotEmpty(callback: () -> Unit) {
@@ -334,11 +328,12 @@ object MyExtensions {
 //            l
 //        }
 //    }
+
     fun Double.roundTo(digitsAfterDecimal: Int): String {
         return if (this % 1.0 == 0.0) {
             this.toInt().toString()
         } else {
-            var roundedValue = String.format("%.${digitsAfterDecimal}f", this)
+            var roundedValue = String.format(Locale.US,"%.${digitsAfterDecimal}f", this)
             // Remove trailing zeros after the decimal point
             roundedValue = roundedValue.replace(Regex("0+$"), "")
             // If it ends with a dot, remove the dot
@@ -877,22 +872,49 @@ object MyExtensions {
 
 
 
-
-
-
     fun Long.toDate(pattern: String = "dd-MM-yyyy"): String {
         val dateFormat = SimpleDateFormat(pattern, Locale.getDefault())
         return dateFormat.format(Date(this))
     }
-    fun Long.toTime(pattern: String = "hh:mm a"): String {
+    fun Long.toTime(pattern: String = "hh:mm:ss a"): String {
         val dateFormat = SimpleDateFormat(pattern, Locale.getDefault())
         return dateFormat.format(Date(this))
     }
-    fun Long.toDateTime(pattern: String = "dd-MM-yyyy hh:mm a"): String {
+    fun Long.toDateTime(pattern: String = "dd-MM-yyyy hh:mm:ss a"): String {
         val dateFormat = SimpleDateFormat(pattern, Locale.getDefault())
         return dateFormat.format(Date(this))
+    }
+    fun Long.isToday(): Boolean {
+        val calendar = Calendar.getInstance()
+        calendar.time = Date(this)
+        val today = Calendar.getInstance()
+        return calendar.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
+                calendar.get(Calendar.MONTH) == today.get(Calendar.MONTH) &&
+                calendar.get(Calendar.DAY_OF_MONTH) == today.get(Calendar.DAY_OF_MONTH)
     }
 
+    fun Long.isThisMonth(): Boolean {
+        val calendar = Calendar.getInstance()
+        calendar.time = Date(this)
+        val today = Calendar.getInstance()
+        return calendar.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
+                calendar.get(Calendar.MONTH) == today.get(Calendar.MONTH)
+    }
+
+    fun Long.isThisYear(): Boolean {
+        val calendar = Calendar.getInstance()
+        calendar.time = Date(this)
+        val today = Calendar.getInstance()
+        return calendar.get(Calendar.YEAR) == today.get(Calendar.YEAR)
+    }
+
+    fun Long.isFuture(): Boolean {
+        return this > System.currentTimeMillis()
+    }
+
+    fun Long.isPast(): Boolean {
+        return this < System.currentTimeMillis()
+    }
 
 
 
@@ -950,6 +972,14 @@ object MyExtensions {
     }
 
 
+
+
+    // Extension function to convert dp to px
+    val Int.dp: Int
+        get() = (this * Resources.getSystem().displayMetrics.density).toInt()
+
+
+
     fun View.applyRippleEffect(color: Int = android.R.color.holo_red_dark) {
         val rippleColor =
             ColorStateList.valueOf(ContextCompat.getColor(context, color))
@@ -971,11 +1001,11 @@ object MyExtensions {
         return Gson().fromJson(jsonString, T::class.java)
     }
 
-    fun Any.logT(append:String = "" , tag:String = "TAG"){
+    fun Any?.logT(append:String = "" , tag:String = "TAG"){
         if (this == null){
             Log.i(tag, "$append:null")
         }else{
-        Log.i(tag, "$append:$this")
+        Log.i(tag, "${System.currentTimeMillis().toTime()}:$append:$this")
         }
     }
 
@@ -1004,6 +1034,12 @@ object MyExtensions {
             list.add(this[i])
         }
         return list
+    }
+
+    fun dialACode(context: Context, code: String) {
+        val intent = Intent(Intent.ACTION_DIAL)
+        intent.data = Uri.parse("tel:$code")
+        context.startActivity(intent)
     }
 
 
@@ -1390,28 +1426,51 @@ fun runDelay(delay:Long =400 , callback: () -> Unit){
             prop.isAccessible = true
             if (!prop.name.startsWith("_")) { // Filter out properties starting with "_"
                 val value = prop.getter.call(this)
-                if (value!=null)  {
+                if (value != null) {
                     when (value) {
                         is String -> if (value.isNotEmpty()) propertiesMap[prop.name] = value
                         is Int -> if (value != 0) propertiesMap[prop.name] = value
                         is Boolean -> if (value) propertiesMap[prop.name] = value
                         is Double -> if (value != 0.0) propertiesMap[prop.name] = value
                         is Long -> if (value != 0L) propertiesMap[prop.name] = value
-                        is Array<*> -> if (value.isNotEmpty()) propertiesMap[prop.name] = value.map { it?.shrink() }
-                        is ArrayList<*> -> if (value.isNotEmpty()) propertiesMap[prop.name] = value.map { it.shrink() }
-                        is List<*> -> if (value.isNotEmpty()) propertiesMap[prop.name] = value.map { it?.shrink() }
+                        is Array<*> -> if (value.isNotEmpty()) propertiesMap[prop.name] =
+                            value.map { it?.shrink() }
+
+                        is ArrayList<*> -> if (value.isNotEmpty()) propertiesMap[prop.name] =
+                            value.map { it.shrink() }
+
+                        is List<*> -> if (value.isNotEmpty()) propertiesMap[prop.name] =
+                            value.map { it?.shrink() }
+
                         is Float -> if (value != 0.0f) propertiesMap[prop.name] = value
                         is Short -> if (value != 0.toShort()) propertiesMap[prop.name] = value
                         is Byte -> if (value != 0.toByte()) propertiesMap[prop.name] = value
-                        is Char -> if (value != '\u0000') propertiesMap[prop.name] = value // '\u0000' is the null char
-                        is Set<*> -> if (value.isNotEmpty()) propertiesMap[prop.name] = value.map { it?.shrink() }
-                        is Map<*, *> -> if (value.isNotEmpty()) propertiesMap[prop.name] = value.mapValues { it.value?.shrink() }
+                        is Char -> if (value != '\u0000') propertiesMap[prop.name] =
+                            value // '\u0000' is the null char
+                        is Set<*> -> if (value.isNotEmpty()) propertiesMap[prop.name] =
+                            value.map { it?.shrink() }
+
+                        is Map<*, *> -> if (value.isNotEmpty()) propertiesMap[prop.name] =
+                            value.mapValues { it.value?.shrink() }
+
                         is Enum<*> -> propertiesMap[prop.name] = value.name
-                        is LatLng -> if (value.lat != 0.0 || value.lng != 0.0) propertiesMap[prop.name] = LatLng(value.lat , value.lng)
-                        else -> propertiesMap[prop.name] = value.shrink()
+                        else -> {
+                            try {
+                                if (value::class.java.name == "com.google.android.gms.maps.model.LatLng") {
+                                    val lat = value::class.java.getMethod("latitude").invoke(value)
+                                    val lng = value::class.java.getMethod("longitude").invoke(value)
+                                    if (lat != 0.0 || lng != 0.0) {
+                                        propertiesMap[prop.name] = mapOf("lat" to lat, "lng" to lng)
+                                    }
+                                } else {
+                                    propertiesMap[prop.name] = value.shrink()
+                                }
+                            } catch (e: Exception) {
+                                propertiesMap[prop.name] = value.shrink()
+                            }
+                        }
                     }
                 }
-
             }
         }
         return propertiesMap

@@ -76,7 +76,7 @@ object MyPermissionHelper {
         }
     }
 
-    fun FragmentActivity.requestPermissionReadImages(callback: (Boolean) -> Unit) {
+    fun FragmentActivity.requestPermissionReadImages(callback: (Boolean) -> Unit = {}) {
         val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             arrayOf(Manifest.permission.READ_MEDIA_IMAGES)
         } else {
@@ -91,6 +91,41 @@ object MyPermissionHelper {
                 Manifest.permission.READ_MEDIA_IMAGES,
                 Manifest.permission.READ_MEDIA_VIDEO,
                 Manifest.permission.READ_MEDIA_AUDIO
+            )
+        } else {
+            arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
+        }
+        requestPermission(permissions, callback)
+    }
+
+    fun FragmentActivity.requestPermissionReadVideos(callback: (Boolean) -> Unit = {}) {
+        val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            arrayOf(
+                Manifest.permission.READ_MEDIA_VIDEO,
+            )
+        } else {
+            arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
+        }
+        requestPermission(permissions, callback)
+    }
+
+
+
+    fun FragmentActivity.requestPermissionReadAudios(callback: (Boolean) -> Unit = {}) {
+        val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            arrayOf(
+                Manifest.permission.READ_MEDIA_AUDIO
+            )
+        } else {
+            arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
+        }
+        requestPermission(permissions, callback)
+    }
+
+    fun FragmentActivity.requestPermissionImages(callback: (Boolean) -> Unit = {}) {
+        val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            arrayOf(
+                Manifest.permission.READ_MEDIA_IMAGES,
             )
         } else {
             arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)

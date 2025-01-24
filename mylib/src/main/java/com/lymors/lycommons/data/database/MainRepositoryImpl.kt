@@ -129,6 +129,8 @@ class MainRepositoryImpl @Inject constructor(
     }
 
 
+
+
     override suspend fun <T : Any> uploadAnyModel(path: String, model: T): MyResult<String> {
         // Log the start of the method execution
 
@@ -262,8 +264,7 @@ class MainRepositoryImpl @Inject constructor(
         val results = mutableListOf<T>()
         keys.forEach { key ->
             try {
-                val snapshot = databaseReference.child(key).get()
-                    .await()  // Asynchronously get data using await
+                val snapshot = databaseReference.child(path).child(key).get().await()  // Asynchronously get data using await
                 snapshot.logT("getAllChildByKeys->snapshot", "firebase")
                 val value = snapshot.getValue(clazz)
                 if (value != null) {
