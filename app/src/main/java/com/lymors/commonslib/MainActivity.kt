@@ -92,7 +92,7 @@ class MainActivity : FragmentActivity() {
                         dialog.dismiss()
                     }
                     is MyResult.Error -> {
-                        showToast("Upload failed: ${result.msg}")
+                        showToast("Upload failed: ${result.message}")
                     }
                 }
             }

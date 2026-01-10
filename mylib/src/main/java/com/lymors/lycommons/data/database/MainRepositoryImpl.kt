@@ -53,11 +53,11 @@ class MainRepositoryImpl @Inject constructor(
     }
 
     private fun errorResult(op: String, path: String, e: DatabaseError): MyResult.Error {
-        val msg = e.message?.takeIf { it.isNotBlank() } ?: "Unknown error"
+        val message = e.message?.takeIf { it.isNotBlank() } ?: "Unknown error"
         val details = e.details?.takeIf { it.isNotBlank() }
         return MyResult.Error(
             buildString {
-                append("RTDB $op failed | path='$path' | code=${e.code} | message='$msg'")
+                append("RTDB $op failed | path='$path' | code=${e.code} | message='$message'")
                 if (details != null) append(" | details='$details'")
             }
         )
@@ -133,7 +133,7 @@ class MainRepositoryImpl @Inject constructor(
         clazz.simpleName.logT("clazz.simpleName" , "firebase")
         val pathResult = path.isValidPath()
         if (pathResult is MyResult.Error) {
-            trySend(MyResult.Error("Invalid path ($path): ${pathResult.msg}"))
+            trySend(MyResult.Error("Invalid path ($path): ${pathResult.message}"))
             close()
             return@callbackFlow
         }
@@ -333,7 +333,7 @@ class MainRepositoryImpl @Inject constructor(
     ): MyResult<List<T>> = withContext(Dispatchers.IO) {
         val pathResult = path.isValidPath()
         if (pathResult is MyResult.Error) {
-            return@withContext MyResult.Error("Invalid path ($path): ${pathResult.msg}")
+            return@withContext MyResult.Error("Invalid path ($path): ${pathResult.message}")
         }
         path.logT("getAllChildByKeys->path", "path")
 
@@ -367,7 +367,7 @@ class MainRepositoryImpl @Inject constructor(
     override fun <T : Any> collectAModel(path: String, clazz: Class<T>): Flow<MyResult<T>> = callbackFlow {
         val pathResult = path.isValidPath()
         if (pathResult is MyResult.Error){
-            trySend(MyResult.Error("Invalid path ($path): ${pathResult.msg}"))
+            trySend(MyResult.Error("Invalid path ($path): ${pathResult.message}"))
             close()
             return@callbackFlow
         }
@@ -419,7 +419,7 @@ class MainRepositoryImpl @Inject constructor(
     override suspend fun <T : Any> getAnyData(path: String, clazz: Class<T>): MyResult<T> {
         val pathResult = path.isValidPath()
         if (pathResult is MyResult.Error){
-            return MyResult.Error("Invalid path ($path): ${pathResult.msg}")
+            return MyResult.Error("Invalid path ($path): ${pathResult.message}")
         }
         path.logT("getAnyData->path", "path")
         return try {
@@ -440,7 +440,7 @@ class MainRepositoryImpl @Inject constructor(
     override suspend fun <T : Any> getDataList(path: String, clazz: Class<T>): MyResult<List<T>> {
         val pathResult = path.isValidPath()
         if (pathResult is MyResult.Error){
-            return MyResult.Error("Invalid path ($path): ${pathResult.msg}")
+            return MyResult.Error("Invalid path ($path): ${pathResult.message}")
         }
         path.logT("getDataList->path", "path")
         return try {
@@ -457,7 +457,7 @@ class MainRepositoryImpl @Inject constructor(
     override fun <T : Any> getModelsWithChildren(path: String, clazz: Class<T>): Flow<MyResult<List<T>>> = callbackFlow {
         val pathResult = path.isValidPath()
         if (pathResult is MyResult.Error){
-            trySend(MyResult.Error("Invalid path ($path): ${pathResult.msg}"))
+            trySend(MyResult.Error("Invalid path ($path): ${pathResult.message}"))
             close()
             return@callbackFlow
         }
@@ -552,7 +552,7 @@ class MainRepositoryImpl @Inject constructor(
     ): MyResult<T> {
         val pathResult = path.isValidPath()
         if (pathResult is MyResult.Error){
-            return MyResult.Error("Invalid path ($path): ${pathResult.msg}")
+            return MyResult.Error("Invalid path ($path): ${pathResult.message}")
         }
         path.logT("queryModelByAProperty->path", "path")
         return try {
@@ -578,7 +578,7 @@ class MainRepositoryImpl @Inject constructor(
     ): MyResult<List<T>> {
         val pathResult = path.isValidPath()
         if (pathResult is MyResult.Error){
-            return MyResult.Error("Invalid path ($path): ${pathResult.msg}")
+            return MyResult.Error("Invalid path ($path): ${pathResult.message}")
         }
         if (field.isBlank()) {
             return MyResult.Error("Field cannot be empty")
@@ -617,7 +617,7 @@ class MainRepositoryImpl @Inject constructor(
         path.logT("collectMap->path", "path")
         val pathResult = path.isValidPath()
         if (pathResult is MyResult.Error){
-            trySend(MyResult.Error("Invalid path ($path): ${pathResult.msg}"))
+            trySend(MyResult.Error("Invalid path ($path): ${pathResult.message}"))
             close()
             return@callbackFlow
         }

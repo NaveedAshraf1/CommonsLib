@@ -11,9 +11,9 @@ import android.widget.EditText
 import androidx.core.content.ContextCompat
 import com.google.firebase.messaging.FirebaseMessaging
 import com.lymors.lycommons.R
+import com.lymors.lycommons.extensions.ContextExtensions.showToast
 import com.lymors.lycommons.extensions.DataExtensions.toTime
 import com.lymors.lycommons.utils.MyExtensions.empty
-import com.lymors.lycommons.utils.MyExtensions.showToast
 import kotlinx.coroutines.tasks.await
 import java.net.Inet4Address
 import java.net.NetworkInterface
