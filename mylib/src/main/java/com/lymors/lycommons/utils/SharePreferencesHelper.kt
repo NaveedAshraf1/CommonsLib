@@ -2,10 +2,16 @@ package com.lymors.lycommons.utils
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.fragment.app.Fragment
 
 class SharedPreferencesHelper(context: Context) {
 
     companion object {
+        val Fragment.sharedPref:SharedPreferencesHelper
+            get() = SharedPreferencesHelper(requireActivity())
+        val Context.sharedPref:SharedPreferencesHelper
+            get() = SharedPreferencesHelper(this)
+
         private const val PREFS_NAME = "YourAppPrefs"
     }
 

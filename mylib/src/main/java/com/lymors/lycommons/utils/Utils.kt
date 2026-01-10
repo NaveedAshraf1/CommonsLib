@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.drawable.Drawable
@@ -48,12 +49,14 @@ import androidx.viewbinding.ViewBinding
 import androidx.viewpager.widget.PagerAdapter
 import androidx.viewpager.widget.ViewPager
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.firebase.messaging.FirebaseMessaging
 import com.lymors.lycommons.R
+import com.lymors.lycommons.extensions.DataExtensions.shrink
 import com.lymors.lycommons.extensions.ImageViewExtensions.loadImageFromUrl
-import com.lymors.lycommons.extensions.MyExtensions.empty
-import com.lymors.lycommons.extensions.MyExtensions.logT
-import com.lymors.lycommons.extensions.MyExtensions.showToast
-import com.lymors.lycommons.extensions.MyExtensions.shrink
+import com.lymors.lycommons.utils.MyExtensions.empty
+import com.lymors.lycommons.utils.MyExtensions.logT
+import com.lymors.lycommons.utils.MyExtensions.showToast
+import kotlinx.coroutines.tasks.await
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -68,18 +71,31 @@ import kotlin.reflect.KProperty
 import kotlin.reflect.full.memberProperties
 
 
-object MyLibs{
-    var packageName = "com.lymors.storewise"
-    fun  initilize(context: Context) {
-        if (packageName != context.packageName){
-            throw Exception("Not Authorized")
-        }
-    }
-
-}
 
 object Utils {
 
+
+    fun Uri.toBitmap( context: Activity): Bitmap? {
+        return try {
+            context.contentResolver.openInputStream(this)?.use { inputStream ->
+                BitmapFactory.decodeStream(inputStream)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+
+    }
+
+
+    suspend fun getFcmToken(): String? {
+        return try {
+            FirebaseMessaging.getInstance().token.await()  // Fetch the current FCM token
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null  // Return null if fetching fails
+        }
+    }
 
 
 
@@ -256,7 +272,7 @@ fun Any.allProperties(): List<String> {
     fun <B : ViewBinding> showCustomLayoutDialogFragment(
         activity: FragmentActivity,
         bindingInflater: (LayoutInflater, ViewGroup?, Boolean) -> B,
-        isCancelable: Boolean = true,
+        isCancelable: Boolean = false,
         gravity: Int = Gravity.CENTER,
         setupBinding: (B, DialogFragment) -> Unit
     ):GenericDialogFragment<B> {
@@ -265,11 +281,6 @@ fun Any.allProperties(): List<String> {
         dialog.show(activity.supportFragmentManager, "GenericDialogFragment")
         return dialog
     }
-
-    val Fragment.sharedPref:SharedPreferencesHelper
-        get() = SharedPreferencesHelper(requireActivity())
-    val Context.sharedPref:SharedPreferencesHelper
-        get() = SharedPreferencesHelper(this)
 
 
 
@@ -404,37 +415,6 @@ fun Any.allProperties(): List<String> {
         layoutParams = params
     }
 
-
-    fun shareMyApp(context: Context, subject: String?, message: String) {
-        try {
-            val appUrl = "https://play.google.com/store/apps/details?id=" + context.packageName
-            val i = Intent(Intent.ACTION_SEND)
-            i.setType("text/plain")
-            i.putExtra(Intent.EXTRA_SUBJECT, subject)
-            var leadingText = """
-            
-            $message
-            
-            
-            """.trimIndent()
-            leadingText += appUrl + "\n\n"
-            i.putExtra(Intent.EXTRA_TEXT, leadingText)
-            context.startActivity(Intent.createChooser(i, "Share using"))
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
-
-    fun sendEmail(context: Context, sendTo: Array<String?>?, subject: String?, body: String?) {
-        val intent = Intent(Intent.ACTION_SEND)
-        intent.setType("plain/text")
-        intent.putExtra(Intent.EXTRA_EMAIL, sendTo)
-        intent.putExtra(Intent.EXTRA_SUBJECT, subject)
-        intent.putExtra(Intent.EXTRA_TEXT, body)
-        if (intent.resolveActivity(context.packageManager) != null) {
-            context.startActivity(Intent.createChooser(intent, ""))
-        }
-    }
 
 
     fun showWithRevealAnimation(showView: View, hideView: View) {
@@ -694,6 +674,7 @@ fun Any.allProperties(): List<String> {
                 animation
             )
             this.adapter = adapter
+
         }
     }
 
@@ -745,158 +726,5 @@ fun Any.allProperties(): List<String> {
 //    class DataViewHolder<VB : ViewBinding>(val binding: VB) : RecyclerView.ViewHolder(binding.root)
 
 
-    /**
-     * this method sets the status bar color
-     */
-
-
-
-    fun Context.openActivity(activityClass: Class<*>) {
-        startActivity(Intent(this, activityClass))
-    }
-
-    fun View.convertToPdf(context: Context, pdfFileName: String): String? {
-        val pdfDocument = PdfDocument()
-
-        val width = this.width
-        val height = this.height
-
-        val pageInfo = PdfDocument.PageInfo.Builder(width, height, 1).create()
-        val page = pdfDocument.startPage(pageInfo)
-
-        val canvas = page.canvas
-        this.draw(canvas)
-
-        pdfDocument.finishPage(page)
-
-        val file = File(context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), pdfFileName)
-        try {
-            pdfDocument.writeTo(FileOutputStream(file))
-        } catch (e: IOException) {
-            e.printStackTrace()
-            return null
-        }
-        pdfDocument.close()
-//        val uri = addPdfToMediaStore(context, file.absolutePath, pdfFileName)
-        val uri = file.toUri()
-        return uri.toString()
-    }
-
-
-    fun View.convertToPdfA4(context: Context, pdfFileName: String): String? {
-        val pdfDocument = PdfDocument()
-
-        // A4 size in points (1 point = 1/72 inches)
-        val a4Width = 595
-        val a4Height = 842
-
-        // Create a bitmap from the view
-        val bitmap = Bitmap.createBitmap(this.width, this.height, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-        this.draw(canvas)
-
-        // Scale the bitmap to fit A4 size
-        val scaledBitmap = Bitmap.createScaledBitmap(bitmap, a4Width, a4Height, true)
-
-        val pageInfo = PdfDocument.PageInfo.Builder(a4Width, a4Height, 1).create()
-        val page = pdfDocument.startPage(pageInfo)
-
-        // Draw the scaled bitmap on the PDF page
-        val pdfCanvas = page.canvas
-        pdfCanvas.drawBitmap(scaledBitmap, 0f, 0f, null)
-
-        pdfDocument.finishPage(page)
-
-        val file = File(context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), pdfFileName)
-        try {
-            pdfDocument.writeTo(FileOutputStream(file))
-        } catch (e: IOException) {
-            e.printStackTrace()
-            return null
-        }
-        pdfDocument.close()
-
-        val uri = file.toUri()
-        return uri.toString()
-    }
-
-
-    fun Activity.hideSoftKeyboard() {
-        currentFocus?.let {
-            val inputMethodManager =
-                getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-            inputMethodManager.hideSoftInputFromWindow(it.windowToken, 0)
-        }
-    }
-
-
-
-    fun Activity.startNewTaskActivity(activityClass: Class<*>) {
-        val intent = Intent(this, activityClass)
-        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        startActivity(intent)
-    }
-
-    fun View.setClickListener(onClick: () -> Unit) {
-        setOnClickListener { onClick.invoke() }
-    }
-
-
-
-    fun Context.dpToPx(dp: Float): Int {
-        val scale = resources.displayMetrics.density
-        return (dp * scale + 0.5f).toInt()
-    }
-
-    fun View.fadeIn(duration: Long = 300) {
-        alpha = 0f
-        visibility = View.VISIBLE
-        animate().alpha(1f).setDuration(duration).start()
-    }
-
-    fun View.fadeOut(duration: Long = 300) {
-        animate().alpha(0f).setDuration(duration).withEndAction { visibility = View.GONE }.start()
-    }
-
-    fun Context.getVersionName(): String {
-        return try {
-            val packageInfo = packageManager.getPackageInfo(packageName, 0)
-            packageInfo.versionName
-        } catch (e: PackageManager.NameNotFoundException) {
-            ""
-        }
-    }
-
-    fun View.setPaddingRes(@DimenRes paddingRes: Int) {
-        val padding = resources.getDimensionPixelSize(paddingRes)
-        setPadding(padding, padding, padding, padding)
-    }
-
-    fun Activity.setTransparentStatusBar() {
-        WindowCompat.setDecorFitsSystemWindows(window, false)  // Recommended for new APIs
-        window.statusBarColor = Color.TRANSPARENT
-    }
-
-
-    fun View.rotate(degrees: Float) {
-        animate().rotation(degrees).setDuration(300).setInterpolator(
-            AccelerateDecelerateInterpolator()
-        )
-            .withEndAction { rotation = degrees }.start()
-    }
-
-    fun Activity.shareText(text: String, subject: String = "") {
-        val intent = Intent(Intent.ACTION_SEND)
-        intent.type = "text/plain"
-        intent.putExtra(Intent.EXTRA_TEXT, text)
-        intent.putExtra(Intent.EXTRA_SUBJECT, subject)
-        startActivity(Intent.createChooser(intent, "Share"))
-    }
-
-    fun Activity.launchDialer(phoneNumber: String) {
-        val intent = Intent(Intent.ACTION_DIAL)
-        intent.data = Uri.parse("tel:$phoneNumber")
-        startActivity(intent)
-    }
 
 }

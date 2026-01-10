@@ -34,13 +34,14 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestOptions
-import com.google.android.material.textfield.TextInputLayout
 import com.lymors.lycommons.R
 import com.lymors.lycommons.utils.FirebaseUploadWorker
-import com.lymors.lycommons.extensions.MyExtensions.logT
-import com.lymors.lycommons.extensions.MyExtensions.toBitmap
+import com.lymors.lycommons.utils.MyExtensions.logT
+import com.lymors.lycommons.utils.MyExtensions.toBitmap
 import com.lymors.lycommons.utils.Utils.saveImageToInternalStorage
 import java.io.File
 import java.io.FileOutputStream
@@ -108,32 +109,6 @@ object ImageViewExtensions {
     }
 
 
-    fun TextInputLayout.applyError(message: String = "This field is required") {
-        val errorColor = ContextCompat.getColorStateList(context, R.color.red)
-        this.apply {
-            error = message
-            isErrorEnabled = true
-            boxStrokeErrorColor = errorColor // Set error color
-        }
-    }
-
-
-
-    fun EditText.scrollByY(scrollView: ScrollView, byY: Int = 400) {
-        this.setOnFocusChangeListener { v, hasFocus ->
-            if (hasFocus) {
-                scrollView.scrollBy(0, byY)
-            }
-        }
-    }
-
-    fun ScrollView.scrollLittle(list: List<EditText>, byY: Int = 100) {
-        list.forEach {
-            it.scrollByY(this, byY)
-        }
-    }
-
-
     fun Bitmap?.orEmpty(
         defaultValue: Bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888)
     ): Bitmap = this ?: defaultValue
@@ -151,6 +126,7 @@ object ImageViewExtensions {
                 .placeholder(placeHolder)
                 .error(error)
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .transition(DrawableTransitionOptions.withCrossFade())
                 .into(this)
         }else{
             Glide.with(this.context)
@@ -158,6 +134,57 @@ object ImageViewExtensions {
         }
     }
 
+    // New: load from Uri safely
+    fun ImageView.loadImage(uri: Uri?, placeHolder: Int = R.drawable.placeholder, error: Int = R.drawable.placeholder) {
+        if (uri == null) {
+            setImageResource(placeHolder)
+            return
+        }
+        Glide.with(context)
+            .load(uri)
+            .placeholder(placeHolder)
+            .error(error)
+            .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
+            .transition(DrawableTransitionOptions.withCrossFade())
+            .into(this)
+    }
+
+    // New: load from File safely
+    fun ImageView.loadImage(file: File?, placeHolder: Int = R.drawable.placeholder, error: Int = R.drawable.placeholder) {
+        if (file == null || !file.exists()) {
+            setImageResource(placeHolder)
+            return
+        }
+        Glide.with(context)
+            .load(file)
+            .placeholder(placeHolder)
+            .error(error)
+            .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
+            .transition(DrawableTransitionOptions.withCrossFade())
+            .into(this)
+    }
+
+    // New: load GIF
+    fun ImageView.loadGif(url: String, placeHolder: Int = R.drawable.placeholder, error: Int = R.drawable.placeholder) {
+        Glide.with(context)
+            .asGif()
+            .load(url)
+            .placeholder(placeHolder)
+            .error(error)
+            .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
+            .into(this)
+    }
+
+    // New: load with thumbnail
+    fun ImageView.loadImageWithThumbnail(url: String, thumbnailUrl: String, placeHolder: Int = R.drawable.placeholder) {
+        Glide.with(context)
+            .load(url)
+            .thumbnail(Glide.with(context).load(thumbnailUrl))
+            .placeholder(placeHolder)
+            .transition(DrawableTransitionOptions.withCrossFade())
+            .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
+            .into(this)
+    }
 
     fun ImageView.loadImageFromResource(resourceId: Int) {
         Glide.with(this.context)
@@ -196,7 +223,10 @@ object ImageViewExtensions {
 
     fun ImageView.loadThumbnail(videoUrl: String, frame: Long = 2000) {
 
-        Glide.with(context).setDefaultRequestOptions(RequestOptions().frame(frame)).load(videoUrl)
+        Glide.with(context)
+            .setDefaultRequestOptions(RequestOptions().frame(frame))
+            .load(videoUrl)
+            .transition(DrawableTransitionOptions.withCrossFade())
             .into(this)
     }
 
@@ -212,11 +242,37 @@ object ImageViewExtensions {
             .into(this)
     }
 
+    // New: overload with optional border simulation via padding/background
+    fun ImageView.loadCircularImage(url: String, placeholderResId: Int, borderColor: Int? = null, borderWidth: Int = 0) {
+        Glide.with(context)
+            .load(url)
+            .apply(RequestOptions.circleCropTransform())
+            .placeholder(placeholderResId)
+            .transition(DrawableTransitionOptions.withCrossFade())
+            .into(this)
+        if (borderColor != null && borderWidth > 0) {
+            this.setPadding(borderWidth, borderWidth, borderWidth, borderWidth)
+            this.setBackgroundColor(borderColor)
+        }
+    }
+
 
     fun ImageView.loadResizedImage(url: String, width: Int, height: Int) {
         Glide.with(context)
             .load(url)
             .override(width, height)
+            .into(this)
+    }
+
+    // New: rounded corners with CenterCrop
+    fun ImageView.loadRoundedImage(url: String, cornerRadius: Int, placeHolder: Int = R.drawable.placeholder, error: Int = R.drawable.placeholder) {
+        Glide.with(context)
+            .load(url)
+            .apply(RequestOptions().transform(CenterCrop(), RoundedCorners(cornerRadius)))
+            .placeholder(placeHolder)
+            .error(error)
+            .transition(DrawableTransitionOptions.withCrossFade())
+            .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
             .into(this)
     }
 
@@ -321,5 +377,35 @@ object ImageViewExtensions {
         }
 
         return file
+    }
+
+    // New: clear image and Glide target
+    fun ImageView.clearImage() {
+        Glide.with(context).clear(this)
+        setImageDrawable(null)
+    }
+
+    // New: helper to auto hide when url empty
+    fun ImageView.loadOrGone(url: String?, placeHolder: Int = R.drawable.placeholder) {
+        if (url.isNullOrEmpty()) {
+            this.setImageResource(placeHolder)
+            this.gone()
+            return
+        }
+        this.visible()
+        loadImageFromUrl(url, placeHolder, placeHolder)
+    }
+
+    fun ImageView.visible() {
+        this.visibility = android.view.View.VISIBLE
+    }
+
+    fun ImageView.gone() {
+        this.visibility = android.view.View.GONE
+    }
+
+    // New: preload image into cache
+    fun Context.preloadImage(url: String) {
+        Glide.with(this).load(url).diskCacheStrategy(DiskCacheStrategy.ALL).preload()
     }
 }

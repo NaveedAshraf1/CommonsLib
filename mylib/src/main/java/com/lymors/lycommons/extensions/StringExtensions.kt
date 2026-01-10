@@ -19,7 +19,6 @@ import com.google.zxing.BarcodeFormat
 import com.google.zxing.MultiFormatWriter
 import com.google.zxing.WriterException
 import com.google.zxing.common.BitMatrix
-import com.lymors.lycommons.extensions.MyExtensions.empty
 import org.json.JSONArray
 import org.json.JSONObject
 import org.mariuszgromada.math.mxparser.Expression
@@ -41,6 +40,7 @@ import androidx.core.content.ContextCompat.startActivity
 import com.lymors.lycommons.R
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.util.zip.CRC32
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
 
@@ -96,18 +96,6 @@ object StringExtensions {
         return gzipInputStream.bufferedReader().readText()
     }
 
-
-
-    fun String.copyToClipboard(context: Context) {
-        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        val clip = ClipData.newPlainText("copy", this)
-        clipboard.setPrimaryClip(clip)
-        Toast.makeText(context, "Text copied to clipboard", Toast.LENGTH_SHORT).show()
-        }
-
-
-    fun String.isNumber() =
-        String.empty() != this && Pattern.compile("^[0-9]*$").matcher(this).matches()
 
 
     private const val ALGORITHM = "AES"
@@ -358,12 +346,14 @@ object StringExtensions {
         context.startActivity(Intent.createChooser(shareIntent, "Share image via"))
     }
 
-    fun String.showInToast(context: Context, duration: Int = Toast.LENGTH_SHORT) {
-        Toast.makeText(context, this, duration).show()
+    fun String.toHashNumber(): Int {
+        val crc = CRC32()
+        crc.update(this.toByteArray())
+        return crc.value.toInt() // Convert to 32-bit integer
     }
 
     lateinit var tts: TextToSpeech
-    fun String.textToSpeak(context: Context) {
+    fun String.textToSpeech(context: Context) {
         val text = this
 
         // Check if the TTS engine is available
@@ -385,5 +375,4 @@ object StringExtensions {
             }
         }
     }
-
-}
+    }

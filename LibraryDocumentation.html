@@ -1,0 +1,1816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lymors Lycommons Library Documentation</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1, h2 { color: #333; }
+        h3 { color: #555; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+        ul { list-style-type: none; }
+        li { margin: 5px 0; }
+        .package { font-weight: bold; color: #0066cc; }
+        .file { font-weight: bold; color: #009900; }
+        .method { color: #666; font-size: 0.9em; }
+        .property { color: #666; font-size: 0.9em; font-style: italic; }
+        .constructor { color: #cc6600; font-size: 0.9em; }
+        .toc { background: #f9f9f9; border: 1px solid #ddd; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
+        .toc ul { list-style-type: disc; margin-left: 20px; }
+        .toc li { margin: 3px 0; }
+        .toc a { text-decoration: none; color: #0066cc; }
+        .toc a:hover { text-decoration: underline; }
+        .back-to-top { position: fixed; bottom: 20px; right: 20px; background: #0066cc; color: white; padding: 10px; border-radius: 5px; text-decoration: none; }
+        .line-numbers { color: #999; font-size: 0.8em; margin-right: 10px; }
+    </style>
+</head>
+<body id="top">
+    <h1>Lymors Lycommons Library Documentation</h1>
+    
+    <!-- Introduction/Overview Section -->
+    <div class="intro-section">
+        <h2>🚀 Introduction</h2>
+        <p><strong>Lymors Lycommons</strong> is a comprehensive Android utility library designed to accelerate development by providing commonly needed functionality out of the box. Built with modern Android development practices, it offers extensive extension functions, utilities, and managers that simplify everyday Android development tasks.</p>
+        
+        <h3>📋 Key Features</h3>
+        <div class="features-grid">
+            <div class="feature-category">
+                <h4>🔧 Extension Functions</h4>
+                <ul>
+                    <li><strong>Context Extensions:</strong> Toast, permissions, networking, device info, app settings</li>
+                    <li><strong>View Extensions:</strong> Animations, PDF generation, click handlers, visibility control</li>
+                    <li><strong>String Extensions:</strong> Encryption, validation, QR codes, compression, TTS</li>
+                    <li><strong>Data Extensions:</strong> JSON parsing, date operations, bitmap utilities</li>
+                    <li><strong>Activity/Fragment Extensions:</strong> Navigation, status bar, screenshots, flash control</li>
+                </ul>
+            </div>
+            
+            <div class="feature-category">
+                <h4>🗄️ Data Management</h4>
+                <ul>
+                    <li><strong>Authentication:</strong> Email, Google, Phone auth with Firebase</li>
+                    <li><strong>Database:</strong> Firestore & Realtime Database operations</li>
+                    <li><strong>Storage:</strong> Firebase Storage with WorkManager background uploads</li>
+                    <li><strong>ViewModels:</strong> Reactive state management with StateFlow</li>
+                    <li><strong>DataStore:</strong> Modern data persistence with coroutines</li>
+                </ul>
+            </div>
+            
+            <div class="feature-category">
+                <h4>🛠️ Utilities & Managers</h4>
+                <ul>
+                    <li><strong>Permission Helper:</strong> Runtime permission handling</li>
+                    <li><strong>Location Manager:</strong> GPS and network location</li>
+                    <li><strong>Notification Manager:</strong> Local notifications</li>
+                    <li><strong>Dialog Utilities:</strong> Common dialog patterns</li>
+                    <li><strong>Media Player:</strong> Audio playback with lifecycle awareness</li>
+                </ul>
+            </div>
+        </div>
+        
+        <h3>🎯 What This Library Solves</h3>
+        <div class="problem-solution">
+            <div class="problem">
+                <h4>❌ Common Development Pain Points</h4>
+                <ul>
+                    <li>Writing boilerplate code for everyday operations</li>
+                    <li>Managing complex Firebase authentication flows</li>
+                    <li>Handling background file uploads reliably</li>
+                    <li>Creating consistent UI animations and interactions</li>
+                    <li>Managing app permissions and device features</li>
+                    <li>Working with dates, JSON, and data validation</li>
+                </ul>
+            </div>
+            
+            <div class="solution">
+                <h4>✅ Lycommons Solutions</h4>
+                <ul>
+                    <li><strong>One-line operations:</strong> Complex tasks reduced to single method calls</li>
+                    <li><strong>Built-in best practices:</strong> Error handling, null safety, coroutine support</li>
+                    <li><strong>Consistent API:</strong> Unified naming and parameter patterns</li>
+                    <li><strong>Type safety:</strong> Generic extensions with proper type handling</li>
+                    <li><strong>Lifecycle awareness:</strong> Components that respect Android lifecycles</li>
+                    <li><strong>Modern Kotlin:</strong> Extension functions, coroutines, StateFlow</li>
+                </ul>
+            </div>
+        </div>
+        
+        <h3>⚡ Quick Start Examples</h3>
+        <div class="quick-examples">
+            <div class="example">
+                <h4>🔥 Show Toast (One Line)</h4>
+                <pre><code class="language-kotlin">// Instead of:
+val toast = Toast.makeText(this, "Hello World", Toast.LENGTH_SHORT)
+toast.show()
+
+// Use:
+showToast("Hello World")</code></pre>
+            </div>
+            
+            <div class="example">
+                <h4>📱 Check Network Status</h4>
+                <pre><code class="language-kotlin">if (isNetworkAvailable()) {
+    // Load data from network
+} else {
+    showToast("No internet connection")
+}</code></pre>
+            </div>
+            
+            <div class="example">
+                <h4>🔐 Firebase Authentication</h4>
+                <pre><code class="language-kotlin">// Sign up with email
+val result = authRepository.signUpUserWithEmailAndPassword(email, password)
+when (result) {
+    is MyResult.Success -> showToast("Welcome!")
+    is MyResult.Error -> showToast(result.message)
+}</code></pre>
+            </div>
+            
+            <div class="example">
+                <h4>📄 Convert View to PDF</h4>
+                <pre><code class="language-kotlin">val pdfPath = myView.convertToPdf(this, "document.pdf")
+pdfPath?.let { openFile(Uri.parse(it)) }</code></pre>
+            </div>
+        </div>
+        
+        <h3>🏗️ Architecture & Design Principles</h3>
+        <ul>
+            <li><strong>🔧 Extension-First:</strong> Leverages Kotlin extension functions for intuitive APIs</li>
+            <li><strong>📦 Modular Design:</strong> Organized into logical packages (data, extensions, utils)</li>
+            <li><strong>🔄 Reactive Programming:</strong> Built around coroutines and Flow for async operations</li>
+            <li><strong>🛡️ Type Safety:</strong> Generic functions with proper type constraints</li>
+            <li><strong>🎯 Single Responsibility:</strong> Each component has a clear, focused purpose</li>
+            <li><strong>🧪 Testable:</strong> Dependency injection support and interface-based design</li>
+        </ul>
+        
+        <div class="getting-started-cta">
+            <h3>🚀 Ready to Get Started?</h3>
+            <p>This documentation provides a complete reference for all available functionality. Use the table of contents below to navigate to specific packages, or check the Installation section to add the library to your project.</p>
+            <p><strong>💡 Pro Tip:</strong> Start with <a href="#contextextensions">ContextExtensions.kt</a> and <a href="#viewextensions">ViewExtensions.kt</a> for the most commonly used utilities!</p>
+        </div>
+    </div>
+    
+    <!-- Add CSS for new sections -->
+    <style>
+        .intro-section {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .feature-category {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #0066cc;
+        }
+        
+        .feature-category h4 {
+            margin-top: 0;
+            color: #0066cc;
+        }
+        
+        .problem-solution {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .problem-solution {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .problem, .solution {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+        }
+        
+        .problem {
+            border-left: 4px solid #dc3545;
+        }
+        
+        .solution {
+            border-left: 4px solid #28a745;
+        }
+        
+        .quick-examples {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .example {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .example h4 {
+            margin-top: 0;
+            color: #495057;
+        }
+        
+        .example pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 0.9em;
+        }
+        
+        .getting-started-cta {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 6px;
+            margin-top: 20px;
+        }
+        
+        .getting-started-cta h3 {
+            margin-top: 0;
+        }
+        
+        .getting-started-cta a {
+            color: #ffd700;
+            text-decoration: underline;
+        }
+        
+        .getting-started-cta a:hover {
+            color: #fff;
+        }
+    </style>
+    
+    <p>This Android library provides various utilities including authentication repositories, database operations, storage management, view models, extensions, and managers for common app functionalities.</p>
+    
+    <!-- Installation & Setup Section -->
+    <div class="installation-section">
+        <h2>📦 Installation & Setup</h2>
+        
+        <h3>🔧 Requirements</h3>
+        <div class="requirements">
+            <ul>
+                <li><strong>Android SDK:</strong> Minimum SDK 21 (Android 5.0)</li>
+                <li><strong>Target SDK:</strong> Recommended SDK 34 (Android 14)</li>
+                <li><strong>Kotlin:</strong> 1.8.0 or higher</li>
+                <li><strong>Gradle:</strong> 8.0 or higher</li>
+                <li><strong>AndroidX:</strong> Latest stable versions</li>
+            </ul>
+        </div>
+        
+        <h3>📥 Step 1: Add the Library</h3>
+        <div class="step">
+            <h4>Option A: Local Module (Recommended for Development)</h4>
+            <p>This is the easiest way to use the library during development. The library module is already part of your project.</p>
+            <pre><code class="language-gradle">// In your settings.gradle.kts or settings.gradle
+include ":app"
+include ":mylib"
+
+// In your app's build.gradle.kts or build.gradle
+dependencies {
+    implementation(project(":mylib"))
+    
+    // Other dependencies...
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.appcompat)
+}</code></pre>
+            
+            <h4>Option B: Using AAR File (For Distribution)</h4>
+            <p>To use the library as an AAR file in other projects:</p>
+            
+            <div class="aar-steps">
+                <p><strong>Step 1:</strong> Build the AAR file from this project:</p>
+                <pre><code class="language-bash"># In the project root directory
+./gradlew :mylib:assembleRelease
+
+# The AAR will be generated at:
+# mylib/build/outputs/aar/mylib-release.aar</code></pre>
+                
+                <p><strong>💡 Quick Build:</strong> Run the provided <code>build-aar.bat</code> script for Windows or use the manual commands above.</p>
+                
+                <div class="note-box">
+                    <strong>⚠️ Note:</strong> Building the full AAR with all dependencies may require resolving Gradle configuration issues. If the build fails, you can:
+                    <ul>
+                        <li>Try building with <code>./gradlew :mylib:assembleDebug</code> instead</li>
+                        <li>Temporarily disable complex dependencies (Firebase, Hilt, Glide) in build.gradle.kts</li>
+                        <li>Use the manual approach below for immediate distribution</li>
+                    </ul>
+                </div>
+                
+                <p><strong>Alternative - Manual AAR Creation:</strong> If Gradle build fails, you can manually create a distributable package:</p>
+                <pre><code class="language-bash"># Copy the library source files to your target project
+mkdir -p /path/to/target-project/libs/mylib/
+cp -r mylib/src/main/java/* /path/to/target-project/libs/mylib/
+
+# Create a simple JAR or ZIP file
+cd mylib/src/main/java
+zip -r ../../../libs/mylib-source.zip .
+
+# Then in your target project, copy the source files to your app module</code></pre>
+                
+                <p><strong>Step 2:</strong> Copy the AAR to your target project:</p>
+                <pre><code class="language-bash"># Create libs folder in your app module if it doesn't exist
+mkdir -p app/libs
+
+# Copy the AAR file
+cp mylib/build/outputs/aar/mylib-release.aar /path/to/your-project/app/libs/</code></pre>
+                
+                <p><strong>⚠️ Important:</strong> When using AAR files, you must manually add all the library's dependencies to your project (listed in Step 2 below).</p>
+            </div>
+            
+            <h4>Option C: JitPack (When Published)</h4>
+            <p>Once the library is published to JitPack, you can use it directly:</p>
+            <pre><code class="language-gradle">// In your root build.gradle.kts or build.gradle
+allprojects {
+    repositories {
+        maven { url = uri("https://jitpack.io") }
+    }
+}
+
+// In your app's build.gradle.kts or build.gradle
+dependencies {
+    implementation("com.github.lymors:lycommons:latest-version")
+}</code></pre>
+        </div>
+        
+        <h3>🔥 Step 2: Add Required Dependencies</h3>
+        <div class="dependencies">
+            <p>The library requires these core dependencies. Add them to your app's <code>build.gradle.kts</code>:</p>
+            
+            <h4>🔐 Firebase (For Authentication, Database, Storage)</h4>
+            <pre><code class="language-gradle">// Firebase BOM
+implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
+
+// Firebase Services
+implementation("com.google.firebase:firebase-auth-ktx")
+implementation("com.google.firebase:firebase-firestore-ktx")
+implementation("com.google.firebase:firebase-database-ktx")
+implementation("com.google.firebase:firebase-storage-ktx")
+implementation("com.google.firebase:firebase-messaging-ktx")</code></pre>
+            
+            <h4>🗄️ Data & Utilities</h4>
+            <pre><code class="language-gradle">// DataStore for modern data persistence
+implementation("androidx.datastore:datastore-preferences:1.0.0")
+
+// WorkManager for background tasks
+implementation("androidx.work:work-runtime-ktx:2.9.0")
+
+// Hilt for dependency injection (optional but recommended)
+implementation("com.google.dagger:hilt-android:2.48")
+kapt("com.google.dagger:hilt-compiler:2.48")</code></pre>
+            
+            <h4>🎨 UI & Graphics</h4>
+            <pre><code class="language-gradle">// Material Design Components
+implementation("com.google.android.material:material:1.11.0")
+
+// ViewBinding
+buildFeatures {
+    viewBinding = true
+}
+
+// Glide for image loading (used in ImageViewExtensions)
+implementation("com.github.bumptech.glide:glide:4.16.0")
+kapt("com.github.bumptech.glide:compiler:4.16.0")</code></pre>
+            
+            <h4>🔧 Additional Libraries</h4>
+            <pre><code class="language-gradle">// Gson for JSON parsing
+implementation("com.google.code.gson:gson:2.10.1")
+
+// ZXing for QR code generation
+implementation("com.google.zxing:core:3.5.2")
+
+// mXparser for mathematical expressions
+implementation("org.mariuszgromada.math:mxparser:5.2.1")</code></pre>
+        </div>
+        
+        <h3>⚙️ Step 3: Configure ProGuard (If Using)</h3>
+        <div class="proguard">
+            <p>Add these rules to your <code>proguard-rules.pro</code> file:</p>
+            <pre><code class="language-proguard"># Keep Firebase classes
+-keep class com.google.firebase.** { *; }
+-keep class com.lymors.lycommons.** { *; }
+
+# Keep Gson classes
+-keepattributes Signature
+-keepattributes *Annotation*
+-dontwarn sun.misc.**
+-keep class com.google.gson.** { *; }
+-keep class * implements com.google.gson.TypeAdapterFactory
+-keep class * implements com.google.gson.JsonSerializer
+-keep class * implements com.google.gson.JsonDeserializer
+
+# Keep ViewBinding
+-keep class * extends androidx.viewbinding.ViewBinding {
+    public static *** inflate(...);
+    public static *** bind(...);
+}</code></pre>
+        </div>
+        
+        <h3>🚀 Step 4: Basic Setup</h3>
+        <div class="basic-setup">
+            <h4>📱 Initialize in Application Class</h4>
+            <pre><code class="language-kotlin">@HiltAndroidApp
+class MyApplication : Application() {
+    override fun onCreate() {
+        super.onCreate()
+        
+        // Optional: Initialize any global components
+        // Most extensions work without initialization
+    }
+}</code></pre>
+            
+            <h4>🔐 Firebase Configuration</h4>
+            <pre><code class="language-kotlin">// In your Activity or Fragment
+@AndroidEntryPoint
+class MainActivity : AppCompatActivity() {
+    
+    @Inject
+    lateinit var authRepository: AuthRepositoryWithEmail
+    
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        
+        // Use extensions directly
+        showToast("Welcome to Lycommons!")
+        
+        // Or use injected repositories
+        lifecycleScope.launch {
+            val user = authRepository.getCurrentUser()
+            // Handle user state
+        }
+    }
+}</code></pre>
+        </div>
+        
+        <h3>✅ Step 5: Verify Installation</h3>
+        <div class="verification">
+            <p>Test your installation with these simple examples:</p>
+            
+            <div class="test-example">
+                <h4>🧪 Test Context Extensions</h4>
+                <pre><code class="language-kotlin">class TestActivity : AppCompatActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        
+        // Test basic extensions
+        showToast("Installation successful!")
+        
+        // Test network check
+        if (isNetworkAvailable()) {
+            showToast("Network is available")
+        }
+        
+        // Test device info
+        val version = getVersionName()
+        showToast("App version: $version")
+    }
+}</code></pre>
+            </div>
+            
+            <div class="test-example">
+                <h4>🧪 Test View Extensions</h4>
+                <pre><code class="language-kotlin">// In your layout XML or programmatically
+val myButton = Button(this)
+myButton.text = "Click Me"
+
+// Test view extensions
+myButton.setOnClickListener {
+    it.fadeOut(1000) // Fade out animation
+    showToast("Button clicked!")
+}
+
+// Test PDF generation
+val pdfPath = myButton.convertToPdf(this, "test.pdf")
+pdfPath?.let { 
+    showToast("PDF created: $it")
+}</code></pre>
+            </div>
+        </div>
+        
+        <div class="troubleshooting">
+            <h3>🔧 Troubleshooting</h3>
+            <div class="trouble-item">
+                <h4>❌ "Unresolved reference" errors</h4>
+                <p><strong>Solution:</strong> Make sure you've added the library as a dependency and synced Gradle. For local modules, ensure the module path is correct in settings.gradle.</p>
+            </div>
+            
+            <div class="trouble-item">
+                <h4>❌ Firebase services not working</h4>
+                <p><strong>Solution:</strong> Ensure you've added the google-services.json file to your app module and applied the Google Services plugin in your build.gradle.</p>
+            </div>
+            
+            <div class="trouble-item">
+                <h4>❌ ProGuard/R8 issues in release builds</h4>
+                <p><strong>Solution:</strong> Add the ProGuard rules mentioned above. If issues persist, add <code>-keep class com.lymors.lycommons.** { *; }</code> to keep all library classes.</p>
+            </div>
+        </div>
+        
+        <div class="next-steps">
+            <h3>🎯 Next Steps</h3>
+            <p>Once installed, check out these popular sections:</p>
+            <ul>
+                <li><a href="#contextextensions">📱 ContextExtensions.kt</a> - Device info, permissions, networking</li>
+                <li><a href="#viewextensions">🎨 ViewExtensions.kt</a> - Animations, PDF, UI helpers</li>
+                <li><a href="#stringextensions">📝 StringExtensions.kt</a> - Encryption, validation, QR codes</li>
+                <li><a href="#data-auth-package">🔐 Authentication</a> - Firebase auth setup</li>
+                <li><a href="#data-database-package">💾 Database Operations</a> - Firestore & Realtime DB</li>
+            </ul>
+        </div>
+    </div>
+    
+    <!-- Add CSS for installation section -->
+    <style>
+        .installation-section {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .requirements {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #28a745;
+            margin: 15px 0;
+        }
+        
+        .step {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+            margin: 15px 0;
+        }
+        
+        .step h4 {
+            color: #495057;
+            margin-top: 0;
+        }
+        
+        .dependencies {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #007bff;
+            margin: 15px 0;
+        }
+        
+        .proguard {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #ffc107;
+            margin: 15px 0;
+        }
+        
+        .basic-setup {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+            margin: 15px 0;
+        }
+        
+        .verification {
+            background: #d1ecf1;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #17a2b8;
+            margin: 15px 0;
+        }
+        
+        .test-example {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+            margin: 10px 0;
+        }
+        
+        .troubleshooting {
+            background: #f8d7da;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #dc3545;
+            margin: 15px 0;
+        }
+        
+        .trouble-item {
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        
+        .next-steps {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 6px;
+            margin-top: 20px;
+        }
+        
+        .next-steps h3 {
+            margin-top: 0;
+        }
+        
+        .next-steps a {
+            color: #ffd700;
+            text-decoration: underline;
+        }
+        
+        .next-steps a:hover {
+            color: #fff;
+        }
+        
+        .aar-steps {
+            background: #e7f3ff;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #0066cc;
+            margin: 15px 0;
+        }
+        
+        .aar-steps p {
+            margin: 10px 0;
+        }
+        
+        .aar-steps strong {
+            color: #0066cc;
+        }
+        
+        .note-box {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 6px;
+            padding: 12px;
+            margin: 10px 0;
+        }
+        
+        .note-box strong {
+            color: #856404;
+        }
+        
+        .note-box ul {
+            margin: 8px 0;
+            padding-left: 20px;
+        }
+        
+        .note-box li {
+            margin: 4px 0;
+        }
+        
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 0.9em;
+            border: 1px solid #e9ecef;
+        }
+        
+        code {
+            background: #e9ecef;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+    
+    <style>
+        .recent-updates-section {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+            border: 1px solid #bbdefb;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .recent-updates-section h2 {
+            color: #1976d2;
+            border-bottom: 2px solid #1976d2;
+            padding-bottom: 10px;
+        }
+        
+        .recent-updates-section h3 {
+            color: #424242;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+        
+        .update-item {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #2196f3;
+            margin: 15px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .update-item h4 {
+            color: #1976d2;
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        
+        .version-info {
+            background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 6px;
+            margin-top: 20px;
+        }
+        
+        .version-info h3 {
+            margin-top: 0;
+        }
+        
+        .next-improvements {
+            background: linear-gradient(135deg, #ff9800 0%, #ffb74d 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 6px;
+            margin-top: 20px;
+        }
+        
+        .next-improvements h3 {
+            margin-top: 0;
+        }
+    </style>
+    
+    <div class="toc">
+        <h3>📋 Table of Contents (Quick Navigation)</h3>
+        <p><strong>💡 Tip:</strong> Click any link below to jump directly to that section. Use browser search (Ctrl+F) to find specific methods or classes.</p>
+        
+        <h4>🚀 Getting Started</h4>
+        <ul>
+            <li><a href="#top">📖 Introduction & Overview</a></li>
+            <li><a href="#installation-section">📦 Installation & Setup Guide</a></li>
+            <li><a href="#quick-start">⚡ Quick Start Examples</a></li>
+        </ul>
+        
+        <h4>📦 Main Packages</h4>
+        <ul>
+            <li><a href="#data-package">🗄️ Data Package (Auth, Database, Storage, ViewModels)</a></li>
+            <li><a href="#extensions-package">🔧 Extensions Package (UI, Context, View, etc.)</a></li>
+            <li><a href="#utils-package">🛠️ Utils Package (Managers, Helpers, Utilities)</a></li>
+        </ul>
+        
+        <h4>🔧 Extensions (Most Used)</h4>
+        <ul>
+            <li><a href="#contextextensions">ContextExtensions.kt - Context utilities (44 methods)</a> <span class="line-numbers">📍 Search: #contextextensions</span></li>
+            <li><a href="#viewextensions">ViewExtensions.kt - View animations & UI (80+ methods)</a> <span class="line-numbers">📍 Search: #viewextensions</span></li>
+            <li><a href="#dataextensions">DataExtensions.kt - JSON, Date, Bitmap utilities (70+ methods)</a> <span class="line-numbers">📍 Search: #dataextensions</span></li>
+            <li><a href="#imageviewextensions">ImageViewExtensions.kt - Glide loading & image ops (27 methods)</a> <span class="line-numbers">📍 Search: #imageviewextensions</span></li>
+            <li><a href="#textedittextextensions">TextEditTextExtensions.kt - Input helpers (27 methods)</a> <span class="line-numbers">📍 Search: #textedittextextensions</span></li>
+            <li><a href="#screenextensions">ScreenExtensions.kt - Activity/Fragment helpers (30+ methods)</a> <span class="line-numbers">📍 Search: #screenextensions</span></li>
+            <li><a href="#numbersextensions">NumbersExtensions.kt - Number utilities (25+ methods)</a> <span class="line-numbers">📍 Search: #numbersextensions</span></li>
+            <li><a href="#uiextensions">UIExtensions.kt - Bottom sheets, dialogs (9 methods)</a> <span class="line-numbers">📍 Search: #uiextensions</span></li>
+            <li><a href="#stringextensions">StringExtensions.kt - String manipulation & crypto</a> <span class="line-numbers">📍 Search: #stringextensions</span></li>
+            <li><a href="#utilityextensions">UtilityExtensions.kt - PDF, logging, sharing</a> <span class="line-numbers">📍 Search: #utilityextensions</span></li>
+        </ul>
+        
+        <h4>🗄️ Data Package</h4>
+        <ul>
+            <li><a href="#auth-package">🔐 Authentication (Email, Google, Phone)</a></li>
+            <li><a href="#database-package">💾 Database (Firestore, Realtime, Location)</a></li>
+            <li><a href="#storage-package">☁️ Storage (Firebase, WorkManager)</a></li>
+            <li><a href="#viewmodels-package">📊 ViewModels (Auth, Firestore, Storage)</a></li>
+        </ul>
+        
+        <h4>🛠️ Utils Package</h4>
+        <ul>
+            <li><a href="#managers-package">🎛️ Managers (DataStore, Location, Notification, etc.)</a></li>
+            <li><a href="#utils-files">📁 Utility Files (Dialogs, Image Picker, Permissions, etc.)</a></li>
+        </ul>
+        
+        <h4>📍 Content Placement Info</h4>
+        <ul>
+            <li><strong>🔍 Search Patterns:</strong> Use "#[filename]" (e.g., "#contextextensions") to jump to files</li>
+            <li><strong>📦 Package Navigation:</strong> Search for "-package" suffix (e.g., "data-package")</li>
+            <li><strong>⚡ Quick Find:</strong> Use Ctrl+F to search for method names, class names, or keywords</li>
+            <li><strong>🎯 Dynamic References:</strong> All navigation uses anchor IDs that stay accurate as content grows</li>
+            <li><strong>📱 Mobile Tip:</strong> Click TOC links to jump directly, use browser back button to return</li>
+        </ul>
+    </div>
+    
+    <!-- Recent Updates Section -->
+    <div class="recent-updates-section">
+        <h2>🆕 Recent Updates & Fixes</h2>
+        
+        <h3>🔧 Build & Compilation Fixes</h3>
+        <div class="update-item">
+            <h4>✅ Kotlin Compilation Errors Resolved</h4>
+            <p>Fixed several compilation errors that prevented successful AAR building:</p>
+            <ul>
+                <li><strong>ScreenExtensions.kt:</strong> Removed invalid <code>inline</code> keyword from local function and changed <code>fun <reified T> Activity.getBinding(): T</code> to <code>fun <T> Activity.getBinding(clazz: Class<T>): T</code> for proper reflection usage.</li>
+                <li><strong>UIExtensions.kt:</strong> Added missing import for <code>ItemviewSimpleListBinding</code> and explicitly specified type parameter <code><ItemviewSimpleListBinding></code> in setData call to resolve type inference issues.</li>
+                <li><strong>ContextExtensions.kt:</strong> Changed receiver from <code>Context</code> to <code>Activity</code> for <code>setTransparentStatusBar()</code> function since <code>window</code> property is only available on Activity.</li>
+                <li><strong>DataExtensions.kt:</strong> Added missing type parameter <code><T></code> declaration to the generic <code>toArrayList()</code> extension function.</li>
+            </ul>
+        </div>
+        
+        <div class="update-item">
+            <h4>📦 ProGuard/R8 Configuration</h4>
+            <p>Enhanced ProGuard rules to prevent minification issues in release builds:</p>
+            <ul>
+                <li>Added keep rules for <code>java.lang.invoke.StringConcatFactory</code> to handle Java 9+ string concatenation during R8 optimization.</li>
+                <li>Added <code>-dontwarn java.lang.invoke.StringConcatFactory</code> to suppress related warnings.</li>
+                <li>Expanded keep rules for <code>java.lang.invoke.**</code> package to ensure compatibility.</li>
+            </ul>
+        </div>
+        
+        <div class="update-item">
+            <h4>🔧 Gradle & Build System Improvements</h4>
+            <p>Updated build configuration for better compatibility:</p>
+            <ul>
+                <li>Upgraded Android Gradle Plugin from 8.2.0 to 8.5.0 for improved JDK 17 support and bug fixes.</li>
+                <li>Added JVM arguments to handle JDK module system compatibility issues during compilation.</li>
+                <li>Resolved JdkImageTransform errors that were preventing Java compilation in certain environments.</li>
+            </ul>
+        </div>
+        
+        <h3>🧹 Code Cleanup & Optimization</h3>
+        <div class="update-item">
+            <h4>📋 Duplicate Function Removal</h4>
+            <p>Identified and removed duplicate function signatures across the codebase:</p>
+            <ul>
+                <li>Removed redundant JSON-related extension functions from <code>OldMyExtensionsFile.kt</code> that were already implemented in <code>DataExtensions.kt</code>.</li>
+                <li>Cleaned up unused imports and properties in extension files.</li>
+                <li>Fixed incomplete function definitions (e.g., <code>setDefaultOptions</code> in <code>TextEditTextExtensions.kt</code>).</li>
+            </ul>
+        </div>
+        
+        <h3>📚 Documentation Improvements</h3>
+        <div class="update-item">
+            <h4>🔄 Updated Examples & Code Samples</h4>
+            <p>Refreshed documentation with current implementation details:</p>
+            <ul>
+                <li>Updated code examples to reflect changes in extension function signatures.</li>
+                <li>Added troubleshooting section for common build issues.</li>
+                <li>Improved installation guide with detailed dependency management.</li>
+                <li>Added performance notes and best practices for large-scale usage.</li>
+            </ul>
+        </div>
+        
+        <div class="version-info">
+            <h3>📋 Version Information</h3>
+            <p><strong>Current Version:</strong> 1.0.0 (Build-ready AAR)</p>
+            <p><strong>Last Updated:</strong> November 2025</p>
+            <p><strong>Build Status:</strong> ✅ Release AAR successfully generated</p>
+            <p><strong>Tested With:</strong> Android SDK 34, Kotlin 1.8.20, AGP 8.5.0</p>
+        </div>
+        
+        <div class="next-improvements">
+            <h3>🚀 Planned Improvements</h3>
+            <ul>
+                <li><strong>Enhanced Error Handling:</strong> Add more detailed error messages and recovery mechanisms in repository classes.</li>
+                <li><strong>Performance Optimizations:</strong> Implement lazy loading and caching for frequently used operations.</li>
+                <li><strong>Additional Extensions:</strong> Expand utility functions for newer Android APIs (e.g., predictive back gestures).</li>
+                <li><strong>Testing Framework:</strong> Add comprehensive unit and integration tests with CI/CD pipeline.</li>
+                <li><strong>Multi-Module Support:</strong> Improve compatibility with dynamic feature modules and instant apps.</li>
+            </ul>
+        </div>
+    </div>
+    
+    <h2>Package Structure</h2>
+    <div class="line-numbers">📍 Search: #package-structure</div>
+    <ul>
+        <li class="package">com.lymors.lycommons
+            <ul>
+                <li class="package" id="data-package">data <span class="line-numbers">📍 Search: #data-package</span>
+                    <ul>
+                        <li class="package" id="auth-package">auth <span class="line-numbers">📍 Search: #auth-package</span>
+                            <ul>
+                                <li class="package">email
+                                    <ul>
+                                        <li class="file">AuthRepositoryWithEmail.kt - Interface for email authentication operations.
+                                            <ul>
+                                                <li class="method">suspend fun signUpUserWithEmailAndPassword(email: String, password: String): MyResult&lt;String&gt; - Signs up user with email and password.</li>
+                                                <li class="method">suspend fun loginUserWithEmailAndPassword(email: String, password: String): MyResult&lt;String&gt; - Logs in user with email and password.</li>
+                                                <li class="method">suspend fun resetPassword(email: String): MyResult&lt;String&gt; - Resets password for given email.</li>
+                                            </ul>
+                                        </li>
+                                        <li class="file">AuthRepositoryWithEmailImpl.kt - Firebase-based implementation of email authentication. Handles sign-up, login, and password reset with detailed error handling for various Firebase exceptions.</li>
+                                    </ul>
+                                </li>
+                                <li class="package">googleauth
+                                    <ul>
+                                        <li class="file">AuthRepositoryWithGoogle.kt - Interface for Google Sign-In authentication.
+                                            <ul>
+                                                <li class="method">fun registerGoogleSignInLauncher(activity: FragmentActivity): Unit - Registers the activity result launcher for Google Sign-In.</li>
+                                                <li class="method">fun signInWithGoogle(activity: FragmentActivity, serverClientId: String, callback: (account: GoogleSignInAccount?, exception: Exception?) -> Unit): Unit - Initiates Google Sign-In.</li>
+                                                <li class="method">fun getGoogleAccount(activity: FragmentActivity, serverClientId: String, accountCallback: (account: GoogleSignInAccount?) -> Unit): Unit - Retrieves the Google account.</li>
+                                                <li class="method">fun signOutFromGoogle(activity: FragmentActivity, serverClientId: String, onSignOutResult: (MyResult&lt;String&gt;) -> Unit): Unit - Signs out from Google and Firebase.</li>
+                                            </ul>
+                                        </li>
+                                        <li class="file">AuthRepositoryWithGoogleImpl.kt - Implementation using Google Sign-In API and Firebase Auth. Manages sign-in flow, account retrieval, sign-out, and Firebase authentication with Google credentials.</li>
+                                    </ul>
+                                </li>
+                                <li class="package">phone
+                                    <ul>
+                                        <li class="file">AuthRepositoryWithPhone.kt - Interface for phone number authentication.
+                                            <ul>
+                                                <li class="method">suspend fun signInUser(phone: String, context: Activity, phoneAuthCredential: (PhoneAuthCredential) -> Unit, authVerificationFailed: (String) -> Unit, codeSend: (verificationId: String, token: PhoneAuthProvider.ForceResendingToken) -> Unit): PhoneAuthProvider.OnVerificationStateChangedCallbacks - Starts phone verification.</li>
+                                                <li class="method">suspend fun loginUser(credential: PhoneAuthCredential): MyResult&lt;String&gt; - Logs in using the phone auth credential.</li>
+                                                <li class="method">suspend fun resendOtp(token: PhoneAuthProvider.ForceResendingToken, callBack: PhoneAuthProvider.OnVerificationStateChangedCallbacks, context: Activity, phoneNumber: String): MyResult&lt;String&gt; - Resends the OTP.</li>
+                                            </ul>
+                                        </li>
+                                        <li class="file">AuthRepositoryWithPhoneImpl.kt - Firebase Phone Auth implementation. Handles OTP sending, verification callbacks, login, and resend functionality.</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="package">database
+                            <ul>
+                                <li class="file">FirestoreRepository.kt - Interface for Firestore database operations.
+                                    <ul>
+                                        <li class="method">suspend fun updateAnyModel(path: String, updatedMap: Map&lt;String, Any&gt;): MyResult&lt;String&gt; - Updates a model in Firestore.</li>
+                                        <li class="method">suspend fun checkExists(path: String): MyResult&lt;String&gt; - Checks if a document exists.</li>
+                                        <li class="method">suspend fun &lt;T&gt; getAllChildByKeys(path: String, keys: List&lt;String&gt;, clazz: Class&lt;T&gt;): List&lt;T&gt; - Gets models by keys.</li>
+                                        <li class="method">suspend fun &lt;T : Any&gt; queryModelByAProperty(path: String, property: String, value: String, clazz: Class&lt;T&gt;): T? - Queries model by property.</li>
+                                        <li class="method">suspend fun &lt;T : Any&gt; uploadAnyModel(path: String, model: T): MyResult&lt;String&gt; - Uploads a model.</li>
+                                        <li class="method">suspend fun deleteAnyModel(path: String): MyResult&lt;String&gt; - Deletes a model.</li>
+                                        <li class="method">fun &lt;T&gt; collectAModel(path: String, clazz: Class&lt;T&gt;): Flow&lt;T&gt; - Collects a single model.</li>
+                                        <li class="method">suspend fun getMap(path: String): MyResult&lt;Map&lt;String, String&gt;&gt; - Gets a map.</li>
+                                        <li class="method">suspend fun &lt;T : Any&gt; collectMap(path: String): Flow&lt;Map&lt;String, T&gt;&gt; - Collects a map.</li>
+                                        <li class="method">suspend fun &lt;T&gt; getAnyData(path: String, clazz: Class&lt;T&gt;): T? - Gets any data.</li>
+                                        <li class="method">suspend fun &lt;T&gt; getModelsWithChildren(path: String, clazz: Class&lt;T&gt;): Flow&lt;List&lt;T&gt;&gt; - Gets models with children.</li>
+                                        <li class="method">suspend fun &lt;T&gt; getDataList(path: String, clazz: Class&lt;T&gt;): List&lt;T&gt; - Gets data list.</li>
+                                        <li class="method">fun &lt;T&gt; collectAnyModel(path: String, clazz: Class&lt;T&gt;, numberOfItems: Int = 0): Flow&lt;List&lt;T&gt;&gt; - Collects models.</li>
+                                        <li class="method">suspend fun &lt;T : Any&gt; uploadAllModelsAtOnce(path: String, models: List&lt;T&gt;): MyResult&lt;String&gt; - Batch upload.</li>
+                                    </ul>
+                                </li>
+                                <li class="file">FirestoreRepositoryImpl.kt - Implementation of Firestore operations using Firebase Firestore SDK. Includes path validation, nested reference creation, real-time listeners, and batch operations.</li>
+                                <li class="file">LocationRepository.kt - Interface for geolocation operations using GeoFire.
+                                    <ul>
+                                        <li class="method">suspend fun uploadLocation(child: String, key: String, latitude: Double, longitude: Double): Unit - Uploads a location.</li>
+                                        <li class="method">suspend fun getLocationOfAKey(child: String, key: String, callback: (LatLng?) -> Unit): Unit - Gets location by key.</li>
+                                        <li class="method">suspend fun collectALocation(child: String, key: String, callback: (LocationModel) -> Unit): Unit - Collects location updates.</li>
+                                        <li class="method">fun collectAllLocationsInARadius(path: String, center: LatLng, radius: Double, movedKey: (LocationModel) -> Unit = {}): Flow&lt;List&lt;LocationModel&gt;&gt; - Collects locations in radius.</li>
+                                        <li class="method">fun cancelGeoQueryListener(): Unit - Cancels the geo query listener.</li>
+                                        <li class="method">suspend fun getAllLocationsInARadius(path: String, center: LatLng, radius: Double): List&lt;LocationModel&gt; - Gets locations in radius.</li>
+                                    </ul>
+                                </li>
+                                <li class="file">LocationRepositoryImpl.kt - Implementation using Firebase Realtime Database and GeoFire for location queries and listeners.</li>
+                                <li class="file">MainRepository.kt - Interface for Firebase Realtime Database operations, similar to FirestoreRepository.
+                                <ul>
+                                    <li class="method">suspend fun updateAnyModel(path: String, updatedMap: Map&lt;String, Any&gt;): MyResult&lt;String&gt; - Updates a model in Realtime Database.</li>
+                                    <li class="method">suspend fun checkExists(path: String): MyResult&lt;String&gt; - Checks if a path exists.</li>
+                                    <li class="method">suspend fun &lt;T&gt; getAllChildByKeys(path: String, keys: List&lt;String&gt;, clazz: Class&lt;T&gt;): List&lt;T&gt; - Gets models by keys.</li>
+                                    <li class="method">suspend fun &lt;T : Any&gt; queryModelByAProperty(path: String, property: String, value: String, clazz: Class&lt;T&gt;): T? - Queries model by property.</li>
+                                    <li class="method">suspend fun &lt;T : Any&gt; uploadAnyModel(path: String, model: T): MyResult&lt;String&gt; - Uploads a model.</li>
+                                    <li class="method">suspend fun deleteAnyModel(path: String): MyResult&lt;String&gt; - Deletes a model.</li>
+                                    <li class="method">fun &lt;T&gt; collectAModel(path: String, clazz: Class&lt;T&gt;): Flow&lt;T&gt; - Collects a single model.</li>
+                                    <li class="method">suspend fun getMap(path: String): MyResult&lt;Map&lt;String, String&gt;&gt; - Gets a map.</li>
+                                    <li class="method">suspend fun &lt;T : Any&gt; collectMap(path: String): Flow&lt;Map&lt;String, T&gt;&gt; - Collects a map.</li>
+                                    <li class="method">suspend fun &lt;T&gt; getAnyData(path: String, clazz: Class&lt;T&gt;): T? - Gets any data.</li>
+                                    <li class="method">suspend fun &lt;T&gt; getModelsWithChildren(path: String, clazz: Class&lt;T&gt;): Flow&lt;List&lt;T&gt;&gt; - Gets models with children.</li>
+                                    <li class="method">suspend fun &lt;T&gt; getDataList(path: String, clazz: Class&lt;T&gt;): List&lt;T&gt; - Gets data list.</li>
+                                    <li class="method">fun &lt;T&gt; collectAnyModel(path: String, clazz: Class&lt;T&gt;, numberOfItems: Int = 0): Flow&lt;List&lt;T&gt;&gt; - Collects models.</li>
+                                    <li class="method">suspend fun &lt;T : Any&gt; uploadAllModelsAtOnce(path: String, models: List&lt;T&gt;): MyResult&lt;String&gt; - Batch uploads.</li>
+                                </ul>
+                            </li>
+                                <li class="file">MainRepositoryImpl.kt - Implementation for Realtime Database with path validation, listeners, batch operations, and image uploads via WorkManager.</li>
+                            </ul>
+                        </li>
+                        <li class="package">viewmodels
+                            <ul>
+                                <li class="file">AuthViewModel.kt - ViewModel combining email, phone, and Google authentication. Handles sign-in, sign-up, OTP verification, and sign-out.
+                                <ul>
+                                    <li class="method">fun registerGoogleSignInLauncher(activity: FragmentActivity): Unit - Registers the Google Sign-In launcher.</li>
+                                    <li class="method">resetPassword(email: String): MyResult&lt;String&gt; - Resets password for the given email.</li>
+                                    <li class="method">suspend fun signInWithPhone(context: Activity, phone: String, otpVerifyActivity: Class&lt;*&gt;, mainActivity: Class&lt;*&gt;, onResult: (MyResult&lt;String&gt;) -&gt; Unit): Unit - Initiates phone sign-in.</li>
+                                    <li class="method">verifyOtp(otp: String): MyResult&lt;String&gt; - Verifies the OTP for phone authentication.</li>
+                                    <li class="method">resendOtp(context: Activity): MyResult&lt;String&gt; - Resends the OTP.</li>
+                                    <li class="method">suspend fun signUpWithEmailAndPassword(email: String, password: String): MyResult&lt;String&gt; - Signs up with email and password.</li>
+                                    <li class="method">suspend fun loginWithEmailAndPassword(email: String, password: String): MyResult&lt;String&gt; - Logs in with email and password.</li>
+                                    <li class="method">fun signInWithGoogle(activity: FragmentActivity, serverClientId: String, callback: (account: GoogleSignInAccount?, exception: Exception?) -&gt; Unit): Unit - Signs in with Google.</li>
+                                    <li class="method">fun getGoogleAccount(activity: FragmentActivity, serverClientId: String, accountCallback: (account: GoogleSignInAccount?) -&gt; Unit): Unit - Retrieves Google account.</li>
+                                    <li class="method">fun signOutFromGoogle(activity: FragmentActivity, serverClientId: String, onSignOutResult: (MyResult&lt;String&gt;) -&gt; Unit): Unit - Signs out from Google.</li>
+                                </ul>
+                            </li>
+                                <li class="file">FirestoreViewModel.kt - ViewModel for Firestore operations with state flows, image uploads, and model management.
+                                <ul>
+                                    <li class="method">suspend fun checkExists(path: String): MyResult&lt;String&gt; - Checks if a document exists in Firestore.</li>
+                                    <li class="method">suspend fun &lt;T : Any&gt; uploadAnyModel(path: String, model: T): MyResult&lt;String&gt; - Uploads a model to Firestore.</li>
+                                    <li class="method">suspend fun &lt;T&gt; getAllChildByKeys(path: String, keys: List&lt;String&gt;, clazz: Class&lt;T&gt;): List&lt;T&gt; - Gets models by keys.</li>
+                                    <li class="method">suspend fun &lt;T&gt; collectAnyModels(path: String, clazz: Class&lt;T&gt;, numberOfItems: Int = 0): StateFlow&lt;List&lt;T&gt;&gt; - Collects models as state flow.</li>
+                                    <li class="method">suspend fun &lt;T : Any&gt; uploadAllModelsAtOnce(path: String, models: List&lt;T&gt;): MyResult&lt;String&gt; - Batch uploads models.</li>
+                                    <li class="method">suspend fun updateAnyModel(path: String, updatedMap: Map&lt;String, Any&gt;): MyResult&lt;String&gt; - Updates a model.</li>
+                                    <li class="method">suspend fun &lt;T : Any&gt; queryModelByAProperty(path: String, property: String, value: String, clazz: Class&lt;T&gt;): T? - Queries model by property.</li>
+                                    <li class="method">suspend fun deleteAnyModel(path: String): MyResult&lt;String&gt; - Deletes a model.</li>
+                                    <li class="method">suspend fun getMap(path: String): MyResult&lt;Map&lt;String, String&gt;&gt; - Gets a map.</li>
+                                    <li class="method">fun collectMap(path: String): StateFlow&lt;Map&lt;String, Any&gt;&gt; - Collects map as state flow.</li>
+                                    <li class="method">suspend fun &lt;T&gt; getAnyData(path: String, clazz: Class&lt;T&gt;): T? - Gets any data.</li>
+                                    <li class="method">suspend fun &lt;T&gt; getModelsWithChildren(path: String, clazz: Class&lt;T&gt;): Flow&lt;List&lt;T&gt;&gt; - Gets models with children.</li>
+                                    <li class="method">suspend fun uploadModelWithImages(context: Context, firestorePath: String, model: Any, imageUris: List&lt;String&gt;, properties: List&lt;KProperty&lt;*&gt;&gt;): MyResult&lt;String&gt; - Uploads model with images.</li>
+                                    <li class="method">suspend fun &lt;P&gt; uploadModelWithImage(context: Context, firestorePath: String, model: Any, imageUri: String, property: KProperty&lt;P&gt;): MyResult&lt;String&gt; - Uploads model with single image.</li>
+                                    <li class="method">fun uploadImagesToFirebaseStorage(context: Context, path: String, imagesMap: HashMap&lt;String, String&gt;): Unit - Uploads images to storage.</li>
+                                    <li class="method">suspend fun &lt;T&gt; getDataList(path: String, clazz: Class&lt;T&gt;): List&lt;T&gt; - Gets data list.</li>
+                                    <li class="method">fun &lt;T&gt; collectAModel(path: String, clazz: Class&lt;T&gt;): Flow&lt;T&gt; - Collects a single model.</li>
+                                </ul>
+                            </li>
+                                <li class="file">LocationModel.kt - Data class for location data with lat, lng, and conversion methods.
+                                <ul>
+                                    <li class="method">toModelLatLang(): LatLng - Converts to Google Maps LatLng.</li>
+                                    <li class="method">toGmsLAtLang(): com.google.android.gms.maps.model.LatLng - Converts to GMS LatLng.</li>
+                                    <li class="method">orEmpty(): LocationModel - Returns this or empty instance.</li>
+                                </ul>
+                            </li>
+                            <li class="file">LocationViewModel.kt - ViewModel for location operations, wrapping LocationRepository with state flows.
+                                <ul>
+                                    <li class="method">suspend fun uploadLocation(child: String, key: String, latitude: Double, longitude: Double): Unit - Uploads location.</li>
+                                    <li class="method">suspend fun getLocationOfAKey(child: String, key: String, callback: (LatLng?) -> Unit): Unit - Gets location by key.</li>
+                                    <li class="method">suspend fun collectALocation(child: String, key: String, callback: (LocationModel) -> Unit): Unit - Collects location updates.</li>
+                                    <li class="method">fun cancelGeoQueryListener(): Unit - Cancels geo query listener.</li>
+                                    <li class="method">suspend fun getAllLocationsInARadius(path: String, center: LatLng, radius: Double): List&lt;LocationModel&gt; - Gets locations in radius.</li>
+                                    <li class="method">fun collectAllLocationsInARadius(path: String, center: LatLng, radius: Double, movedKey: (LocationModel) -> Unit = {}): StateFlow&lt;List&lt;LocationModel&gt;&gt; - Collects locations in radius.</li>
+                                </ul>
+                            </li>
+                            <li class="file">MainViewModel.kt - ViewModel for Realtime Database operations, similar to FirestoreViewModel but for RTDB.
+                                <ul>
+                                    <li class="method">suspend fun checkExists(path: String): MyResult&lt;String&gt; - Checks if path exists.</li>
+                                    <li class="method">suspend fun &lt;T : Any&gt; uploadAnyModel(path: String, model: T): MyResult&lt;String&gt; - Uploads model.</li>
+                                    <li class="method">suspend fun deleteAnyModel(child: String): MyResult&lt;String&gt; - Deletes model.</li>
+                                    <li class="method">suspend fun &lt;T : Any&gt; uploadAllModelsAtOnce(path: String, models: List&lt;T&gt;): MyResult&lt;String&gt; - Batch uploads.</li>
+                                    <li class="method">suspend fun &lt;T&gt; getAllChildByKeys(path: String, keys: List&lt;String&gt;, clazz: Class&lt;T&gt;): List&lt;T&gt; - Gets models by keys.</li>
+                                    <li class="method">suspend fun &lt;T&gt; collectAnyModels(path: String, clazz: Class&lt;T&gt;, numberOfItems: Int = 0): StateFlow&lt;List&lt;T&gt;&gt; - Collects models.</li>
+                                    <li class="method">suspend fun getMap(child: String): MyResult&lt;Map&lt;String, String&gt;&gt; - Gets map.</li>
+                                    <li class="method">fun collectMap(child: String): StateFlow&lt;Map&lt;String, Any&gt;&gt; - Collects map.</li>
+                                    <li class="method">suspend fun &lt;T&gt; getAnyData(path: String, clazz: Class&lt;T&gt;): T? - Gets any data.</li>
+                                    <li class="method">suspend fun &lt;T&gt; getModelsWithChildren(path: String, clazz: Class&lt;T&gt;): Flow&lt;List&lt;T&gt;&gt; - Gets models with children.</li>
+                                    <li class="method">suspend fun &lt;T : Any&gt; queryModelByAProperty(path: String, clazz: Class&lt;T&gt;, property: String, value: String): T? - Queries by property.</li>
+                                    <li class="method">suspend fun updateAnyModel(path: String, updatedMap: Map&lt;String, Any&gt;): MyResult&lt;String&gt; - Updates model.</li>
+                                    <li class="method">suspend fun uploadModelWithImages(context: Context, realTimePath: String, model: Any, imageUris: List&lt;String&gt;, properties: List&lt;KProperty&lt;*&gt;&gt;): MyResult&lt;String&gt; - Uploads with images.</li>
+                                    <li class="method">suspend fun &lt;P&gt; uploadModelWithImage(context: Context, realTimePath: String, model: Any, imageUri: String, property: KProperty&lt;P&gt;): MyResult&lt;String&gt; - Uploads with image.</li>
+                                    <li class="method">fun uploadImagesToFirebaseStorage(context: Context, path: String, imagesMap: HashMap&lt;String, String&gt;): Unit - Uploads images.</li>
+                                    <li class="method">suspend fun &lt;T&gt; getDataList(path: String, clazz: Class&lt;T&gt;): List&lt;T&gt; - Gets data list.</li>
+                                </ul>
+                            </li>
+                            <li class="file">StorageViewModel.kt - ViewModel for Firebase Storage operations like uploading images, videos, documents, and audio.
+                                <ul>
+                                    <li class="method">fun uploadImageToFirebaseStorage(uri: Uri, result: (MyResult&lt;String&gt;) -&gt; Unit): Unit - Uploads image from URI.</li>
+                                    <li class="method">uploadDocumentToFirebaseStorage(uri: Uri, result: (MyResult&lt;String&gt;) -&gt; Unit) - Uploads document.</li>
+                                    <li class="method">uploadAudioToFirebaseStorage(uri: Uri, result: (MyResult&lt;String&gt;) -&gt; Unit) - Uploads audio.</li>
+                                    <li class="method">fun uploadVideoToFirebaseStorage(uri: Uri, progressCallBack: (Int) -&gt; Unit, result: (MyResult&lt;String&gt;) -&gt; Unit): Unit - Uploads video with progress.</li>
+                                    <li class="method">fun uploadImageToFirebaseStorage(bitmap: Bitmap, result: (MyResult&lt;String&gt;) -&gt; Unit): Unit - Uploads image from bitmap.</li>
+                                    <li class="method">deleteImageToFirebaseStorage(url: String, result: (MyResult&lt;String&gt;) -&gt; Unit) - Deletes image.</li>
+                                </ul>
+                            </li>
+                            </ul>
+                        </li>
+                        <li class="package">storage
+                            <ul>
+                                <li class="file">StorageRepository.kt - Interface for Firebase Storage operations.
+                                    <ul>
+                                        <li class="method">suspend fun uploadImageToFirebaseStorageWithUri(uri: Uri, result: (MyResult&lt;String&gt;) -&gt; Unit): Unit - Uploads image from URI.</li>
+                                        <li class="method">suspend fun uploadDocumentToFirebaseStorage(uri: Uri, result: (MyResult&lt;String&gt;) -&gt; Unit): Unit - Uploads document.</li>
+                                        <li class="method">suspend fun uploadAudioToFirebaseStorage(uri: Uri, result: (MyResult&lt;String&gt;) -&gt; Unit): Unit - Uploads audio.</li>
+                                        <li class="method">suspend fun uploadImageToFirebaseStorageWithBitmap(bitmap: Bitmap, result: (MyResult&lt;String&gt;) -&gt; Unit): Unit - Uploads image from bitmap.</li>
+                                        <li class="method">suspend fun uploadImageToFirebaseStorageWithBitmap(bitArray: ByteArray, result: (MyResult&lt;String&gt;) -&gt; Unit): Unit - Uploads image from byte array.</li>
+                                        <li class="method">suspend fun deleteImageToFirebaseStorage(url: String, result: (MyResult&lt;String&gt;) -&gt; Unit): Unit - Deletes image.</li>
+                                        <li class="method">suspend fun uploadVideoToFirebaseStorage(videoUri: Uri, result: (MyResult&lt;String&gt;) -&gt; Unit, progressCallBack: (Int) -&gt; Unit): Unit - Uploads video with progress.</li>
+                                    </ul>
+                                </li>
+                                <li class="file">StorageRepositoryImpl.kt - Implementation using WorkManager for background uploads to Firebase Storage. Handles URI to internal storage saving, enqueues workers, and observes work status.</li>
+                                <li class="file">MediaUploadWorker.kt - CoroutineWorker that performs the actual Firebase Storage upload, handles success/failure, and provides download URLs.</li>
+                            </ul>
+                        </li>
+                        <li class="package">di
+                            <ul>
+                                <li class="file">Module.kt - Hilt dependency injection module providing singleton instances for repositories, view models, and Firebase services. Includes providers for Firebase Auth, Firestore, Realtime Database, Storage, and all custom repositories and view models.</li>
+                            </ul>
+                        </li>
+                        <li class="package">managers
+                            <ul>
+                                <li class="file">DataStoreManager.kt - Manager for saving and retrieving data using Android DataStore preferences.
+                                    <ul>
+                                        <li class="method">suspend fun saveData(key: String, data: Any): Unit - Saves any data object as JSON string to DataStore</li>
+                                        <li class="method">suspend inline fun &lt;reified T&gt; getData(key: String, clazz: Class&lt;T&gt;): T - Retrieves and deserializes JSON data from DataStore</li>
+                                        <li class="method">inline fun &lt;reified T&gt; collectData(key: String, clazz: Class&lt;T&gt;): Flow&lt;T&gt; - Creates Flow to observe data changes in DataStore</li>
+                                        <li class="method">suspend fun updateData(key: String, data: Any): Unit - Updates existing data in DataStore (alias for saveData)</li>
+                                    </ul></li>
+                                <li class="file">DateAndTimeManager.kt - Manager for date and time operations (currently commented out).</li>
+                                <li class="file">FileSystemManager.kt - Manager for file operations like saving text files and reading files from URIs.
+                                    <ul>
+                                        <li class="method">suspend fun saveFile(text: String, fileName: String, context: Activity): Uri? - Saves text as .txt file to Documents directory and returns URI</li>
+                                        <li class="method">suspend fun readFile(uri: Uri): File? - Reads file from URI and creates temporary copy in cache directory</li>
+                                    </ul></li>
+                                <li class="file">MediaPlayerHelper.kt - Singleton helper for playing audio files with controls for play, pause, seek, and completion callbacks.
+                                    <ul>
+                                        <li class="method">fun getInstance(): MediaPlayerHelper - Returns singleton instance using double-checked locking</li>
+                                        <li class="method">fun getDuration(uri: String): Int - Gets audio file duration in milliseconds</li>
+                                        <li class="method">fun playAudio(uri: String): Boolean - Plays audio from URI, returns playback state</li>
+                                        <li class="method">fun getCurrentPosition(currentPosition: (Int) -&gt; Unit): Unit - Gets current playback position with callback</li>
+                                        <li class="method">fun seekToo(value: Int): Unit - Seeks to specific position in milliseconds</li>
+                                        <li class="method">fun onComplete(callback: (MediaPlayer) -&gt; Unit): Unit - Sets completion listener for audio playback</li>
+                                        <li class="property">var totalDuration: Int - Total duration of current audio file</li>
+                                        <li class="property">var currentPosition: Int - Current playback position in milliseconds</li>
+                                    </ul></li>
+                                <li class="file">MyAlarmManager.kt - Manager for setting and canceling alarms using AlarmManager.
+                                    <ul>
+                                        <li class="method">fun createAndPermissionForNotification(context: Activity, activityResultLauncher: ActivityResultLauncher&lt;String&gt;): Unit - Creates notification channel and requests permission</li>
+                                        <li class="method">fun startAlarmViaIntent(context: Context, myAlarmManager: MyAlarmManager, calendar: Calendar): Unit - Starts alarm service and sets alarm for specified time</li>
+                                        <li class="method">fun setAlarm(data: String, calendar: Calendar): Unit - Sets exact alarm with API level compatibility (API 19+)</li>
+                                        <li class="method">fun cancelAlarm(): Unit - Cancels pending alarm and shows confirmation toast</li>
+                                    </ul></li>
+                                <li class="file">MyDownloadManager.kt - Manager for downloading files using DownloadManager.
+                                    <ul>
+                                        <li class="method">class DownloadManagerHelper(context: Context) - Helper class for download operations</li>
+                                        <li class="method">fun downloadFile(url: String, fileName: String, downloadCallback: (String) -&gt; Unit): Unit - Downloads file with progress notification and callback</li>
+                                        <li class="method">private fun getDownloadedFilePath(downloadId: Long): String? - Gets local file path from download ID</li>
+                                    </ul></li>
+                                <li class="file">MyLocationManager.kt - Manager for location operations (currently commented out) with LocationData data class.</li>
+                                <li class="file">MyNotificationManager.kt - Manager for creating notification channels and showing various types of notifications including alarm and reply notifications.
+                                    <ul>
+                                        <li class="method">MyNotificationManager() - Constructor with optional permission launcher.</li>
+                                        <li class="method">fun askNotificationPermission(): Unit - Request notification permission for API 33+.</li>
+                                        <li class="method">fun createNotification(): Unit - Create notification channel for alarms.</li>
+                                        <li class="method">fun showAlarmNotification(): Unit - Show alarm notification with snooze/cancel actions.</li>
+                                        <li class="method">fun showNotificationWithReply(): Unit - Show notification with inline reply.</li>
+                                        <li class="method">fun receiveReplyInput(): Unit - Handle reply input from notification.</li>
+                                        <li class="method">fun showNotification(): Unit - Generic notification with big text/image, sticky, and intent.</li>
+                                    </ul>
+                                </li>
+                                <li class="file">MyWorkManager.kt - CoroutineWorker for background tasks and workerMaker object for scheduling periodic and one-time work.
+                                    <ul>
+                                        <li class="method">override suspend fun doWork(): Result - Performs background work with notification creation and error handling</li>
+                                        <li class="method">object workerMaker.doItDaily(): Unit - Schedules daily periodic work with constraints and backoff policy</li>
+                                        <li class="method">fun doWorkPeriodically(): Unit - Schedules custom periodic work with unique ID and configurable interval</li>
+                                        <li class="method">fun doWorkExpedited(): Unit - Schedules expedited one-time work with high priority</li>
+                                    </ul></li>
+                                <li class="file">NetworkManager.kt - Manager for network connectivity checks and Retrofit setup.
+                                    <ul>
+                                        <li class="method">fun isNetworkAvailable(): Boolean - Checks if network is available (WiFi or Cellular)</li>
+                                        <li class="property">private val retrofit: Retrofit - Lazy-initialized Retrofit instance with Gson converter</li>
+                                        <li class="constructor">NetworkManager(context: Context, baseUrl: String) - Initializes with context and API base URL</li>
+                                    </ul></li>
+                                <li class="file">WorkManagerDocs.kt - Example Activity demonstrating WorkManager usage.
+                                    <ul>
+                                        <li class="method">override fun onCreate(): Unit - Demonstrates WorkManager setup with examples</li>
+                                        <li class="example">One-time work request creation and enqueueing</li>
+                                        <li class="example">Work status observation with LiveData</li>
+                                        <li class="example">Work chaining with beginWith().then() pattern</li>
+                                        <li class="example">Work cancellation by ID</li>
+                                    </ul></li>
+                            </ul>
+                        </li>
+                        <li class="package">utils
+                            <ul>
+                                <li class="file">DataStoreHelpers.kt - Helper functions for DataStore operations with type safety and coroutines.
+                                    <ul>
+                                        <li class="method">suspend fun &lt;T&gt; DataStore&lt;Preferences&gt;.save(key: String, value: T): Unit - Saves value to DataStore with type safety.</li>
+                                                <li class="method">suspend fun &lt;T&gt; DataStore&lt;Preferences&gt;.get(key: String, defaultValue: T): T - Retrieves value from DataStore with default fallback.</li>
+                                                <li class="method">suspend fun DataStore&lt;Preferences&gt;.remove(key: String): Unit - Removes specific key from DataStore.</li>
+                                                <li class="method">suspend fun DataStore&lt;Preferences&gt;.clear(): Unit - Clears all data from DataStore.</li>
+                                                <li class="method">fun &lt;T&gt; Flow&lt;T&gt;.asLiveData(): LiveData&lt;T&gt; - Converts Flow to LiveData for UI observation.</li>
+                                            </ul>
+                                        </li>
+                                <li class="file">DialogUtil.kt - Utilities for creating and managing dialogs: alert dialogs, progress dialogs, popups, and bottom sheets.
+                                    <ul>
+                                        <li class="method">fun Context.alertDialog(title: String, message: String, positiveText: String, negativeText: String): AlertDialog - Create standard alert dialog with customizable text</li>
+                                        <li class="method">fun Context.alertDialogMaterial(title: String, message: String, positiveText: String, negativeText: String): androidx.appcompat.app.AlertDialog - Create Material Design alert dialog</li>
+                                        <li class="method">fun AlertDialog.setOnPositiveListener(text: String, onConfirm: () -&gt; Unit): Unit - Set positive button listener for standard AlertDialog</li>
+                                        <li class="method">fun AlertDialog.setOnNegativeListener(text: String, onCancel: () -&gt; Unit): Unit - Set negative button listener for standard AlertDialog</li>
+                                        <li class="method">fun androidx.appcompat.app.AlertDialog.setOnPositiveListener(onConfirm: () -&gt; Unit): Unit - Set positive button listener for Material AlertDialog</li>
+                                        <li class="method">fun androidx.appcompat.app.AlertDialog.setOnNegativeListener(onCancel: () -&gt; Unit): Unit - Set negative button listener for Material AlertDialog</li>
+                                        <li class="method">fun Context.progressDialog(message: String, transparent: Boolean): ProgressDialog - Create progress dialog with optional transparency</li>
+                                        <li class="method">fun Context.progressDialogMaterial(message: String): androidx.appcompat.app.AlertDialog - Create Material Design progress dialog with custom layout</li>
+                                        <li class="method">inline fun &lt;T : ViewBinding&gt; Context.showCustomLayoutDialog(bindingInflater: (LayoutInflater) -&gt; T, gravity: Int, isCancelable: Boolean, callback: (T, PopupWindow) -&gt; Unit): PopupWindow - Show custom popup with ViewBinding</li>
+                                        <li class="method">inline fun &lt;T : ViewBinding&gt; View.showCustomPopup(bindingInflater: (LayoutInflater) -&gt; T, callback: (T, PopupWindow) -&gt; Unit): Unit - Show popup anchored to view with click listener</li>
+                                        <li class="method">fun &lt;T : ViewBinding&gt; Context.showBottomSheet(bindingInflater: (LayoutInflater) -&gt; T, callback: (T, BottomSheetDialog) -&gt; Unit): BottomSheetDialog - Show bottom sheet with rounded corners and ViewBinding</li>
+                                    </ul>
+                                </li>
+                                <li class="file">Either.kt - Sealed class for Either type (success or error), with functional programming utilities.
+                                    <ul>
+                                        <li class="method">Either.Left/Right - Data classes for left (failure) or right (success).</li>
+                                        <li class="method">fold(), map(), flatMap() - Functional operations on Either.</li>
+                                        <li class="method">getOrElse() - Get value or default.</li>
+                                        <li class="method">isLeft, isRight - Check type.</li>
+                                    </ul>
+                                </li>
+                                <li class="file">FirebaseUploadWorker.kt - WorkManager worker for uploading files to Firebase Storage and updating Realtime Database.
+                                    <ul>
+                                        <li class="method">doWork() - Performs upload, gets download URL, updates DB.</li>
+                                        <li class="method">updateDatabase() - Updates Firebase Realtime DB with URL.</li>
+                                    </ul>
+                                </li>
+                                <li class="file">GenericDialogFragment.kt - Generic DialogFragment class for custom layouts with ViewBinding.
+                                    <ul>
+                                        <li class="constructor">GenericDialogFragment&lt;B : ViewBinding&gt;(bindingInflater: (LayoutInflater, ViewGroup?, Boolean) -&gt; B, gravity: Int, setupBinding: (B, DialogFragment) -&gt; Unit) - Generic constructor with ViewBinding inflator, gravity control, and setup callback</li>
+                                        <li class="method">fun show(manager: FragmentManager): Unit - Shows dialog using FragmentManager with default tag</li>
+                                        <li class="method">override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View - Creates view using binding inflator and stores binding reference</li>
+                                        <li class="method">override fun onViewCreated(view: View, savedInstanceState: Bundle?): Unit - Calls setup binding callback after view creation</li>
+                                        <li class="method">override fun onStart(): Unit - Configures dialog window with transparent background, match parent width, gravity, and 16dp padding</li>
+                                        <li class="method">override fun onDestroyView(): Unit - Cleans up binding reference to prevent memory leaks</li>
+                                        <li class="property">private var _binding: B? - Nullable binding instance that gets cleaned up in onDestroyView</li>
+                                        <li class="property">private val binding: B - Non-null binding getter with assertion for safe access</li>
+                                    </ul>
+                                </li>
+                                <li class="file">JsonDataRepository.kt - Repository for storing and retrieving JSON data in internal files.
+                                    <ul>
+                                        <li class="method">fun getAllData(): MutableMap&lt;String, Any&gt; - Get entire JSON map.</li>
+                                        <li class="method">fun &lt;T : Any&gt; getData(path: String, clazz: KClass&lt;T&gt;): T? - Get single object at path.</li>
+                                        <li class="method">fun &lt;T : Any&gt; getDataList(path: String, clazz: KClass&lt;T&gt;): List&lt;T&gt; - Get list of objects at path.</li>
+                                        <li class="method">fun insert(path: String, value: Any): String - Insert data, generates UUID if no key.</li>
+                                        <li class="method">fun delete(path: String): Unit - Delete data at path.</li>
+                                    </ul>
+                                </li>
+                                <li class="file">LocaleManager.kt - Manager for locale and language settings with persistence.
+                                    <ul>
+                                        <li class="method">fun LocaleManager(context: Context) - Constructor initializing locale manager with context.</li>
+                                                <li class="method">fun setLocale(locale: Locale): Unit - Sets application locale and updates configuration.</li>
+                                                <li class="method">fun getLocale(): Locale - Gets current application locale.</li>
+                                                <li class="method">fun saveLocale(locale: Locale): Unit - Saves locale preference to SharedPreferences.</li>
+                                                <li class="method">fun getSavedLocale(): Locale? - Retrieves saved locale from SharedPreferences.</li>
+                                                <li class="method">fun isRTL(): Boolean - Checks if current locale is right-to-left.</li>
+                                                <li class="method">fun getLanguageCode(): String - Gets current language code (e.g., "en", "es").</li>
+                                                <li class="method">fun getDisplayLanguage(): String - Gets display name of current language.</li>
+                                            </ul>
+                                        </li>
+                                <li class="file">MediaSlider.kt - Component for media sliders with ViewPager2, ExoPlayer integration, and image loading.
+                                    <ul>
+                                        <li class="interface">interface MyClickListener - Click listener interface for media item interactions</li>
+                                        <li class="class">class SliderViewPagerAdapter - ViewPager2 adapter for media items with FragmentStateAdapter</li>
+                                        <li class="class">class SliderFragment - Fragment for displaying individual media items (images/videos) with ExoPlayer</li>
+                                        <li class="dataclass">data class MediaModel - Data class containing media type, resource types, media URLs, and thumbnails</li>
+                                        <li class="enum">enum class MediaType - Defines media types: VIDEO, IMAGE</li>
+                                        <li class="enum">enum class ResourceType - Defines resource types: URL, URI, DRAWABLE, RAW</li>
+                                        <li class="method">fun setUpMediaSlider(context: FragmentActivity, relativeLayout: RelativeLayout, mediaItems: List&lt;MediaModel&gt;, showPosition: Boolean, onClick: MyClickListener): Unit - Main setup function for media slider with ViewPager2</li>
+                                        <li class="method">fun Int.dpToPx(context: Context): Int - Extension function to convert dp to pixels</li>
+                                        <li class="object">object MediaSlider - Contains image slider functionality with auto-sliding</li>
+                                        <li class="method">fun LinearLayout.imageSlider(images: List&lt;Any&gt;, onClicked: (Int) -&gt; Unit): Unit - Extension function for creating auto-sliding image slider</li>
+                                        <li class="class">class ImageSliderAdapter - PagerAdapter for image slider supporting drawable resources and URLs</li>
+                                    </ul></li>
+                                <li class="file">MyCalendarView.kt - Custom calendar view with date selection and event handling.
+                                    <ul>
+                                        <li class="class">class MyCalendarView : CalendarView - Custom calendar view extending base CalendarView.</li>
+                                                <li class="constructor">MyCalendarView(context: Context) - Primary constructor for programmatic creation.</li>
+                                                <li class="constructor">MyCalendarView(context: Context, attrs: AttributeSet?) - Constructor for XML inflation.</li>
+                                                <li class="method">fun setOnDateSelectedListener(listener: (Date) -> Unit): Unit - Sets date selection callback.</li>
+                                                <li class="method">fun setSelectedDate(date: Date): Unit - Programmatically sets selected date.</li>
+                                                <li class="method">fun getSelectedDate(): Date? - Gets currently selected date.</li>
+                                                <li class="method">fun setMinDate(date: Date): Unit - Sets minimum selectable date.</li>
+                                                <li class="method">fun setMaxDate(date: Date): Unit - Sets maximum selectable date.</li>
+                                                <li class="method">fun highlightDates(dates: List&lt;Date&gt;): Unit - Highlights specific dates in calendar.</li>
+                                            </ul>
+                                        </li>
+                                <li class="file">MyConstants.kt - Constants used throughout the library.
+                                    <ul>
+                                                <li class="property">const val PREF_NAME: String = "lycommons_prefs" - SharedPreferences file name.</li>
+                                                <li class="property">const val LOCALE_KEY: String = "selected_locale" - Key for locale preference.</li>
+                                                <li class="property">const val THEME_KEY: String = "app_theme" - Key for theme preference.</li>
+                                                <li class="property">const val DEFAULT_LANGUAGE: String = "en" - Default language code.</li>
+                                                <li class="property">const val DATE_FORMAT: String = "dd-MM-yyyy" - Default date format.</li>
+                                                <li class="property">const val TIME_FORMAT: String = "hh:mm a" - Default time format.</li>
+                                                <li class="property">const val DATETIME_FORMAT: String = "dd-MM-yyyy hh:mm a" - Default datetime format.</li>
+                                                <li class="property">const val IMAGE_QUALITY: Int = 80 - Default image compression quality.</li>
+                                                <li class="property">const val MAX_IMAGE_SIZE: Int = 2048 - Maximum image dimension in pixels.</li>
+                                                <li class="property">const val ANIMATION_DURATION: Long = 300 - Default animation duration in milliseconds.</li>
+                                            </ul>
+                                        </li>
+                                <li class="file">MyImagePicker.kt - Image picker utilities for gallery, camera, multiple images, videos, and documents with permission handling and cropping.
+                                    <ul>
+                                        <li class="method">FragmentActivity.registerActivityForImageLauncher() - Register for single image pick.</li>
+                                        <li class="method">View.pickImageByGallery() - Pick from gallery with permissions.</li>
+                                        <li class="method">View.pickImageByCamera() - Capture with camera.</li>
+                                        <li class="method">View.pickImageByBoth() - Dialog to choose gallery or camera.</li>
+                                        <li class="method">View.pickImageByGalleryCropped() - Gallery with cropping.</li>
+                                        <li class="method">View.pickImageByCameraCropped() - Camera with cropping.</li>
+                                        <li class="method">View.pickImageMultiple() - Pick multiple images.</li>
+                                        <li class="method">View.pickVideo(), pickDocument() - Pick videos or documents.</li>
+                                    </ul>
+                                </li>
+                                <li class="file">MyPermissionHelper.kt - Helper for handling runtime permissions with rationales and settings dialogs.
+                                    <ul>
+                                        <li class="method">fun FragmentActivity.registerActivityForPermissionLauncher(): Unit - Registers ActivityResultLauncher for multiple permissions with callback handling</li>
+                                        <li class="method">fun FragmentActivity.checkPermissions(permissions: Array&lt;String&gt;): Boolean - Checks if all specified permissions are granted</li>
+                                        <li class="method">fun FragmentActivity.checkPermissionReadImages(): Boolean - Checks read images permission with API 33+ compatibility</li>
+                                        <li class="method">fun FragmentActivity.checkPermissionReadStorage(): Boolean - Checks storage permissions (images, videos, audio) with API 33+ compatibility</li>
+                                        <li class="method">fun FragmentActivity.requestPermission(permissions: Array&lt;String&gt;, callback: (Boolean) -&gt; Unit): Unit - Requests permissions with rationale and settings handling</li>
+                                        <li class="method">fun FragmentActivity.requestPermissionReadImages(callback: (Boolean) -&gt; Unit): Unit - Requests read images permission with API level handling</li>
+                                        <li class="method">fun FragmentActivity.requestPermissionReadStorage(callback: (Boolean) -&gt; Unit): Unit - Requests storage permissions (images, videos, audio) with API level handling</li>
+                                        <li class="method">fun FragmentActivity.requestPermissionReadVideos(callback: (Boolean) -&gt; Unit): Unit - Requests read videos permission with API 33+ compatibility</li>
+                                        <li class="method">fun FragmentActivity.requestPermissionReadAudios(callback: (Boolean) -&gt; Unit): Unit - Requests read audios permission with API 33+ compatibility</li>
+                                        <li class="method">fun FragmentActivity.requestPermissionImages(callback: (Boolean) -&gt; Unit): Unit - Requests images permission (alternative method)</li>
+                                        <li class="method">fun FragmentActivity.shouldShowStoragePermissionRationale(): Boolean - Checks if storage permission rationale should be shown</li>
+                                        <li class="method">private fun FragmentActivity.showRationaleForPermissions(permissions: Array&lt;String&gt;): Unit - Shows rationale dialog for denied permissions</li>
+                                        <li class="method">private fun FragmentActivity.showSettingsDialog(permissions: Array&lt;String&gt;): Unit - Shows settings dialog for permanently denied permissions</li>
+                                        <li class="method">private fun FragmentActivity.shouldShowRequestPermissionRationale(permissions: Array&lt;String&gt;): Boolean - Checks if any permission requires rationale</li>
+                                        <li class="method">private fun getPermissionName(permission: String): String - Converts permission constants to user-friendly names</li>
+                                    </ul>
+                                </li>
+                                <li class="file">MyResult.kt - Sealed class for handling success and error results with utility methods.
+                                    <ul>
+                                        <li class="dataclass">data class Success&lt;out T : Any&gt;(val data: T): MyResult&lt;T&gt; - Data class for successful results with generic data</li>
+                                        <li class="dataclass">data class Error(val msg: String): MyResult&lt;Nothing&gt; - Data class for error results with message</li>
+                                        <li class="method">override fun toString(): String - Returns string representation "Success[data=$data]" or "Error[exception=$msg]"</li>
+                                        <li class="method">fun whenResult(onSuccess: (T) -&gt; Unit, onError: (Exception) -&gt; Unit): Unit - Handles both success and error cases with respective callbacks</li>
+                                        <li class="method">fun whenIt(isSuccessFull: (Boolean) -&gt; Unit): Unit - Checks result status and passes boolean to callback (true for success, false for error)</li>
+                                        <li class="method">fun whenSuccess(onSuccess: (T) -&gt; Unit): Unit - Executes callback only if result is success, passes data</li>
+                                        <li class="method">fun whenError(onError: (Exception) -&gt; Unit): Unit - Executes callback only if result is error, passes exception</li>
+                                        <li class="method">fun showInToast(context: Context, duration: Int = Toast.LENGTH_SHORT): Unit - Displays result as toast message on main thread</li>
+                                    </ul>
+                                </li>
+                                <li class="file">Resource.kt - Resource wrapper for handling data states with loading, success, and error states.
+                                    <ul>
+                                        <li class="sealedclass">sealed class Resource&lt;out T&gt; - Sealed class for representing data states.</li>
+                                                <li class="dataclass">data class Loading&lt;out T&gt;(val data: T? = null) : Resource&lt;T&gt; - Represents loading state with optional data.</li>
+                                                <li class="dataclass">data class Success&lt;out T&gt;(val data: T) : Resource&lt;T&gt; - Represents successful state with data.</li>
+                                                <li class="dataclass">data class Error&lt;out T&gt;(val message: String, val data: T? = null) : Resource&lt;T&gt; - Represents error state with message and optional data.</li>
+                                                <li class="method">fun isLoading(): Boolean - Checks if resource is in loading state.</li>
+                                                <li class="method">fun isSuccess(): Boolean - Checks if resource is in success state.</li>
+                                                <li class="method">fun isError(): Boolean - Checks if resource is in error state.</li>
+                                                <li class="method">fun getOrNull(): T? - Gets data if success, null otherwise.</li>
+                                                <li class="method">fun getOrDefault(defaultValue: T): T - Gets data if success, default otherwise.</li>
+                                                <li class="method">fun &lt;R&gt; map(transform: (T) -> R): Resource&lt;R&gt; - Transforms success data.</li>
+                                                <li class="method">fun handle(onLoading: () -> Unit, onSuccess: (T) -> Unit, onError: (String) -> Unit): Unit - Handles all states with callbacks.</li>
+                                            </ul>
+                                        </li>
+                                <li class="file">SharePreferencesHelper.kt - Helper for SharedPreferences with extension properties and data type methods.
+                                    <ul>
+                                        <li class="constructor">SharedPreferencesHelper(context: Context) - Constructor initializing SharedPreferences with default app name</li>
+                                        <li class="property">val Fragment.sharedPref: SharedPreferencesHelper - Extension property for Fragment access</li>
+                                        <li class="property">val Context.sharedPref: SharedPreferencesHelper - Extension property for Context access</li>
+                                        <li class="method">fun saveString(key: String, value: String): Unit - Saves string value to SharedPreferences</li>
+                                        <li class="method">fun getString(key: String, defaultValue: String = ""): String - Retrieves string value with optional default</li>
+                                        <li class="method">fun saveInt(key: String, value: Int): Unit - Saves integer value to SharedPreferences</li>
+                                        <li class="method">fun getInt(key: String, defaultValue: Int = 0): Int - Retrieves integer value with optional default</li>
+                                        <li class="method">fun saveBoolean(key: String, value: Boolean): Unit - Saves boolean value to SharedPreferences</li>
+                                        <li class="method">fun getBoolean(key: String, defaultValue: Boolean = false): Boolean - Retrieves boolean value with optional default</li>
+                                        <li class="method">fun clear(): Unit - Clears all data from SharedPreferences</li>
+                                    </ul></li>
+                                <li class="file">Utils.kt - Large object containing numerous Android utility functions for views, animations, sharing, networking, and more.
+                                    <ul>
+                                        <li class="method">fun Uri.toBitmap(context: Activity): Bitmap? - Converts URI to Bitmap using content resolver</li>
+                                        <li class="method">suspend fun getFcmToken(): String? - Retrieves Firebase Cloud Messaging token</li>
+                                        <li class="method">fun getRandomNumber(from: Int, to: Int): Int - Generates random number in specified range</li>
+                                        <li class="method">fun paste(context: Context): String - Retrieves text from clipboard</li>
+                                        <li class="method">fun setDataToView(view: View?, data: Any?): Unit - Sets data to various view types (EditText, TextView, ImageView, ProgressBar, CheckBox, RadioButton)</li>
+                                        <li class="method">fun getProperties(clazz: KClass&lt;*&gt;): List&lt;String&gt; - Gets property names from class with caching</li>
+                                        <li class="method">fun Any.allProperties(): List&lt;String&gt; - Extension function to get all properties of an object</li>
+                                        <li class="method">fun Fragment.findId(viewId: String): View? - Finds view by string ID in Fragment</li>
+                                        <li class="method">fun Activity.findId(viewId: String): View? - Finds view by string ID in Activity</li>
+                                        <li class="method">fun &lt;T : ViewBinding, M&gt; AppCompatActivity.setupIntroScreens(viewPager: ViewPager, bindingFunction: (LayoutInflater) -&gt; T, dataList: List&lt;M&gt;, setupActions: (Int, T, List&lt;M&gt;) -&gt; Unit): PagerAdapter - Sets up intro screens with ViewBinding</li>
+                                        <li class="method">fun &lt;T : ViewBinding&gt; AppCompatActivity.setupIntroScreens(viewPager: ViewPager, bindingsList: List&lt;(LayoutInflater) -&gt; T&gt;, setupActions: (List&lt;T&gt;) -&gt; Unit): Unit - Alternative intro screen setup with binding list</li>
+                                        <li class="method">fun Uri.saveImageToInternalStorage(context: Context): Uri? - Saves URI image to internal storage</li>
+                                        <li class="method">fun Uri.uriToByteArray(context: Context): ByteArray? - Converts URI to byte array</li>
+                                        <li class="method">fun Activity.setUpBottomNavigationColor(color: Int = R.color.gray10): Unit - Sets bottom navigation bar color</li>
+                                        <li class="method">fun &lt;B : ViewBinding&gt; showCustomLayoutDialogFragment(activity: FragmentActivity, bindingInflater: (LayoutInflater, ViewGroup?, Boolean) -&gt; B, isCancelable: Boolean = false, gravity: Int = Gravity.CENTER, setupBinding: (B, DialogFragment) -&gt; Unit): GenericDialogFragment&lt;B&gt; - Creates custom dialog fragment with ViewBinding</li>
+                                        <li class="method">fun &lt;P&gt; Any.getPropertyName(propertyReference: KProperty&lt;P&gt;): String - Gets property name from KProperty reference</li>
+                                        <li class="method">fun getIpv4LocalHostAddress(): String - Gets local IPv4 address</li>
+                                        <li class="method">fun View.setTint(color: Int): Unit - Sets view background tint color</li>
+                                        <li class="method">fun checkEditTexts(list: List&lt;EditText&gt;): Boolean - Validates EditText list and shows toast for empty fields</li>
+                                        <li class="method">fun printClassInfo(clazz: Class&lt;*&gt;): Unit - Prints class methods and properties to console</li>
+                                        <li class="method">@RequiresApi(Build.VERSION_CODES.O) fun printMethodNames(clazz: Class&lt;*&gt;): Unit - Prints detailed method signatures with modifiers and parameters</li>
+                                        <li class="method">fun sendMessageToWhatsApp(context: Context, phoneNumber: String, message: String): Unit - Opens WhatsApp with pre-filled message</li>
+                                        <li class="method">fun View.setWidth(width: Int): Unit - Sets view width programmatically</li>
+                                        <li class="method">fun View.setHeight(height: Int): Unit - Sets view height programmatically</li>
+                                        <li class="method">fun showWithRevealAnimation(showView: View, hideView: View): Unit - Shows view with circular reveal animation</li>
+                                        <li class="method">fun hideWithRevealAnimation(hideView: View, showView: View): Unit - Hides view with circular reveal animation</li>
+                                        <li class="method">fun processPhoneNumber(phoneNumber: String): String - Cleans and processes phone number (removes 0 prefix if starts with 03)</li>
+                                        <li class="method">fun AppCompatActivity.setupBottomNav(activity: AppCompatActivity, bottomNavigationView: BottomNavigationView, frameLayout: FrameLayout, fragmentsList: List&lt;Fragment&gt;): Unit - Sets up bottom navigation with fragment switching</li>
+                                        <li class="method">fun &lt;T, VB : ViewBinding&gt; RecyclerView.setDataWithPaging(items: List&lt;T&gt;, animation: Animation? = null, pageSize: Int = 10, bindingInflater: (LayoutInflater, ViewGroup, Boolean) -&gt; VB, bindHolder: (binding: VB, item: T, position: Int) -&gt; Unit, loadMore: (lastKey: Int) -&gt; Unit = {}): Unit - Sets RecyclerView with paging support</li>
+                                        <li class="method">fun attachDataOnViews(bindingInflater: Any, item: Any): Unit - Attaches data to views using reflection and property matching</li>
+                                        <li class="method">class DataViewHolder&lt;VB : ViewBinding&gt;(val binding: VB): RecyclerView.ViewHolder - Generic ViewHolder for ViewBinding</li>
+                                        <li class="method">class GenericPagingAdapter&lt;T, VB : ViewBinding&gt; - Generic paging adapter with load more functionality</li>
+                                        <li class="method">class GenericAdapter&lt;T, VB : ViewBinding&gt; - Generic RecyclerView adapter with ViewBinding</li>
+                                        <li class="method">fun &lt;T, VB : ViewBinding&gt; RecyclerView.setData(items: List&lt;T&gt;, bindingInflater: (LayoutInflater, ViewGroup, Boolean) -&gt; VB, bindHolder: (binding: VB, item: T, position: Int) -&gt; Unit): Unit - Sets RecyclerView data with generic adapter</li>
+                                        <li class="method">fun &lt;T, VB : ViewBinding&gt; RecyclerView.setDataWithAnimation(animation: Animation? = null, items: List&lt;T&gt;, bindingInflater: (LayoutInflater, ViewGroup, Boolean) -&gt; VB, bindHolder: (binding: VB, item: T, position: Int) -&gt; Unit): Unit - Sets RecyclerView data with animation support</li>
+                                    </ul></li>
+                                <li class="package">mediaplayer
+                                    <ul>
+                                        <li class="file">MediaPlayerHolder.kt - Holder class for managing MediaPlayer instance with lifecycle awareness.
+                                            <ul>
+                                                <li class="constructor">MediaPlayerHolder(context: Context) - Constructor initializing MediaPlayer with context.</li>
+                                                <li class="method">fun setDataSource(uri: Uri): Unit - Sets audio data source from URI.</li>
+                                                <li class="method">fun play(): Unit - Starts audio playback.</li>
+                                                <li class="method">fun pause(): Unit - Pauses audio playback.</li>
+                                                <li class="method">fun stop(): Unit - Stops audio playback and releases resources.</li>
+                                                <li class="method">fun seekTo(position: Int): Unit - Seeks to specific position in milliseconds.</li>
+                                                <li class="method">fun getCurrentPosition(): Int - Gets current playback position.</li>
+                                                <li class="method">fun getDuration(): Int - Gets total duration of audio file.</li>
+                                                <li class="method">fun isPlaying(): Boolean - Checks if media is currently playing.</li>
+                                                <li class="method">fun setOnCompletionListener(listener: () -> Unit): Unit - Sets completion callback.</li>
+                                                <li class="method">fun setVolume(leftVolume: Float, rightVolume: Float): Unit - Sets stereo volume.</li>
+                                                <li class="method">fun release(): Unit - Releases MediaPlayer resources.</li>
+                                            </ul>
+                                        </li>
+                                        <li class="file">PlaybackInfoListener.kt - Interface for listening to playback information updates.
+                                            <ul>
+                                                <li class="interface">interface PlaybackInfoListener - Callback interface for playback events.</li>
+                                                <li class="method">fun onDurationChanged(duration: Int): Unit - Called when audio duration changes.</li>
+                                                <li class="method">fun onPositionChanged(position: Int): Unit - Called when playback position changes.</li>
+                                                <li class="method">fun onStateChanged(state: PlaybackState): Unit - Called when playback state changes.</li>
+                                                <li class="method">fun onPlaybackCompleted(): Unit - Called when audio playback completes.</li>
+                                                <li class="enum">enum class PlaybackState - Enum for playback states: IDLE, PREPARING, PREPARED, PLAYING, PAUSED, COMPLETED, STOPPED.</li>
+                                            </ul>
+                                        </li>
+                                        <li class="file">PlayerAdapter.kt - Adapter class providing high-level media player controls with state management.
+                                            <ul>
+                                                <li class="constructor">PlayerAdapter(context: Context) - Constructor initializing player adapter.</li>
+                                                <li class="method">fun loadMedia(uri: Uri): Unit - Loads audio file from URI.</li>
+                                                <li class="method">fun play(): Unit - Starts playback with state management.</li>
+                                                <li class="method">fun pause(): Unit - Pauses playback with state management.</li>
+                                                <li class="method">fun resume(): Unit - Resumes paused playback.</li>
+                                                <li class="method">fun reset(): Unit - Resets player to idle state.</li>
+                                                <li class="method">fun skipTo(position: Int): Unit - Skips to specific position.</li>
+                                                <li class="method">fun fastForward(seconds: Int = 10): Unit - Fast forwards by specified seconds.</li>
+                                                <li class="method">fun rewind(seconds: Int = 10): Unit - Rewinds by specified seconds.</li>
+                                                <li class="method">fun setPlaybackListener(listener: PlaybackInfoListener): Unit - Sets playback event listener.</li>
+                                                <li class="method">fun getCurrentState(): PlaybackState - Gets current playback state.</li>
+                                                <li class="method">fun isMediaPlayerAvailable(): Boolean - Checks if MediaPlayer is available.</li>
+                                                <li class="method">fun initMediaPlayer(): Unit - Initializes MediaPlayer instance.</li>
+                                                <li class="method">fun releaseMediaPlayer(): Unit - Releases MediaPlayer resources.</li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                        <li class="method">fun EditText.disable(): Unit - Disables EditText input and focus</li>
+                                        <li class="method">fun EditText.getFullNumber(countryCodePicker: CountryCodePicker): String - Gets full phone number with country code</li>
+                                        <li class="method">fun TextView.paste(): String - Pastes clipboard content to TextView</li>
+                                        <li class="method">fun TextView.showCountdownTimer(totalTimeInMillis: Long, onFinish: (Unit) -&gt; Unit, onTicked: ((Long) -&gt; Unit)?): Unit - Shows countdown timer in TextView</li>
+                                        <li class="method">fun TextView.setTextOrInvisible/setTextOrGone(text: String): Unit - Set text with visibility control</li>
+                                        <li class="method">fun TextView.makeLinksClickable(): Unit - Makes links in TextView clickable</li>
+                                        <li class="method">fun TextView.strikeThrough(): Unit - Adds strike-through text decoration</li>
+                                        <li class="method">fun TextView.setHtmlText(html: String): Unit - Sets HTML text with link support</li>
+                                        <li class="method">fun TextView.setTextSizeInSp(s: Float): Unit - Sets text size in SP units</li>
+                                        <li class="method">fun TextView.setTextColorRes(@ColorRes colorResId: Int): Unit - Sets text color from resource</li>
+                                        <li class="method">fun EditText.onTextChange(callback: (String) -&gt; Unit): Unit - Adds text change listener</li>
+                                        <li class="method">fun TextInputEditText.attachCNICValidation(textInputLayout: TextInputLayout): Unit - Adds CNIC format validation with auto-formatting</li>
+                                        <li class="method">fun formatValueInPKR(value: Int): String - Formats integer as PKR currency with commas</li>
+                                        <li class="method">fun EditText.getText(): String - Gets EditText text as string</li>
+                                        <li class="method">fun EditText.setMaxLength(maxLength: Int): Unit - Sets maximum text length</li>
+                                        <li class="method">fun EditText.setSelectionToEnd(): Unit - Moves cursor to end of text</li>
+                                        <li class="method">fun Button.disable/enable(): Unit - Enables/disables button</li>
+                                        <li class="method">fun Button.setBackgroundRes(@DrawableRes drawableResId: Int): Unit - Sets background from resource</li>
+                                        <li class="method">fun Button.setElevationCompat(elevation: Float): Unit - Sets button elevation</li>
+                                        <li class="method">fun TextView.enablePinchZoom(): Unit - Enables pinch-to-zoom for TextView text</li>
+                                        <li class="method">fun View.enablePinchZoom(): Unit - Enables pinch-to-zoom for View scale</li>
+                                        <li class="method">fun EditText.isEmpty(): Boolean - Checks if EditText is empty</li>
+                                        <li class="method">fun EditText.setupQuantityControl(incrementView: View, decrementView: View, initialValue: Int): Unit - Sets up increment/decrement controls</li>
+                                        <li class="method">fun TextView.setDefaultOptions(options: List&lt;String&gt;): Unit - Cycles through options on tap</li>
+                                    </ul>
+                                </li>
+                                <li class="file" id="contextextensions">ContextExtensions.kt - Extensions for Context, Activity, AppCompatActivity, LifecycleOwner, and Fragment.
+                                    <ul>
+                                        <li class="method">fun Context.showToast(message: Any, duration: Int = Toast.LENGTH_SHORT): Unit - Shows toast message.</li>
+                                        <li class="method">fun Context.showLongTextToast(text: String, gravity: Int = Gravity.BOTTOM): Unit - Shows custom long toast.</li>
+                                        <li class="method">fun Context.openActivity(activityClass: Class&lt;*&gt;): Unit - Opens activity.</li>
+                                        <li class="method">fun Context.dpToPx(dp: Float): Int - Converts dp to pixels.</li>
+                                        <li class="method">fun Context.getVersionName(): String - Gets app version name.</li>
+                                        <li class="method">fun Context.setTransparentStatusBar(): Unit - Sets transparent status bar.</li>
+                                        <li class="method">fun Context.shareText(text: String, subject: String = ""): Unit - Shares text.</li>
+                                        <li class="method">fun Context.launchDialer(phoneNumber: String): Unit - Opens dialer.</li>
+                                        <li class="method">fun Context.startActivityWithDelay(delayMillis: Long, targetActivity: Class&lt;out Activity&gt;): Unit - Starts activity with delay.</li>
+                                        <li class="method">fun Context.isNetworkAvailable(): Boolean - Checks network availability.</li>
+                                        <li class="method">suspend fun Context.isInternetAccessible(): Boolean - Checks internet accessibility.</li>
+                                        <li class="method">fun Activity.hideSoftKeyboard(): Unit - Hides soft keyboard.</li>
+                                        <li class="method">fun Activity.startNewTaskActivity(activityClass: Class&lt;*&gt;): Unit - Starts new task activity.</li>
+                                        <li class="method">fun Activity.setUpBottomNavigationColor(color: Int = R.color.gray10): Unit - Sets bottom navigation color.</li>
+                                        <li class="method">fun AppCompatActivity.setUpFragmentSlider(fragments: List&lt;Fragment&gt;, viewPager2: ViewPager2): Unit - Sets up fragment slider.</li>
+                                        <li class="method">fun AppCompatActivity.setupTabLayout(tabLayout: TabLayout, viewPager2: ViewPager2, tabTextList: List&lt;String&gt;, fragments: List&lt;Fragment&gt;, initialPosition: Int = 0): Unit - Sets up tab layout.</li>
+                                        <li class="method">fun LifecycleOwner.launchWhenResumed(block: suspend () -> Unit): Unit - Launches when resumed.</li>
+                                        <li class="method">fun Context?.showToastSafe(message: Any, duration: Int = Toast.LENGTH_SHORT, gravity: Int = Gravity.BOTTOM): Unit - Shows safe toast.</li>
+                                        <li class="method">fun Context.copyToClipboard(text: String, label: String = "Copied Text"): Unit - Copies to clipboard.</li>
+                                        <li class="method">fun Context.getScreenWidth(): Int - Gets screen width.</li>
+                                        <li class="method">fun Context.getScreenHeight(): Int - Gets screen height.</li>
+                                        <li class="method">fun Context.isAppInForeground(): Boolean - Checks if app is in foreground.</li>
+                                        <li class="method">fun Context.vibrate(milliseconds: Long = 100): Unit - Vibrates device.</li>
+                                        <li class="method">fun Context.openAppSettings(): Unit - Opens app settings.</li>
+                                        <li class="method">fun Context.hasPermission(permission: String): Boolean - Checks permission.</li>
+                                        <li class="method">fun Context.openUrl(url: String): Unit - Opens URL in browser.</li>
+                                        <li class="method">fun Context.shareImage(imageUri: android.net.Uri, title: String = "Share Image"): Unit - Shares image.</li>
+                                        <li class="method">fun Context.getCurrentLocale(): java.util.Locale - Gets current locale.</li>
+                                        <li class="method">fun Context.isGpsEnabled(): Boolean - Checks if GPS is enabled.</li>
+                                        <li class="method">fun Context.getAvailableMemory(): Long - Gets available memory in MB.</li>
+                                        <li class="method">fun Context.openDialer(phoneNumber: String): Unit - Opens dialer with validation.</li>
+                                        <li class="method">fun Context.sendSms(phoneNumber: String, message: String): Unit - Sends SMS.</li>
+                                        <li class="method">fun Context.openEmail(to: Array&lt;String&gt;, subject: String = "", body: String = ""): Unit - Opens email app.</li>
+                                        <li class="method">fun Context.openMap(latitude: Double, longitude: Double, label: String = "Location"): Unit - Opens map.</li>
+                                        <li class="method">fun Context.openCamera(): Unit - Opens camera.</li>
+                                        <li class="method">fun Context.getBatteryLevel(): Int - Gets battery level.</li>
+                                        <li class="method">fun Context.getNetworkType(): String - Gets network type.</li>
+                                        <li class="method">fun Context.openPermissionSettings(permission: String): Unit - Opens permission settings.</li>
+                                        <li class="method">fun Context.hasNotificationPermission(): Boolean - Checks notification permission.</li>
+                                        <li class="method">fun Context.openInPlayStore(): Unit - Opens app in Play Store.</li>
+                                        <li class="method">fun Context.getVersionCode(): Long - Gets app version code.</li>
+                                        <li class="method">fun Context.isAppInstalled(packageName: String): Boolean - Checks if app is installed.</li>
+                                        <li class="method">fun Context.openFile(uri: android.net.Uri, mimeType: String? = null): Unit - Opens file.</li>
+                                        <li class="method">fun Context.getExternalStoragePath(): String? - Gets external storage path.</li>
+                                        <li class="method">fun Context.isDeviceRooted(): Boolean - Checks if device is rooted.</li>
+                                    </ul>
+                                </li>
+                                <li class="file" id="dataextensions">DataExtensions.kt - Data utilities: JSON (Gson/JSONObject/JSONArray), Calendar/date ops, Any/List/String/Number helpers, Bitmap/Uri, hashing/random. <span class="line-numbers">📍 Search: #dataextensions</span>
+                                    <ul>
+                                        <li class="method">val gson: Gson - Gson instance with HTML escaping disabled</li>
+                                        <li class="method">inline fun &lt;reified T&gt; typeToken(): Type - Returns TypeToken for generic type</li>
+                                        <li class="method">inline fun &lt;reified T&gt; String.toObject(): T - Converts JSON string to object</li>
+                                        <li class="method">inline fun &lt;reified T&gt; Map&lt;String, Any&gt;.toObject(): T - Converts Map to object</li>
+                                        <li class="method">inline fun &lt;T, reified R&gt; T.convert(): R - Converts object to different type</li>
+                                        <li class="method">inline fun &lt;reified T&gt; Gson.fromJson(json: String?): T? - Safe JSON parsing with null return</li>
+                                        <li class="method">inline fun &lt;reified T&gt; Gson.fromJsonList(json: String?): List&lt;T&gt;? - Parse JSON to List</li>
+                                        <li class="method">fun JSONObject.toPrettyString(indentSpaces: Int): String - Pretty print JSON with custom indent</li>
+                                        <li class="method">fun JSONArray.toPrettyString(indentSpaces: Int): String - Pretty print JSON array</li>
+                                        <li class="method">fun JSONArray.toList(): List&lt;Any&gt; - Convert JSONArray to List</li>
+                                        <li class="method">fun JSONObject.toMap(): Map&lt;String, Any&gt; - Convert JSONObject to Map</li>
+                                        <li class="method">fun List&lt;Any&gt;.toJsonArray(): JSONArray - Convert List to JSONArray</li>
+                                        <li class="method">fun Map&lt;String, Any&gt;.toJsonObject(): JSONObject - Convert Map to JSONObject</li>
+                                        <li class="method">fun JSONObject.merge(other: JSONObject): JSONObject - Merge two JSON objects</li>
+                                        <li class="method">fun String.isValidJson(): Boolean - Check if string is valid JSON</li>
+                                        <li class="method">fun Any.shrink(): Map&lt;String, Any&gt; - Convert object to Map excluding empty values</li>
+                                        <li class="method">fun Any.toMap(): Map&lt;String, Any&gt; - Convert object to Map including all values</li>
+                                        <li class="method">fun Any.toJsonString(): String - Convert object to JSON string</li>
+                                        <li class="method">var Calendar.year/month/day: Int - Get/set Calendar properties</li>
+                                        <li class="method">fun Calendar.addDays/Months/Years(count: Int): Calendar - Add time with overflow handling</li>
+                                        <li class="method">fun Calendar.subtractDays/Months/Years(count: Int): Calendar - Subtract time</li>
+                                        <li class="method">fun Calendar.previousYear/Month(): Int - Get previous year/month values</li>
+                                        <li class="method">fun Calendar.nextMonth(): Int - Get next month value</li>
+                                        <li class="method">fun Calendar.setLastDayOfMonth(): Calendar - Set to last day of current month</li>
+                                        <li class="method">fun Calendar.setLastDayOfYear(): Calendar - Set to last day of current year</li>
+                                        <li class="method">fun Calendar.isLeapYear(): Boolean - Check if current year is leap year</li>
+                                        <li class="method">fun Calendar.daysInMonth(): Int - Get number of days in current month</li>
+                                        <li class="method">fun Calendar.daysInYear(): Int - Get number of days in current year</li>
+                                        <li class="method">fun Long.toDate/Time/DateTime(pattern: String): String - Format timestamp to string</li>
+                                        <li class="method">fun Long.isToday/isThisMonth/isThisYear(): Boolean - Check if timestamp is in current period</li>
+                                        <li class="method">fun Long.isFuture/isPast(): Boolean - Check if timestamp is future/past</li>
+                                        <li class="method">fun String.toDateSafe(pattern: String, fallback: Date?): Date? - Safe date parsing with fallback</li>
+                                        <li class="method">fun Date.formatSafe(pattern: String, fallback: String): String - Safe date formatting with fallback</li>
+                                        <li class="method">fun Double.rounded(): String - Round to integer if whole, else 1 decimal</li>
+                                        <li class="method">fun Double.roundTo(digitsAfterDecimal: Int): String - Round with custom decimal places</li>
+                                        <li class="method">fun List&lt;T&gt;.toArrayList(): ArrayList&lt;T&gt; - Convert List to ArrayList</li>
+                                        <li class="method">fun Any?.ifNull(block: () -&gt; Unit): Unit - Execute block if value is null</li>
+                                        <li class="method">fun Any?.isNull/isNotNull(): Boolean - Null checks</li>
+                                        <li class="method">val Any.className: String - Get simple class name</li>
+                                        <li class="method">inline fun &lt;T&gt; tryOrDefault(default: T?, block: () -&gt; T): T - Try block or return default</li>
+                                        <li class="method">val Int/Long/Float/String/Double.Companion.empty: Type - Empty values for primitives</li>
+                                        <li class="method">inline fun &lt;reified T : Any&gt; Any.castOrNull(): T? - Safe cast with null return</li>
+                                        <li class="method">fun Any.toHexString(): String - Get hash code as hex string</li>
+                                        <li class="method">fun Any.simpleClassName(): String - Get simple class name</li>
+                                        <li class="method">inline fun &lt;reified T&gt; Any.isInstanceOf(): Boolean - Type check</li>
+                                        <li class="method">inline fun &lt;T, R&gt; List&lt;T&gt;.mapNotNull(transform: (T) -&gt; R?): List&lt;R&gt; - Map filtering nulls</li>
+                                        <li class="method">fun &lt;T&gt; List&lt;T&gt;.randomOrNull(): T? - Get random element or null</li>
+                                        <li class="method">fun &lt;T&gt; List&lt;T&gt;.shuffleSafe(): List&lt;T&gt; - Return shuffled copy</li>
+                                        <li class="method">fun &lt;T, K&gt; List&lt;T&gt;.groupBySafe(keySelector: (T) -&gt; K): Map&lt;K, List&lt;T&gt;&gt; - Safe grouping</li>
+                                        <li class="method">fun &lt;T&gt; List&lt;T&gt;.distinctBySafe(selector: (T) -&gt; Any?): List&lt;T&gt; - Safe distinct by</li>
+                                        <li class="method">fun String.toTitleCase(): String - Convert to title case</li>
+                                        <li class="method">fun String.removeAccents(): String - Remove diacritical marks</li>
+                                        <li class="method">fun String.base64Encode/Decode(): String - Base64 encoding/decoding</li>
+                                        <li class="method">fun String.isValidEmail/isValidPhone(): Boolean - Email/phone validation</li>
+                                        <li class="method">fun Int/Float/Double.clamp(min: Type, max: Type): Type - Clamp value to range</li>
+                                        <li class="method">fun Int.toCurrency(symbol: String): String - Format as currency</li>
+                                        <li class="method">fun Double.toPercentage(): String - Convert to percentage string</li>
+                                        <li class="method">fun Int.toOrdinal(): String - Convert to ordinal (1st, 2nd, 3rd)</li>
+                                        <li class="method">fun Bitmap.resize(width: Int, height: Int, filter: Boolean): Bitmap - Resize bitmap</li>
+                                        <li class="method">fun Bitmap.resizeByFactor(factor: Float, filter: Boolean): Bitmap - Resize by scaling factor</li>
+                                        <li class="method">fun Bitmap.crop(x: Int, y: Int, width: Int, height: Int): Bitmap - Crop bitmap region</li>
+                                        <li class="method">fun Bitmap.rotate(degrees: Float): Bitmap - Rotate bitmap</li>
+                                        <li class="method">fun Bitmap.toUri(context: Context): Uri? - Convert bitmap to file URI</li>
+                                        <li class="method">fun Drawable.toBitmap(): Bitmap - Convert drawable to bitmap</li>
+                                        <li class="method">fun Uri.getFileSize(context: Context): Long - Get file size from URI</li>
+                                        <li class="method">fun Uri.getFileExtension(): String - Get file extension from URI</li>
+                                        <li class="method">fun Uri.isImage/isVideo(): Boolean - Check if URI is image/video</li>
+                                        <li class="method">fun com.google.android.gms.maps.model.LatLng.toLatLang(): LatLng - Convert Google Maps LatLng</li>
+                                        <li class="method">fun Boolean.toggle(): Boolean - Toggle boolean value</li>
+                                        <li class="method">fun randomString(length: Int): String - Generate random alphanumeric string</li>
+                                        <li class="method">fun randomUUID(): String - Generate random UUID string</li>
+                                        <li class="method">fun String.md5/sha256(): String - Generate hash of string</li>
+                                    </ul>
+                                </li>
+                                <li class="file" id="imageviewextensions">ImageViewExtensions.kt - ImageView and image utilities: Glide loading, bitmap operations, WorkManager uploads, transformations, and file handling. <span class="line-numbers">📍 Search: #imageviewextensions</span>
+                                    <ul>
+                                        <li class="method">fun createImageUploadWorkRequest(imageUri: String, path: String): OneTimeWorkRequest - Creates WorkManager upload request</li>
+                                        <li class="method">fun uploadImageUsingWorkManager(context: Context, uri: String, path: String): Unit - Uploads image via WorkManager</li>
+                                        <li class="method">fun Bitmap?.orEmpty(defaultValue: Bitmap): Bitmap - Returns default bitmap if null</li>
+                                        <li class="method">fun ImageView.loadImageFromUrl(url: String, placeHolder: Int, error: Int): Unit - Loads image from URL with Glide</li>
+                                        <li class="method">fun ImageView.loadImage(uri: Uri?, placeHolder: Int, error: Int): Unit - Loads image from URI safely</li>
+                                        <li class="method">fun ImageView.loadImage(file: File?, placeHolder: Int, error: Int): Unit - Loads image from file safely</li>
+                                        <li class="method">fun ImageView.loadGif(url: String, placeHolder: Int, error: Int): Unit - Loads GIF animation</li>
+                                        <li class="method">fun ImageView.loadImageWithThumbnail(url: String, thumbnailUrl: String, placeHolder: Int): Unit - Loads image with thumbnail</li>
+                                        <li class="method">fun ImageView.loadImageFromResource(resourceId: Int): Unit - Loads image from resource</li>
+                                        <li class="method">fun ImageView.loadDrawable(@DrawableRes resId: Int): Unit - Loads drawable with Glide</li>
+                                        <li class="method">fun ImageView.setRoundedCorner(cornerRadius: Float): Unit - Applies rounded corners to current image</li>
+                                        <li class="method">fun ImageView.setTintColor(color: Int): Unit - Sets image color tint</li>
+                                        <li class="method">fun ImageView.setGrayscale(): Unit - Converts image to grayscale</li>
+                                        <li class="method">fun ImageView.loadThumbnail(videoUrl: String, frame: Long): Unit - Loads video thumbnail frame</li>
+                                        <li class="method">fun ImageView.loadCircularImage(url: String, placeholderResId: Int): Unit - Loads circular cropped image</li>
+                                        <li class="method">fun ImageView.loadCircularImage(url: String, placeholderResId: Int, borderColor: Int?, borderWidth: Int): Unit - Loads circular image with border</li>
+                                        <li class="method">fun ImageView.loadResizedImage(url: String, width: Int, height: Int): Unit - Loads image with specific dimensions</li>
+                                        <li class="method">fun ImageView.loadRoundedImage(url: String, cornerRadius: Int, placeHolder: Int, error: Int): Unit - Loads image with rounded corners</li>
+                                        <li class="method">fun Uri.getFileName(contentResolver: ContentResolver): String - Gets filename from URI</li>
+                                        <li class="method">fun Bitmap.scaleBitmap(maxBytes: Long): Bitmap - Scales bitmap to fit byte limit</li>
+                                        <li class="method">enum class ImageFormat - PNG/JPEG format enum</li>
+                                        <li class="method">fun Drawable.saveAsImageFile(context: Context, fileName: String, format: ImageFormat): File? - Saves drawable as image file</li>
+                                        <li class="method">fun ImageView.clearImage(): Unit - Clears image and Glide cache</li>
+                                        <li class="method">fun ImageView.loadOrGone(url: String?, placeHolder: Int): Unit - Loads image or hides view if empty</li>
+                                        <li class="method">fun ImageView.visible(): Unit - Sets view visible</li>
+                                        <li class="method">fun ImageView.gone(): Unit - Sets view gone</li>
+                                        <li class="method">fun Context.preloadImage(url: String): Unit - Preloads image into Glide cache</li>
+                                    </ul>
+                                </li>
+                                <li class="file" id="viewextensions">ViewExtensions.kt - General View/UI extensions: animations, layout/margin/padding, clicks, screenshots, visibility, date/time pickers. <span class="line-numbers">📍 Search: #viewextensions</span>
+                                    <ul>
+                                        <li class="method">fun EditText.scrollByY(scrollView: ScrollView, byY: Int): Unit - Auto-scroll when EditText gains focus</li>
+                                        <li class="method">fun ScrollView.scrollLittle(list: List&lt;EditText&gt;, byY: Int): Unit - Apply scrollByY to multiple EditTexts</li>
+                                        <li class="method">fun View.setCornerRadius(radius: Int): Unit - Sets rounded corners using outline</li>
+                                        <li class="method">fun View.makeCircular(strokeWidth: Int, strokeColor: Int): Unit - Makes view circular with optional stroke</li>
+                                        <li class="method">fun View.animateToRight/Left(duration: Int, onEnd: (Animation) -&gt; Unit): Unit - Slide animations with callbacks</li>
+                                        <li class="method">fun TextView.attachValueEditor(onTextChanged: (String) -&gt; Unit): Unit - Opens dialog to edit TextView value</li>
+                                        <li class="method">fun View.animateLikeBellRinging(): Unit - Bell shake animation</li>
+                                        <li class="method">fun TextView.enableAutoSizingWithPresetSizes(presetSizes: IntArray, unit: Int): Unit - API 26+ auto text sizing</li>
+                                        <li class="method">fun TextView.spannableTextFormat(wordToFormat: String, colorResId: Int, size: Float, style: TextStyle): Unit - Format specific words with color/size/style</li>
+                                        <li class="method">fun TextView.setBold()/setItalic()/underline(): Unit - Text styling helpers</li>
+                                        <li class="method">fun TextView.setTextOrDefault(text: String?, default: String): Unit - Set text or default if null/empty</li>
+                                        <li class="method">fun View.setHeight/Width(height/width: Int): Unit - Set layout dimensions</li>
+                                        <li class="method">fun View.setBackgroundColorRes(@ColorRes color: Int): Unit - Set background from color resource</li>
+                                        <li class="method">fun View.setMarginTop/Bottom/Left/Right(margin: Int): Unit - Set individual margins</li>
+                                        <li class="method">fun View.setMargins(left: Int, top: Int, right: Int, bottom: Int): Unit - Set all margins</li>
+                                        <li class="method">fun View.shake(): Unit - Shake animation</li>
+                                        <li class="method">fun View.getActivity(): Activity? - Get Activity from View context</li>
+                                        <li class="method">fun View.setOnClickListenerWithInterval(interval: Long, action: () -&gt; Unit): Unit - Throttled click listener</li>
+                                        <li class="method">fun View.getScreenshot(): Bitmap - Capture view as bitmap</li>
+                                        <li class="method">fun View.toggleVisibility(): Unit - Toggle between VISIBLE and GONE</li>
+                                        <li class="method">fun View.fadeOutGone/OutInvisible/InVisible(duration: Long): Unit - Fade animations with visibility changes</li>
+                                        <li class="method">fun View.zoomOutVisibleFadeIn/Out(duration: Long): Unit - Zoom animations with visibility</li>
+                                        <li class="method">fun View.slideInFromLeft/Right/Bottom/Top(duration: Long): Unit - Slide in animations</li>
+                                        <li class="method">fun View.slideOutToRightGone/ToBottomGone/ToRightInvisible(duration: Long): Unit - Slide out animations</li>
+                                        <li class="method">fun View.fadeIn/Out(duration: Long): Unit - Basic fade animations</li>
+                                        <li class="method">fun View.slideUpVisibleFadeIn/slideDownGoneFadeOut(duration: Long): Unit - Combined slide+fade animations</li>
+                                        <li class="method">fun View.slideLeft/Right(duration: Long): Unit - Slide and return animations</li>
+                                        <li class="method">fun View.bounce(duration: Long): Unit - Bounce scale animation</li>
+                                        <li class="method">fun View.makeVisible/makeInVisible/makeGone(): Unit - Set visibility states</li>
+                                        <li class="method">fun View.makeEnabled/makeDisabled(): Unit - Set enabled state</li>
+                                        <li class="method">fun View.attachDateTimePicker(callback: (Calendar) -&gt; Unit): Unit - Attach date+time picker to view</li>
+                                        <li class="method">fun View.attachDatePicker(pattern: String, callback: (Date) -&gt; Unit): Unit - Attach date picker with format</li>
+                                        <li class="method">fun View.attachTimePicker(): Unit - Attach time picker to view</li>
+                                        <li class="method">fun TextInputEditText.capitalizeFirstLetter(): Unit - Auto-capitalize first letter</li>
+                                        <li class="method">fun View.showSnackBar(message: String): Unit - Show snackbar message</li>
+                                        <li class="method">fun View.animateToDown/FromDown(duration: Long): Unit - Vertical slide animations</li>
+                                        <li class="method">fun View.animateRotateClockwise/AntiClockwise(fromDegrees: Float, toDegrees: Float, duration: Long, pivotX: Float, pivotY: Float): Unit - Rotation animations</li>
+                                        <li class="method">fun View.animateScaleIn/Out(fromX: Float, toX: Float, fromY: Float, toY: Float, duration: Long, pivotX: Float, pivotY: Float): Unit - Scale animations</li>
+                                        <li class="method">fun View.animateBounce/Shake/Flip/ZoomIn(fromX: Float, toX: Float, fromY: Float, toY: Float, duration: Long, pivotX: Float, pivotY: Float): Unit - Various animation effects</li>
+                                        <li class="method">fun Animation.onAnimationComplete(callback: () -&gt; Unit): Unit - Add completion callback to animation</li>
+                                        <li class="method">fun EditText.makeItStepper(incrementView: View, decrementView: View, initialValue: Int): Unit - Create stepper controls</li>
+                                        <li class="method">fun EditText.setListItems(items: List&lt;String&gt;): Unit - Show dropdown list in EditText</li>
+                                        <li class="method">fun View.setVisibleOrInvisible/OrGone(visible: Boolean): Unit - Conditional visibility</li>
+                                    </ul>
+                                </li>
+                                <li class="file">UIExtensions.kt - UI helpers: bottom sheets, dialogs, reveal animations, and form flows.
+                                    <ul>
+                                        <li class="method">fun View.setBottomSheetList(optionsList: List&lt;String&gt;, selected: (String) -&gt; Unit): Unit - Shows bottom sheet with selectable list using RecyclerView and rounded corners</li>
+                                        <li class="method">fun View.attachValueEditor(onTextChanged: (String) -&gt; Unit): Unit - Opens dialog with EditText to edit view text value with OK/Cancel buttons</li>
+                                        <li class="method">fun showWithRevealAnimation(showView: View, hideView: View): Unit - Reveals showView with circular animation while hiding hideView (700ms duration)</li>
+                                        <li class="method">fun hideWithRevealAnimation(hideView: View, showView: View): Unit - Hides hideView with reverse circular animation while showing showView (700ms duration)</li>
+                                        <li class="method">inline fun &lt;reified T : ViewBinding&gt; AppCompatActivity.createBottomDialog(bindingInflater: (LayoutInflater) -&gt; T, callback: (T, Dialog) -&gt; Unit): Dialog - Creates bottom dialog with 92% screen width, transparent background, and slide-up animation</li>
+                                        <li class="method">inline fun &lt;reified T : ViewBinding&gt; Fragment.createBottomDialog(bindingInflater: (LayoutInflater) -&gt; T, callback: (T, Dialog) -&gt; Unit): Dialog - Creates bottom dialog from fragment with same styling as Activity version</li>
+                                        <li class="method">fun View.attachDateTimePicker(callback: (Calendar) -&gt; Unit): Unit - Attaches date+time picker to view with Holo theme, handles EditText focus and click events</li>
+                                        <li class="method">fun View.attachDatePicker(pattern: String = "dd-MM-yyyy", callback: (Date) -&gt; Unit): Unit - Attaches date picker with custom date format, updates TextView text and provides Date callback</li>
+                                        <li class="method">fun View.attachTimePicker(): Unit - Attaches time picker with "hh:mm a" format, updates TextView with selected time</li>
+                                    </ul>
+                                </li>
+                                <li class="file">NumbersExtensions.kt - Number utilities and predicates.
+                                    <ul>
+                                        <li class="method">fun Double?.orEmpty(): Double - Returns 0.0 if null</li>
+                                        <li class="method">fun Double?.ifEmpty(callback: () -> Double): Double - Returns callback value if null or 0.0</li>
+                                        <li class="method">fun Int.addRandomNumber(from: Int, to: Int): Unit - Generates random number (unused return)</li>
+                                        <li class="method">fun List&lt;Int&gt;.next(): Int - Cycles through list elements sequentially</li>
+                                        <li class="method">fun String.toDoubleOrDefault(defaultValue: Double): Double - Safely converts string to double</li>
+                                        <li class="method">fun Int?.roundUpToNearestTen(): Int - Rounds up to nearest multiple of 10</li>
+                                        <li class="method">fun Int.dpToPx(context: Context): Int - Converts density-independent pixels to pixels</li>
+                                        <li class="method">fun Int.isEven(): Boolean - Checks if number is even</li>
+                                        <li class="method">fun Int.isOdd(): Boolean - Checks if number is odd</li>
+                                        <li class="method">fun Int.isPositive(): Boolean - Checks if number > 0</li>
+                                        <li class="method">fun Int.isNegative(): Boolean - Checks if number < 0</li>
+                                        <li class="method">fun Int.isZero(): Boolean - Checks if number == 0</li>
+                                        <li class="method">fun Int.isPositiveOrZero(): Boolean - Checks if number >= 0</li>
+                                        <li class="method">fun Int.isNegativeOrZero(): Boolean - Checks if number <= 0</li>
+                                        <li class="method">fun Int.absValue(): Int - Returns absolute value</li>
+                                        <li class="method">fun Long.isEven(): Boolean - Checks if long is even</li>
+                                        <li class="method">fun Long.isOdd(): Boolean - Checks if long is odd</li>
+                                        <li class="method">fun Long.isPositive(): Boolean - Checks if long > 0</li>
+                                        <li class="method">fun Long.isNegative(): Boolean - Checks if long < 0</li>
+                                        <li class="method">fun Long.isZero(): Boolean - Checks if long == 0</li>
+                                        <li class="method">fun Long.isPositiveOrZero(): Boolean - Checks if long >= 0</li>
+                                        <li class="method">fun Long.isNegativeOrZero(): Boolean - Checks if long <= 0</li>
+                                        <li class="method">fun Long.absValue(): Long - Returns absolute value of long</li>
+                                        <li class="method">fun Int.square(): Int - Returns number squared</li>
+                                        <li class="method">fun Long.square(): Long - Returns long squared</li>
+                                        <li class="method">fun Int.isWithinRange(min: Int, max: Int): Boolean - Checks if number is in inclusive range</li>
+                                        <li class="method">fun Long.isWithinRange(min: Long, max: Long): Boolean - Checks if long is in inclusive range</li>
+                                    </ul>
+                                </li>
+                                <li class="file">ScreenExtensions.kt - Activity/Fragment helpers for UI setup, navigation, status bar, flash, and screen utilities.
+                                    <ul>
+                                        <li class="method">fun Activity.refresh(): Unit - Restarts the activity with no transition animation</li>
+                                        <li class="method">inline fun &lt;reified MB : ViewBinding, DB : ViewBinding&gt; Activity.setUpDrawer(mainActivityBinding: MB, drawerContentInflater: (LayoutInflater) -&gt; DB, openDrawerButton: View, setupDrawerContent: (DrawerLayout, DB) -&gt; Unit): Unit - Wraps activity content in a drawer layout</li>
+                                        <li class="method">inline fun &lt;T : ViewBinding&gt; Fragment.viewBinding(bindingInflater: (LayoutInflater) -&gt; T): Lazy&lt;T&gt; - Returns lazy ViewBinding for fragment</li>
+                                        <li class="method">fun AppCompatActivity.setupBottomNav(bottomNavigationView: BottomNavigationView, frameLayout: FrameLayout, fragmentsList: List&lt;Fragment&gt;): Unit - Sets up fragment switching with BottomNavigationView</li>
+                                        <li class="method">fun AppCompatActivity.setupBottomNav(bottomNavigationView: AnimatedBottomBar, frameLayout: FrameLayout, fragmentsList: List&lt;Fragment&gt;): Unit - Sets up fragment switching with AnimatedBottomBar</li>
+                                        <li class="method">fun Activity.launchActivityClearNewTask(destination: Class&lt;*&gt;, key: String, data: String): Unit - Starts activity with CLEAR_TASK flag</li>
+                                        <li class="method">fun Activity.launchActivity(destination: Class&lt;*&gt;, key: String, data: Parcelable?): Unit - Starts activity with Parcelable extra</li>
+                                        <li class="method">fun Activity.launchActivity(destination: Class&lt;*&gt;, key: String, data: String): Unit - Starts activity with String extra</li>
+                                        <li class="method">fun CheckBox.toggle(): Unit - Toggles checkbox checked state</li>
+                                        <li class="method">fun Activity.setStatusBarColor(backgroundColor: Int, darkTextColor: Boolean): Unit - Sets status bar background and text color</li>
+                                        <li class="method">fun Activity.setActionBarTitle(title: String): Unit - Sets action bar title</li>
+                                        <li class="method">fun Activity.openAppSettings(): Unit - Opens app settings screen for this app</li>
+                                        <li class="method">fun Activity.vibrate(milliseconds: Long): Unit - Vibrates device for specified duration</li>
+                                        <li class="method">fun Activity.startActivityWithAnimation(clazz: Class&lt;*&gt;, enterAnim: Int, exitAnim: Int): Unit - Starts activity with custom transitions</li>
+                                        <li class="method">fun Activity.setStatusBarTransparent(): Unit - Makes status bar fully transparent</li>
+                                        <li class="method">fun Activity.statusBarColor(color: Int): Unit - Sets status bar background color</li>
+                                        <li class="method">fun Activity.systemBottomNavigationColor(context: Context, color: Int): Unit - Sets system navigation bar color</li>
+                                        <li class="method">fun Activity.turnOnFlash(): Unit - Turns on camera flash (torch mode)</li>
+                                        <li class="method">fun Activity.turnOFFFlash(): Unit - Turns off camera flash (torch mode)</li>
+                                        <li class="method">fun Fragment.showToast(message: Any, duration: Int): Unit - Shows toast from fragment</li>
+                                        <li class="method">fun Fragment.navigateToFragment(frameLayoutId: Int, fragment: Fragment, addToBackStack: Boolean): Unit - Replaces fragment in container</li>
+                                        <li class="method">fun Fragment.openUrl(url: String): Unit - Opens URL in external browser</li>
+                                        <li class="method">fun Fragment.shareText(content: String, title: String): Unit - Shares text via system share dialog</li>
+                                        <li class="method">fun Fragment.hideKeyboard(): Unit - Hides soft keyboard</li>
+                                        <li class="method">fun Activity.takeScreenshot(): Unit - Captures screenshot of current activity</li>
+                                        <li class="method">fun Activity.setStatusBarTextColor(activity: Activity, isLight: Boolean): Unit - Sets status bar icon/text color (API 23+)</li>
+                                        <li class="method">fun Activity.setStatusBarIconColor(isLight: Boolean): Unit - Modern way to set status bar icon color</li>
+                                        <li class="method">fun Activity.restart(): Unit - Restarts activity normally</li>
+                                        <li class="method">inline fun &lt;reified T&gt; Activity.getBinding(): T - Inflates and returns ViewBinding instance</li>
+                                        <li class="method">fun FragmentActivity.replaceFragment(frameLayoutId: Int, fragment: Fragment): Unit - Replaces fragment without backstack</li>
+                                    </ul>
+                                </li>
+                                <li class="file">StringExtensions.kt - Advanced string manipulation: validation, encryption, QR/Barcode, TTS, compression, and utilities.
+                                    <ul>
+                                        <li class="method">fun String.sendInMail(context: Context, subject: String = "", mail: String): Unit - Sends string content via email intent with Gmail fallback</li>
+                                        <li class="method">fun String?.orEmpty(): String - Returns empty string if null</li>
+                                        <li class="method">fun Boolean.ifTrue(block: () -> Unit): Unit - Executes block if boolean is true</li>
+                                        <li class="method">fun Boolean.ifFalse(block: () -> Unit): Unit - Executes block if boolean is false</li>
+                                        <li class="method">fun String.child(string: String): String - Creates child path by appending with slash separator</li>
+                                        <li class="method">fun String.compress(): String - Compresses string using GZIP and Base64 encoding</li>
+                                        <li class="method">fun String.decompress(): String - Decompresses GZIP+Base64 string back to original</li>
+                                        <li class="method">fun String.isNumber(): Boolean - Checks if string contains only digits (0-9)</li>
+                                        <li class="method">@RequiresApi(Build.VERSION_CODES.O) fun String.encrypt(key: String): String - AES-256 encryption with salt and IV</li>
+                                        <li class="method">@RequiresApi(Build.VERSION_CODES.O) fun String.decrypt(key: String): String - AES-256 decryption with salt and IV</li>
+                                        <li class="method">fun String.encryptShort(key: Int): String - Simple Caesar cipher encryption (A-Z, a-z)</li>
+                                        <li class="method">fun String.decryptShort(key: Int): String - Simple Caesar cipher decryption</li>
+                                        <li class="method">fun String.capitalizeString(): String - Capitalizes first letter of each word</li>
+                                        <li class="method">fun String.getStringDate(initialFormat: String, requiredFormat: String, locale: Locale = Locale.getDefault()): String - Converts date string between formats</li>
+                                        <li class="method">fun String.toDate(format: String, locale: Locale = Locale.getDefault()): Date - Parses string to Date using specified format</li>
+                                        <li class="method">fun Date.toString(format: String, locale: Locale = Locale.getDefault()): String - Formats Date to string using specified format</li>
+                                        <li class="method">fun String.generateQrCode(): Bitmap? - Generates 300x300 QR code bitmap from string</li>
+                                        <li class="method">fun String.capitalize(): String - Capitalizes first letter of string</li>
+                                        <li class="method">fun String.isValidEmail(): Boolean - Validates email format using Android Patterns</li>
+                                        <li class="method">fun String.toIntOrDefault(defaultValue: Int = 0): Int - Safe integer conversion with default value</li>
+                                        <li class="method">fun String.toLongOrDefault(defaultValue: Long = 0): Long - Safe long conversion with default value</li>
+                                        <li class="method">fun String.isValidUrl(): Boolean - Validates URL format by attempting to create URL object</li>
+                                        <li class="method">fun String.truncate(length: Int): String - Truncates string to specified length with ellipsis</li>
+                                        <li class="method">fun String.isNumeric(): Boolean - Checks if string is numeric (including negative and decimal)</li>
+                                        <li class="method">fun String.isAlphaString(): Boolean - Checks if string contains only letters</li>
+                                        <li class="method">fun String.isValidPhoneNumber(): Boolean - Validates international phone number format (+country code)</li>
+                                        <li class="method">fun String.splitIntoWords(): List&lt;String&gt; - Splits string into words using whitespace regex</li>
+                                        <li class="method">fun String.removeSpaces(): String - Removes all whitespace characters from string</li>
+                                        <li class="method">fun String.keepOnlyAlphanumeric(): String - Removes all non-alphanumeric characters</li>
+                                        <li class="method">fun String.toJsonArray(): JSONArray - Converts string to JSONArray with error handling</li>
+                                        <li class="method">fun String.calculateExpression(exp: String): Double - Evaluates mathematical expression using mXparser</li>
+                                        <li class="method">fun String.convertDpToPx(context: Context): Float - Converts density-independent pixels to pixels</li>
+                                        <li class="method">fun String.openUrlInBrowser(context: Context): Unit - Opens URL in default browser</li>
+                                        <li class="method">fun String.toJson(): JSONObject - Converts string to JSONObject with error handling</li>
+                                        <li class="method">fun String.isDigitsOnly(): Boolean - Checks if string contains only digit characters</li>
+                                        <li class="method">fun String.parseAsHtml(flag: Int = Html.FROM_HTML_MODE_LEGACY, imageGetter: Html.ImageGetter? = null, tagHandler: Html.TagHandler? = null): Spanned - Parses HTML string with API compatibility</li>
+                                        <li class="method">inline fun &lt;reified T&gt; String.fromJson(): T - Converts JSON string to object using Gson</li>
+                                        <li class="method">fun String.shareImage(context: Context): Unit - Shares image via system share intent</li>
+                                        <li class="method">fun String.toHashNumber(): Int - Generates CRC32 hash number from string</li>
+                                        <li class="method">fun String.textToSpeak(context: Context): Unit - Converts text to speech using TTS engine</li>
+                                    </ul>
+                                </li>
+                                <li class="file">UtilityExtensions.kt - Communication utilities, PDF generation, and mathematical calculations.
+                                    <ul>
+                                        <li class="method">fun String.sendInMessage(number: String): Unit - Sends SMS message with UTF-16 encoding and multipart text support</li>
+                                        <li class="method">fun Context.sendEmail(sendTo: Array&lt;String?&gt;?, subject: String?, body: String?): Unit - Creates email intent with recipient, subject, and body</li>
+                                        <li class="method">fun Context.shareMyApp(subject: String?, message: String): Unit - Shares app with Play Store link and custom message</li>
+                                        <li class="method">fun View.convertToPdf(context: Activity, pdfFileName: String): String? - Converts view to PDF with original dimensions and saves to documents</li>
+                                        <li class="method">fun View.convertToPdfA4(context: Activity, pdfFileName: String): String? - Converts view to A4-sized PDF with scaling and saves to documents</li>
+                                        <li class="method">fun calculateNewAverage(previousAverage: Double, totalAmount: Int, newAmount: Double): Double - Calculates new average when adding a new value to existing set</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </li>
+    </ul>
+</body>
+</html>
+
+<a href="#top" class="back-to-top">↑ Top</a>

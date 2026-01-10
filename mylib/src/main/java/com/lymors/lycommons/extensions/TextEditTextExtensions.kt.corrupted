@@ -41,7 +41,7 @@ import com.google.android.material.textfield.TextInputLayout
 import com.hbb20.CountryCodePicker
 import com.lymors.lycommons.databinding.BottomsheetSimpleListBinding
 import com.lymors.lycommons.databinding.ItemviewSimpleListBinding
-import com.lymors.lycommons.utils.MyExtensions.hideSoftKeyboard
+import com.lymors.lycommons.extensions.MyExtensions.hideSoftKeyboard
 import com.lymors.lycommons.utils.Utils.setData
 import kotlin.math.max
 import kotlin.math.min
@@ -377,6 +377,24 @@ object TextEditTextExtensions {
     }
 
 
+
+        val dropdownIcon: Drawable? =
+            AppCompatResources.getDrawable(context, android.R.drawable.arrow_down_float)
+        setCompoundDrawablesRelativeWithIntrinsicBounds(null, null, dropdownIcon, null)
+
+
+        inputType = InputType.TYPE_NULL
+        isCursorVisible = false
+
+
+        setOnClickListener {
+            openPopupMenu()
+        }
+        onFocusChangeListener = View.OnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) {
+                openPopupMenu()
+            }
+        }
     }
 
 
@@ -407,7 +425,26 @@ object TextEditTextExtensions {
                     }
                     true
                 }
-                else -> false
+
+
+    return this.text.toString()
+}
+
+    var currentIndex = 0
+    var startX = 0f
+    var startY = 0f
+    val distance = 10.0
+    setText(options[currentIndex])
+    setOnTouchListener { _, event ->
+        when (event.action) {
+            MotionEvent.ACTION_DOWN -> {
+                startX = event.x
+                startY = event.y
+                true
             }
-        }
-    }
+
+            MotionEvent.ACTION_UP -> {
+                val endX = event.x
+                val endY = event.y
+                val deltaX = endX - startX
+                val deltaY = endY - startY

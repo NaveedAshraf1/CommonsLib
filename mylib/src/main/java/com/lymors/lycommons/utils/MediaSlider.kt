@@ -30,6 +30,7 @@ import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.ui.PlayerView
 import com.lymors.lycommons.R
+import com.lymors.lycommons.extensions.ImageViewExtensions.loadImageFromUrl
 
 
 interface MyClickListener{
@@ -345,29 +346,35 @@ fun Int.dpToPx(context: Context): Int {
 
 
 object MediaSlider{
-    fun LinearLayout.imageSlider(context: Context, images: List<Int>) {
-        val viewPager = ViewPager(context)
-        this.addView(viewPager)
+    object MediaSlider {
+        fun LinearLayout.imageSlider(
+            images: List<Any>,  // Accepts both Int (drawable) & String (URL)
+            onClicked: (Int) -> Unit = {}
+        ) {
+            val viewPager = ViewPager(context)
+            this.addView(viewPager)
 
-        val adapter = ImageSliderAdapter(context, images)
-        viewPager.adapter = adapter
+            val adapter = ImageSliderAdapter(context, images, onClicked)
+            viewPager.adapter = adapter
 
-        // Auto-sliding
-        val handler = Handler(Looper.getMainLooper())
-        val runnable = object : Runnable {
-            override fun run() {
-                val currentPage = viewPager.currentItem
-                val totalPages = adapter.count
-                if (currentPage < totalPages - 1) {
-                    viewPager.currentItem = currentPage + 1
-                } else {
-                    viewPager.currentItem = 0
+            // Auto-sliding
+            val handler = Handler(Looper.getMainLooper())
+            val runnable = object : Runnable {
+                override fun run() {
+                    val currentPage = viewPager.currentItem
+                    val totalPages = adapter.count
+                    if (currentPage < totalPages - 1) {
+                        viewPager.currentItem = currentPage + 1
+                    } else {
+                        viewPager.currentItem = 0
+                    }
+                    handler.postDelayed(this, 3000) // Slide every 3 seconds
                 }
-                handler.postDelayed(this, 3000) // Slide every 3 seconds
             }
+            handler.post(runnable)
         }
-        handler.post(runnable)
     }
+
 
 }
 
@@ -375,22 +382,29 @@ object MediaSlider{
 
 private class ImageSliderAdapter(
     private val context: Context,
-    private val images: List<Int>
+    private val images: List<Any>, // Can be Int (Drawable) or String (URL)
+    private val onClicked: (Int) -> Unit = {}
 ) : PagerAdapter() {
 
-    override fun getCount(): Int {
-        return images.size
-    }
+    override fun getCount(): Int = images.size
 
-    override fun isViewFromObject(view: View, `object`: Any): Boolean {
-        return view === `object`
-    }
+    override fun isViewFromObject(view: View, `object`: Any): Boolean = view === `object`
 
     override fun instantiateItem(container: ViewGroup, position: Int): Any {
         val inflater = LayoutInflater.from(context)
         val view = inflater.inflate(R.layout.slider_item, container, false)
         val imageView = view.findViewById<ImageView>(R.id.imageView)
-        imageView.setImageResource(images[position])
+
+        when (val image = images[position]) {
+            is Int -> imageView.setImageResource(image) // Drawable resource
+            is String -> { imageView.loadImageFromUrl(image) }
+        }
+
+        // Handle click event
+        imageView.setOnClickListener {
+            onClicked.invoke(position)
+        }
+
         container.addView(view)
         return view
     }

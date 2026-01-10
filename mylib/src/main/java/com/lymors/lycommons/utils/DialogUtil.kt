@@ -4,20 +4,27 @@ import android.app.Dialog
 import android.app.ProgressDialog
 import android.content.Context
 import android.content.DialogInterface
+import android.content.res.Resources
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.PopupWindow
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.viewbinding.ViewBinding
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.lymors.lycommons.extensions.DataExtensions.shrink
+import kotlin.reflect.KMutableProperty
+import kotlin.reflect.full.declaredMemberProperties
+import kotlin.reflect.jvm.isAccessible
 
 object DialogUtil {
 
@@ -119,37 +126,35 @@ object DialogUtil {
     }
 
 
-    inline fun <T : ViewBinding> Context.showCustomLayoutDialog(
-        crossinline bindingInflater: (LayoutInflater) -> T,
+    fun <T : ViewBinding> Context.showCustomLayoutDialog(
+        bindingInflater: (LayoutInflater) -> T,
         gravity: Int = Gravity.CENTER,
-        isCancelable:Boolean = true,
-        crossinline callback: (T, PopupWindow) -> Unit = { _, _ -> }
-    ):PopupWindow {
-        val inflater: LayoutInflater = LayoutInflater.from(this)
-        val binding: T = bindingInflater(inflater)
-        val screenWidth = (this.resources.displayMetrics).widthPixels
+        isCancelable: Boolean = false,
+        callback: (T, PopupWindow) -> Unit = { _, _ -> }
+    ): PopupWindow {
+        val inflater = LayoutInflater.from(this)
+        val binding = bindingInflater(inflater)
+        val screenWidth = resources.displayMetrics.widthPixels
         val width = (screenWidth * 0.9).toInt()
         val height = LinearLayout.LayoutParams.WRAP_CONTENT
+
         val popupWindow = PopupWindow(binding.root, width, height, true)
         popupWindow.isOutsideTouchable = isCancelable
         popupWindow.elevation = 10f
         popupWindow.setBackgroundDrawable(
-            ContextCompat.getDrawable(
-                this,
-                android.R.color.transparent
-            )
+            ContextCompat.getDrawable(this, android.R.color.transparent)
         )
         popupWindow.showAtLocation(binding.root, gravity, 0, 0)
         callback(binding, popupWindow)
         return popupWindow
-
     }
 
 
 
-    inline fun <T : ViewBinding> View.showCustomPopup(
-        crossinline bindingInflater: (LayoutInflater) -> T,
-        crossinline callback: (T, PopupWindow) -> Unit = { _, _ -> }
+
+    fun <T : ViewBinding> View.showCustomPopup(
+        bindingInflater: (LayoutInflater) -> T,
+        callback: (T, PopupWindow) -> Unit = { _, _ -> }
     ) {
         setOnClickListener {
             val inflater: LayoutInflater = LayoutInflater.from(context)
@@ -169,31 +174,66 @@ object DialogUtil {
         }
     }
 
+//
+//
+//    fun <T : ViewBinding> Context.showBottomSheet(
+//        bindingInflater: (LayoutInflater) -> T,
+//        callback: (T, BottomSheetDialog) -> Unit = { _, _ -> }
+//    ): BottomSheetDialog {
+//        val bottomSheetDialog = BottomSheetDialog(this)
+//        val binding = bindingInflater(LayoutInflater.from(this))
+//        bottomSheetDialog.setContentView(binding.root)
+//        bottomSheetDialog.setCancelable(true)
+//        bottomSheetDialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+//
+//        bottomSheetDialog.setOnShowListener {
+//            val roundedBackground = GradientDrawable().apply {
+//                shape = GradientDrawable.RECTANGLE
+//                cornerRadii = floatArrayOf(80f, 80f, 80f, 80f, 0f, 0f, 0f, 0f)
+//            }
+//            binding.root.setBackgroundDrawable(roundedBackground)
+//        }
+//
+//        bottomSheetDialog.show()
+//        callback(binding, bottomSheetDialog)
+//        return bottomSheetDialog
+//    }
 
 
     fun <T : ViewBinding> Context.showBottomSheet(
         bindingInflater: (LayoutInflater) -> T,
         callback: (T, BottomSheetDialog) -> Unit = { _, _ -> }
     ): BottomSheetDialog {
-        val bottomSheetDialog = BottomSheetDialog(this)
+
+        val bottomSheetDialog = BottomSheetDialog(this, com.google.android.material.R.style.Theme_Design_BottomSheetDialog)
         val binding = bindingInflater(LayoutInflater.from(this))
         bottomSheetDialog.setContentView(binding.root)
-        bottomSheetDialog.setCancelable(true)
+
+        // Full screen banane ke liye:
+        val bottomSheet = bottomSheetDialog.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
+        bottomSheet?.layoutParams?.height = ViewGroup.LayoutParams.MATCH_PARENT
+
+        val behavior = BottomSheetBehavior.from(bottomSheet!!)
+        behavior.state = BottomSheetBehavior.STATE_EXPANDED
+        behavior.peekHeight = Resources.getSystem().displayMetrics.heightPixels
+
+        // Background transparent
         bottomSheetDialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
 
+        // Optional rounded top corners
         bottomSheetDialog.setOnShowListener {
-            val roundedBackground = GradientDrawable().apply {
+            val rounded = GradientDrawable().apply {
                 shape = GradientDrawable.RECTANGLE
                 cornerRadii = floatArrayOf(80f, 80f, 80f, 80f, 0f, 0f, 0f, 0f)
+                setColor(Color.WHITE)
             }
-            binding.root.setBackgroundDrawable(roundedBackground)
+            binding.root.background = rounded
         }
 
         bottomSheetDialog.show()
         callback(binding, bottomSheetDialog)
         return bottomSheetDialog
     }
-
 
 
 

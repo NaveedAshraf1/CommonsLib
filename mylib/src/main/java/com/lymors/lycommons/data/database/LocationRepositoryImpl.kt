@@ -11,12 +11,11 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseException
 import com.google.firebase.database.FirebaseDatabase
 import com.lymors.lycommons.data.viewmodels.LocationModel
-import com.lymors.lycommons.extensions.MyExtensions.logT
 import com.lymors.lycommons.extensions.StringExtensions.child
+import com.lymors.lycommons.utils.MyExtensions.logT
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -57,8 +56,10 @@ class LocationRepositoryImpl(private val mainRepository: MainRepository):Locatio
         child.child(key).logT("collectALocation->path", "path")
         val path = "$child/$key/l"
         mainRepository.collectAnyModel(path = path, clazz = Double::class.java).collect{
-            if (it.isNotEmpty()){
-            callback.invoke(LocationModel(key,it[0],it[1]))
+            it.whenSuccess {
+                if (it.isNotEmpty()){
+                    callback.invoke(LocationModel(key,it[0],it[1]))
+                }
             }
         }
     }

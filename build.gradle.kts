@@ -7,3 +7,12 @@ plugins {
     id("com.google.dagger.hilt.android") version "2.48" apply false
     alias(libs.plugins.googleGmsGoogleServices) apply false
 }
+
+// Fix Kotlin JVM target issue
+subprojects {
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+        kotlinOptions {
+            jvmTarget = "17"
+        }
+    }
+}

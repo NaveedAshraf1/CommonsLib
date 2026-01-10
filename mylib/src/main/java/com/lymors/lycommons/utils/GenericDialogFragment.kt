@@ -9,11 +9,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
+import androidx.compose.ui.unit.dp
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentManager
 import androidx.viewbinding.ViewBinding
-import com.lymors.lycommons.extensions.MyExtensions
-import com.lymors.lycommons.extensions.MyExtensions.dp
 
 class GenericDialogFragment<B : ViewBinding>(
     private val bindingInflater: (LayoutInflater, ViewGroup?, Boolean) -> B,
@@ -49,7 +48,7 @@ class GenericDialogFragment<B : ViewBinding>(
             setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
             setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
             setGravity(gravity)
-            decorView.setPadding(16.dp, 0, 16.dp, 0)
+            decorView.setPadding(16, 0, 16, 0)
         }
     }
 

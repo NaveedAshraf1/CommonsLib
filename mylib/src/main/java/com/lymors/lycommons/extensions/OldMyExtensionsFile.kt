@@ -1,48 +1,61 @@
-package com.lymors.lycommons.extensions
-
+package com.lymors.lycommons.utils
 
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.DatePickerDialog
 import android.app.Dialog
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.TimePickerDialog
 import android.content.ContentValues
 import android.content.Context
+import android.content.ContextWrapper
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.content.res.ColorStateList
-import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.ColorMatrix
+import android.graphics.ColorMatrixColorFilter
+import android.graphics.Paint
+import android.graphics.PorterDuff
 import android.graphics.Typeface
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
+import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.RippleDrawable
 import android.graphics.pdf.PdfDocument
+import android.hardware.camera2.CameraAccessException
+import android.hardware.camera2.CameraManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Build
+import android.os.CountDownTimer
 import android.os.Environment
-import android.os.Handler
-import android.os.Looper
+import android.os.Parcelable
+import android.os.UserHandle
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.provider.MediaStore
-import android.text.Spannable
-import android.text.SpannableString
+import android.provider.Settings
+import android.speech.tts.TextToSpeech
+import android.text.Editable
+import android.text.Html
+import android.text.InputType
 import android.text.SpannableStringBuilder
 import android.text.Spanned
-import android.text.TextPaint
+import android.text.TextWatcher
 import android.text.method.LinkMovementMethod
-import android.text.style.AbsoluteSizeSpan
-import android.text.style.ClickableSpan
 import android.text.style.ForegroundColorSpan
 import android.text.style.RelativeSizeSpan
 import android.text.style.StyleSpan
-import android.text.style.UnderlineSpan
-import android.util.DisplayMetrics
 import android.util.Log
 import android.util.TypedValue
 import android.view.Gravity
@@ -52,7 +65,14 @@ import android.view.View
 import android.view.ViewAnimationUtils
 import android.view.ViewGroup
 import android.view.Window
-import android.view.WindowManager
+import android.view.animation.AccelerateDecelerateInterpolator
+import android.view.animation.AccelerateInterpolator
+import android.view.animation.AlphaAnimation
+import android.view.animation.Animation
+import android.view.animation.DecelerateInterpolator
+import android.view.animation.RotateAnimation
+import android.view.animation.ScaleAnimation
+import android.view.animation.TranslateAnimation
 import android.view.inputmethod.InputMethodManager
 import android.webkit.WebView
 import android.widget.AdapterView
@@ -60,31 +80,48 @@ import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import android.widget.Button
 import android.widget.CheckBox
+import android.widget.DatePicker
 import android.widget.EditText
 import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.PopupMenu
 import android.widget.RadioButton
 import android.widget.ScrollView
 import android.widget.SeekBar
 import android.widget.Spinner
 import android.widget.TextView
+import android.widget.TimePicker
 import android.widget.Toast
+import androidx.activity.ComponentActivity
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.ColorRes
+import androidx.annotation.DrawableRes
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.content.res.AppCompatResources
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.DrawableCompat
+import androidx.core.graphics.drawable.toBitmap
+import androidx.core.text.HtmlCompat
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentManager
-import androidx.fragment.app.FragmentTransaction
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
+import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import androidx.viewpager.widget.ViewPager
 import androidx.viewpager2.widget.ViewPager2
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners
+import com.bumptech.glide.request.RequestOptions
+import com.github.dhaval2404.imagepicker.ImagePicker
+import com.google.android.material.animation.AnimatorSetCompat.playTogether
+import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import com.google.android.material.textfield.MaterialAutoCompleteTextView
@@ -92,313 +129,49 @@ import com.google.android.material.textfield.TextInputEditText
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
-import com.google.maps.model.LatLng
+import com.google.zxing.BarcodeFormat
+import com.google.zxing.MultiFormatWriter
+import com.google.zxing.WriterException
+import com.google.zxing.common.BitMatrix
 import com.lymors.lycommons.R
-import com.lymors.lycommons.extensions.MyExtensions.shrink
-import com.lymors.lycommons.extensions.NumbersExtensions.toDoubleOrDefault
-import com.lymors.lycommons.extensions.StringExtensions.toIntOrDefault
+import com.lymors.lycommons.extensions.DataExtensions.shrink
+import com.lymors.lycommons.extensions.StringExtensions.fromJson
 import com.lymors.lycommons.managers.DataStoreManager
+import com.lymors.lycommons.utils.DialogUtil
+import com.lymors.lycommons.utils.MyExtensions.setupTabLayout
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import nl.joery.animatedbottombar.AnimatedBottomBar
 import org.json.JSONArray
 import org.json.JSONObject
+import org.mariuszgromada.math.mxparser.Expression
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.io.OutputStream
 import java.lang.reflect.Type
-import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.pow
 import kotlin.math.roundToInt
+import kotlin.math.sqrt
 import kotlin.reflect.full.memberProperties
-import kotlin.reflect.jvm.isAccessible
 
 
 object MyExtensions {
 
 
-    fun TextView.appendText(text: CharSequence, size: Float = 8f,  color: Int = resources.getColor(com.lymors.lycommons.R.color.gray60)) {
-        val spannable = SpannableString(text)
-
-        // Apply color
-        spannable.setSpan(
-            ForegroundColorSpan(color),
-            0,
-            text.length,
-            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-        )
-
-        // Apply size
-        spannable.setSpan(
-            RelativeSizeSpan(size / this.textSize),  // Scaling the size relative to current text size
-            0,
-            text.length,
-            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-        )
-
-        // Append the styled text
-        this.append(spannable)
-    }
-
-
-
-
-    fun TextView.appendSpannable(
-        text: String,
-        color: Int,
-        textSize: Float = 25f,
-        onClick: () -> Unit
-    ) {
-        val spannable = SpannableString(text)
-        spannable.setSpan(
-            object : ClickableSpan() {
-                override fun onClick(view: View) {
-                    onClick()
-                }
-
-                override fun updateDrawState(ds: TextPaint) {
-                    super.updateDrawState(ds)
-                    ds.color = resources.getColor(color)
-                    ds.isUnderlineText = true
-                    ds.textSize = textSize
-                }
-            },
-            0,
-            text.length,
-            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-        )
-        append(spannable)
-        movementMethod = LinkMovementMethod.getInstance()
-    }
-
-    fun TextView.appendBold(
-        text: String,
-        textSize: Float
-    ) {
-        val spannable = SpannableString(text)
-        spannable.setSpan(
-            StyleSpan(Typeface.BOLD),
-            0,
-            text.length,
-            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-        )
-        spannable.setSpan(
-            AbsoluteSizeSpan(textSize.toInt()),
-            0,
-            text.length,
-            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-        )
-        append(spannable)
-    }
-
-    fun TextView.appendItalic(
-        text: String,
-        textSize: Float
-    ) {
-        val spannable = SpannableString(text)
-        spannable.setSpan(
-            StyleSpan(Typeface.ITALIC),
-            0,
-            text.length,
-            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-        )
-        spannable.setSpan(
-            AbsoluteSizeSpan(textSize.toInt()),
-            0,
-            text.length,
-            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-        )
-        append(spannable)
-    }
-
-    fun TextView.appendUnderline(
-        text: String,
-        textSize: Float
-    ) {
-        val spannable = SpannableString(text)
-        spannable.setSpan(
-            UnderlineSpan(),
-            0,
-            text.length,
-            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-        )
-        spannable.setSpan(
-            AbsoluteSizeSpan(textSize.toInt()),
-            0,
-            text.length,
-            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-        )
-        append(spannable)
-    }
-
-    fun TextView.makeTextClickable(
-        textToMakeClickable: String,
-        color: Int,
-        textSize: Float,
-        onClick: () -> Unit
-    ) {
-        val text = text.toString()
-        val index = text.indexOf(textToMakeClickable)
-        if (index != -1) {
-            val spannable = SpannableString(text)
-            spannable.setSpan(
-                object : ClickableSpan() {
-                    override fun onClick(view: View) {
-                        onClick()
-                    }
-
-                    override fun updateDrawState(ds: TextPaint) {
-                        super.updateDrawState(ds)
-                        ds.color = resources.getColor(color)
-                        ds.isUnderlineText = true
-                        ds.textSize = textSize
-                    }
-                },
-                index,
-                index + textToMakeClickable.length,
-                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-            )
-            this.text = spannable
-            movementMethod = LinkMovementMethod.getInstance()
-        }
-    }
-
-
-
-    inline fun <T> List<T>?.ifNotEmpty(callback: () -> Unit) {
-        if (!this.isNullOrEmpty()) {
-            callback.invoke()
-        }
-    }
-
-    inline fun <T> List<T>?.ifEmpty(callback: () -> Unit) {
-        if (this.isNullOrEmpty()) {
-            callback.invoke()
-        }
-    }
-
-
-
-    fun calculateNewAverage(previousAverage: Double, totalAmount: Int, newAmount: Double): Double {
-        return ((previousAverage * totalAmount) + newAmount) / (totalAmount + 1)
-    }
-    fun com.google.android.gms.maps.model.LatLng.toLatLang(): LatLng {
-        return LatLng(this.latitude, this.longitude)
-    }
-
-
-
-
-    fun Any?.ifNull(block: () -> Unit) {
-        if (this != null) block.invoke()
-    }
-    fun LifecycleOwner.launchWhenResumed(block: suspend () -> Unit) {
-        lifecycleScope.launch {
-            lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                block()
-            }
-        }
-    }
-
-    fun LifecycleOwner.launchWhenCreated(block: suspend () -> Unit) {
-        lifecycleScope.launch {
-            lifecycle.repeatOnLifecycle(Lifecycle.State.CREATED) {
-                block()
-            }
-        }
-    }
-
-//    fun Double.roundTo(digitsAfterDecimal: Int): String {
-//        return if (this % 1.0 == 0.0) {
-//            this.toInt().toString()
-//        } else {
-//            var l =  String.format("%.${digitsAfterDecimal}f", this)
-//            if (l.endsWith(".000")) l= l.removeSuffix(".000")
-//            if (l.endsWith(".00")) l= l.removeSuffix(".00")
-//            if (l.endsWith(".0")) l= l.removeSuffix(".0")
-//
-//            l
-//        }
-//    }
-
-    fun Double.roundTo(digitsAfterDecimal: Int): String {
-        return if (this % 1.0 == 0.0) {
-            this.toInt().toString()
-        } else {
-            var roundedValue = String.format(Locale.US,"%.${digitsAfterDecimal}f", this)
-            // Remove trailing zeros after the decimal point
-            roundedValue = roundedValue.replace(Regex("0+$"), "")
-            // If it ends with a dot, remove the dot
-            if (roundedValue.endsWith(".")) {
-                roundedValue = roundedValue.removeSuffix(".")
-            }
-            roundedValue
-        }
-    }
-
-
-
-    fun EditText.getTextAsInt(): Int {
-        val text = text.toString().trim()
-        return if (text.isEmpty()) {
-            0
-        } else {
-            text.toIntOrDefault()
-        }
-    }
-
-    fun EditText.getTextAsDouble(afterDecimal:Int): Double {
-        val text = text.toString().trim()
-        return if (text.isEmpty()) {
-            0.0
-        } else {
-            text.toDoubleOrDefault().roundTo(afterDecimal).toDoubleOrDefault()
-        }
-    }
-
-
-    fun AppCompatActivity.replaceFragment(frameLayout: FrameLayout,fragment: Fragment, addToBackStack: Boolean) {
-        val fragmentManager: FragmentManager = supportFragmentManager
-        val fragmentTransaction: FragmentTransaction = fragmentManager.beginTransaction()
-        fragmentTransaction.replace(frameLayout.id, fragment)
-
-        if (addToBackStack) {
-            fragmentTransaction.addToBackStack(null)
-        }
-        fragmentTransaction.commit()
-    }
-
-
 
     val gson: Gson by lazy { GsonBuilder().disableHtmlEscaping().create() }
-    inline fun <reified T> typeToken(): Type = object : TypeToken<T>() {}.type
-    inline fun <reified T> String.toObject(): T {
-        val type = typeToken<T>()
-        return gson.fromJson(this, type)
-    }
-    inline fun <reified T> Map<String, Any>.toObject(): T = convert()
-    inline fun <T, reified R> T.convert(): R = gson.toJson(this).toObject()
-    inline fun <reified T> Gson.fromJson(json: String?): T? = try {
-        fromJson<T>(json, object : TypeToken<T>() {}.type)
-    } catch (e: Exception) {
-        e.printStackTrace()
-        null
-    }
-
-    inline fun <reified T : Any> Gson.fromJsonList(json: String?): List<T>? = try {
-        fromJson<List<T>>(json, object : TypeToken<List<T>>() {}.type)
-    } catch (e: Exception) {
-        e.printStackTrace()
-        null
-    }
 
 
     var Calendar.year: Int
@@ -444,11 +217,7 @@ object MyExtensions {
     }
 
 
-    fun Any.ifNotNull(callback: () -> Unit){
-        if (this != null){
-            callback.invoke()
-        }
-    }
+
 
     fun Any?.isNull() = this == null
     fun Any?.isNotNull() = this != null
@@ -578,7 +347,7 @@ object MyExtensions {
         gravity: Int,
         width: Int,
         height: Int,
-        textColorRes: Int = com.lymors.lycommons.R.color.cement  // Color resource for the text color
+        textColorRes: Int = R.color.cement  // Color resource for the text color
     ): Button {
         val button = Button(context)
         val layoutParams = LinearLayout.LayoutParams(width, height)
@@ -872,49 +641,22 @@ object MyExtensions {
 
 
 
+
+
+
     fun Long.toDate(pattern: String = "dd-MM-yyyy"): String {
         val dateFormat = SimpleDateFormat(pattern, Locale.getDefault())
         return dateFormat.format(Date(this))
     }
-    fun Long.toTime(pattern: String = "hh:mm:ss a"): String {
+    fun Long.toTime(pattern: String = "hh:mm a"): String {
         val dateFormat = SimpleDateFormat(pattern, Locale.getDefault())
         return dateFormat.format(Date(this))
     }
-    fun Long.toDateTime(pattern: String = "dd-MM-yyyy hh:mm:ss a"): String {
+    fun Long.toDateTime(pattern: String = "dd-MM-yyyy hh:mm a"): String {
         val dateFormat = SimpleDateFormat(pattern, Locale.getDefault())
         return dateFormat.format(Date(this))
     }
-    fun Long.isToday(): Boolean {
-        val calendar = Calendar.getInstance()
-        calendar.time = Date(this)
-        val today = Calendar.getInstance()
-        return calendar.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
-                calendar.get(Calendar.MONTH) == today.get(Calendar.MONTH) &&
-                calendar.get(Calendar.DAY_OF_MONTH) == today.get(Calendar.DAY_OF_MONTH)
-    }
 
-    fun Long.isThisMonth(): Boolean {
-        val calendar = Calendar.getInstance()
-        calendar.time = Date(this)
-        val today = Calendar.getInstance()
-        return calendar.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
-                calendar.get(Calendar.MONTH) == today.get(Calendar.MONTH)
-    }
-
-    fun Long.isThisYear(): Boolean {
-        val calendar = Calendar.getInstance()
-        calendar.time = Date(this)
-        val today = Calendar.getInstance()
-        return calendar.get(Calendar.YEAR) == today.get(Calendar.YEAR)
-    }
-
-    fun Long.isFuture(): Boolean {
-        return this > System.currentTimeMillis()
-    }
-
-    fun Long.isPast(): Boolean {
-        return this < System.currentTimeMillis()
-    }
 
 
 
@@ -972,14 +714,6 @@ object MyExtensions {
     }
 
 
-
-
-    // Extension function to convert dp to px
-    val Int.dp: Int
-        get() = (this * Resources.getSystem().displayMetrics.density).toInt()
-
-
-
     fun View.applyRippleEffect(color: Int = android.R.color.holo_red_dark) {
         val rippleColor =
             ColorStateList.valueOf(ContextCompat.getColor(context, color))
@@ -996,17 +730,16 @@ object MyExtensions {
     }
 
 
+
+
     inline fun <reified T : Any> T.deepCopy(): T {
         val jsonString = Gson().toJson(this)
         return Gson().fromJson(jsonString, T::class.java)
     }
 
-    fun Any?.logT(append:String = "" , tag:String = "TAG"){
-        if (this == null){
-            Log.i(tag, "$append:null")
-        }else{
-        Log.i(tag, "${System.currentTimeMillis().toTime()}:$append:$this")
-        }
+
+    fun Any.logT(append:String = "" , tag:String = "TAG"){
+        Log.i(tag, "$append:$this")
     }
 
 
@@ -1019,6 +752,10 @@ object MyExtensions {
             }
         }
     }
+
+
+
+
 
 
     fun JSONObject.toPrettyString(): String {
@@ -1034,12 +771,6 @@ object MyExtensions {
             list.add(this[i])
         }
         return list
-    }
-
-    fun dialACode(context: Context, code: String) {
-        val intent = Intent(Intent.ACTION_DIAL)
-        intent.data = Uri.parse("tel:$code")
-        context.startActivity(intent)
     }
 
 
@@ -1060,6 +791,8 @@ object MyExtensions {
     fun Map<String, Any>.toJsonObject(): JSONObject {
         return JSONObject(this)
     }
+
+
 
 
     //start<NextActivity>()
@@ -1083,8 +816,7 @@ object MyExtensions {
         tabLayout: TabLayout,
         viewPager2: ViewPager2,
         tabTextList: List<String>,
-        fragments: List<Fragment>,
-        initialPosition: Int = 0
+        fragments: List<Fragment>
     ) {
         viewPager2.adapter = object : androidx.viewpager2.adapter.FragmentStateAdapter(this) {
             override fun getItemCount(): Int = fragments.size
@@ -1096,7 +828,6 @@ object MyExtensions {
         TabLayoutMediator(tabLayout, viewPager2) { tab, position ->
             tab.text = tabTextList[position]
         }.attach()
-        viewPager2.setCurrentItem(initialPosition, false)
     }
 
 
@@ -1154,9 +885,6 @@ object MyExtensions {
             }
         }
     }
-
-
-
 
 
     @SuppressLint("ClickableViewAccessibility")
@@ -1232,26 +960,6 @@ object MyExtensions {
         circularReveal.start()
     }
 
-    fun Context.showToast(message: Any, duration: Int = Toast.LENGTH_SHORT) {
-        CoroutineScope(Dispatchers.Main).launch {
-            val toast = Toast.makeText(this@showToast, message.toString(), duration)
-            toast.show()
-        }
-    }
-
-    fun Context.showLongTextToast(text: String, gravity: Int = Gravity.BOTTOM) {
-        val inflater = LayoutInflater.from(this)
-        val layout = inflater.inflate(R.layout.custom_toast, null)
-        val textView = layout.findViewById<TextView>(R.id.toast_text)
-        textView.text = text
-
-        val toast = Toast(this)
-        toast.duration = Toast.LENGTH_LONG
-        toast.view = layout
-        toast.setGravity(gravity, 0, 100) // Set gravity and offsets (x, y)
-        toast.show()
-    }
-
 
 
 
@@ -1267,6 +975,10 @@ object MyExtensions {
         val inputMethodManager = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         inputMethodManager.showSoftInput(this, InputMethodManager.SHOW_IMPLICIT)
 
+        if (!inputMethodManager.isActive(this)) {
+            inputMethodManager.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0)
+        }
+
         this.post{
             val initialText = this.text.toString()
             if (initialText.isNotEmpty()){
@@ -1276,70 +988,6 @@ object MyExtensions {
         }
     }
 
-    fun EditText.setCursorToEndOnFocus(){
-        this.setOnFocusChangeListener { v, hasFocus ->
-            if (hasFocus){
-                this.post{
-                    val initialText = this.text.toString()
-                    if (initialText.isNotEmpty()){
-                        val length = initialText.length
-                        this.setSelection(length)
-                    }
-                }
-            }
-        }
-
-        this.setOnClickListener {
-            this.post{
-                val initialText = this.text.toString()
-                if (initialText.isNotEmpty()){
-                    val length = initialText.length
-                    this.setSelection(length)
-                }
-            }
-        }
-    }
-
-    fun EditText.onFocus(callback: () -> Unit){
-        this.setOnFocusChangeListener { v, hasFocus ->
-            if (hasFocus){
-                callback.invoke()
-            }
-        }
-    }
-
-
-
-
-
-    fun EditText.showSoftKeyboardForce() {
-        runDelay {
-            this.requestFocus()
-            val inputMethodManager = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-            inputMethodManager.showSoftInput(this, InputMethodManager.SHOW_IMPLICIT)
-
-            if (!inputMethodManager.isActive(this)) {
-                inputMethodManager.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0)
-            }
-
-            this.post{
-                val initialText = this.text.toString()
-                if (initialText.isNotEmpty()){
-                    val length = initialText.length
-                    this.setSelection(length)
-                }
-            }
-        }
-    }
-
-
-fun runDelay(delay:Long =400 , callback: () -> Unit){
-    Handler(Looper.getMainLooper()).postDelayed({
-        callback.invoke()
-    }, delay)
-}
-
-
 
     fun EditText.hideSoftKeyboard() {
         val inputMethodManager = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
@@ -1347,159 +995,94 @@ fun runDelay(delay:Long =400 , callback: () -> Unit){
     }
 
 
-    inline fun <reified T : ViewBinding> AppCompatActivity.createBottomDialog(
+
+    inline fun <reified T : ViewBinding> Fragment.createBottomSheet(
         crossinline bindingInflater: (LayoutInflater) -> T,
-        callback: (T , Dialog) -> Unit = {_,_ ->}
-    ): Dialog {
-        val dialog = Dialog(this)
-        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
-
-        val binding = bindingInflater(LayoutInflater.from(this))
-        dialog.setContentView(binding.root)
-
-        // Calculate 90% of the screen width
-        val displayMetrics = DisplayMetrics()
-        windowManager.defaultDisplay.getMetrics(displayMetrics)
-        val screenWidth = displayMetrics.widthPixels
-        val dialogWidth = (screenWidth * 0.92).toInt()
-
-        val windowParams = WindowManager.LayoutParams().apply {
-            copyFrom(dialog.window!!.attributes)
-            width = dialogWidth
-            height = ViewGroup.LayoutParams.WRAP_CONTENT
-            gravity = Gravity.BOTTOM
-        }
-
-        dialog.window!!.attributes = windowParams
-        dialog.window!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-        dialog.window!!.attributes.windowAnimations = com.lymors.lycommons.R.style.DialogAnimation
+        callback: (Dialog) -> Unit = {}
+    ): T  {
+        var dialogBinding = bindingInflater.invoke(layoutInflater)
+        val dialog = BottomSheetDialog(requireActivity())
+        dialog.setContentView(dialogBinding.root)
         dialog.show()
-        callback(binding , dialog)
-        return dialog
+        callback(dialog)
+        return dialogBinding
     }
+
+    inline fun <reified T : ViewBinding> AppCompatActivity.createBottomSheet(
+        crossinline bindingInflater: (LayoutInflater) -> T,
+        callback: (Dialog) -> Unit = {}
+
+    ): T {
+        var dialogBinding = bindingInflater.invoke(layoutInflater)
+        val dialog = BottomSheetDialog(this)
+        dialog.setContentView(dialogBinding.root)
+        dialog.show()
+        callback(dialog)
+        return dialogBinding
+    }
+
+
 
 
 
     inline fun <reified T : ViewBinding> Fragment.createBottomDialog(
         crossinline bindingInflater: (LayoutInflater) -> T,
-        callback: (T , Dialog) -> Unit = {_,_ ->}
-    ): Dialog {
+        callback: (Dialog) -> Unit = {}
+    ): T {
+
         val dialog = Dialog(requireActivity())
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
-
-        val binding = bindingInflater(LayoutInflater.from(requireActivity()))
+        val binding = bindingInflater(LayoutInflater.from(requireContext()))
         dialog.setContentView(binding.root)
-        val displayMetrics = DisplayMetrics()
-        requireActivity().windowManager.defaultDisplay.getMetrics(displayMetrics)
-        val screenWidth = displayMetrics.widthPixels
-        val dialogWidth = (screenWidth * 0.92).toInt()
 
-        val windowParams = WindowManager.LayoutParams().apply {
-            copyFrom(dialog.window!!.attributes)
-            width = dialogWidth
-            height = ViewGroup.LayoutParams.WRAP_CONTENT
-            gravity = Gravity.BOTTOM
-        }
-
-        dialog.window!!.attributes = windowParams
-        dialog.window!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-        dialog.window!!.attributes.windowAnimations = com.lymors.lycommons.R.style.DialogAnimation
         dialog.show()
-        callback(binding , dialog)
-        return dialog
+        dialog.window!!.setLayout(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        )
+
+        dialog.window!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        dialog.window!!.attributes.windowAnimations = R.style.DialogAnimation
+        dialog.window!!.setGravity(Gravity.BOTTOM)
+
+        callback(dialog)
+        return binding
     }
 
+    inline fun <reified T : ViewBinding> AppCompatActivity.createBottomDialog(
+        crossinline bindingInflater: (LayoutInflater) -> T
+    ): T {
+        val dialog = Dialog(this)
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        val binding = bindingInflater(LayoutInflater.from(this))
+        dialog.setContentView(binding.root)
 
-
-
-
-    fun <T> List<T>.toArrayList(): ArrayList<T> {
-        val arrayList = ArrayList<T>()
-        arrayList.addAll(this)
-        return arrayList
-    }
-
-
-    fun Any.shrink(): Map<String, Any> {
-        val propertiesMap = mutableMapOf<String, Any>()
-        this::class.memberProperties.forEach { prop ->
-            prop.isAccessible = true
-            if (!prop.name.startsWith("_")) { // Filter out properties starting with "_"
-                val value = prop.getter.call(this)
-                if (value != null) {
-                    when (value) {
-                        is String -> if (value.isNotEmpty()) propertiesMap[prop.name] = value
-                        is Int -> if (value != 0) propertiesMap[prop.name] = value
-                        is Boolean -> if (value) propertiesMap[prop.name] = value
-                        is Double -> if (value != 0.0) propertiesMap[prop.name] = value
-                        is Long -> if (value != 0L) propertiesMap[prop.name] = value
-                        is Array<*> -> if (value.isNotEmpty()) propertiesMap[prop.name] =
-                            value.map { it?.shrink() }
-
-                        is ArrayList<*> -> if (value.isNotEmpty()) propertiesMap[prop.name] =
-                            value.map { it.shrink() }
-
-                        is List<*> -> if (value.isNotEmpty()) propertiesMap[prop.name] =
-                            value.map { it?.shrink() }
-
-                        is Float -> if (value != 0.0f) propertiesMap[prop.name] = value
-                        is Short -> if (value != 0.toShort()) propertiesMap[prop.name] = value
-                        is Byte -> if (value != 0.toByte()) propertiesMap[prop.name] = value
-                        is Char -> if (value != '\u0000') propertiesMap[prop.name] =
-                            value // '\u0000' is the null char
-                        is Set<*> -> if (value.isNotEmpty()) propertiesMap[prop.name] =
-                            value.map { it?.shrink() }
-
-                        is Map<*, *> -> if (value.isNotEmpty()) propertiesMap[prop.name] =
-                            value.mapValues { it.value?.shrink() }
-
-                        is Enum<*> -> propertiesMap[prop.name] = value.name
-                        else -> {
-                            try {
-                                if (value::class.java.name == "com.google.android.gms.maps.model.LatLng") {
-                                    val lat = value::class.java.getMethod("latitude").invoke(value)
-                                    val lng = value::class.java.getMethod("longitude").invoke(value)
-                                    if (lat != 0.0 || lng != 0.0) {
-                                        propertiesMap[prop.name] = mapOf("lat" to lat, "lng" to lng)
-                                    }
-                                } else {
-                                    propertiesMap[prop.name] = value.shrink()
-                                }
-                            } catch (e: Exception) {
-                                propertiesMap[prop.name] = value.shrink()
-                            }
-                        }
-                    }
-                }
-            }
+        // Add horizontal line as close icon
+        val closeLine = FrameLayout(this).apply {
+            layoutParams = ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                2 // Adjust the height as needed
+            )
+            setBackgroundColor(Color.BLACK)
+            setOnClickListener { dialog.dismiss() }
         }
-        return propertiesMap
+
+        dialog.addContentView(closeLine, closeLine.layoutParams)
+
+        dialog.show()
+        dialog.window!!.setLayout(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        )
+        dialog.window!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        dialog.window!!.attributes.windowAnimations = R.style.DialogAnimation
+        dialog.window!!.setGravity(Gravity.BOTTOM)
+        return binding
     }
 
-    fun Any.toMap(): Map<String, Any> {
-        val propertiesMap = mutableMapOf<String, Any>()
-        this::class.memberProperties.forEach { prop ->
-            prop.isAccessible = true
-            val value = prop.getter.call(this)
-            when (value) {
-                is String -> propertiesMap[prop.name] = value
-                is Int ->  propertiesMap[prop.name] = value
-                is Boolean ->  propertiesMap[prop.name] = value
-                is Double ->  propertiesMap[prop.name] = value
-                is Long ->  propertiesMap[prop.name] = value
-                is List<*> ->  propertiesMap[prop.name] = value
-                is Float ->  propertiesMap[prop.name] = value
-                is Short ->  propertiesMap[prop.name] = value
-                is Byte ->  propertiesMap[prop.name] = value
-                is Char ->  propertiesMap[prop.name] = value
-                is Set<*> ->  propertiesMap[prop.name] = value
-                is Map<*, *> -> propertiesMap[prop.name] = value
-                is Enum<*> -> propertiesMap[prop.name] = value.name
-                is Any -> propertiesMap[prop.name] = value.shrink()
-            }
-        }
-        return propertiesMap
-    }
+
+
+
 
 
 
@@ -1541,40 +1124,24 @@ fun runDelay(delay:Long =400 , callback: () -> Unit){
         }
     }
 
-    suspend fun Context.isInternetAccessible(): Boolean {
-        return try {
-            val url = URL("https://www.google.com")
-            val connection = withContext(Dispatchers.IO) { url.openConnection() }
-            connection.connectTimeout = 5000 // 5 seconds
-            withContext(Dispatchers.IO) { connection.connect() }
-            true
-        } catch (e: Exception) {
-            false
+
+
+
+    // Extension function to check if the device is connected to the internet
+    fun Context.isNetworkAvailable(): Boolean {
+        val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val network = connectivityManager.activeNetwork ?: return false
+            val activeNetwork = connectivityManager.getNetworkCapabilities(network) ?: return false
+            activeNetwork.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+        } else {
+            @Suppress("DEPRECATION")
+            val networkInfo = connectivityManager.activeNetworkInfo ?: return false
+            @Suppress("DEPRECATION")
+            networkInfo.isConnected
         }
     }
 
-    fun Context.isNetworkAvailable(): Boolean {
-        return try {
-            val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-            val network = connectivityManager.activeNetwork ?: return false
-            val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
-            capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
-                    (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
-                            capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR))
-        } catch (e: NullPointerException) {
-            // Handle NullPointerException
-            Log.e("NetworkAvailability", "NullPointerException occurred", e)
-            false
-        } catch (e: SecurityException) {
-            // Handle SecurityException
-            Log.e("NetworkAvailability", "SecurityException occurred", e)
-            false
-        } catch (e: Exception) {
-            // Handle any other exceptions
-            Log.e("NetworkAvailability", "Exception occurred", e)
-            false
-        }
-    }
 
     // Extension function to start an activity with a delay
     fun Context.startActivityWithDelay(delayMillis: Long, targetActivity: Class<out Activity>) {
@@ -1965,7 +1532,4 @@ fun ScrollView.scrollToView(view: View) {
         }
         context.startActivity(Intent.createChooser(shareIntent, "Share image via"))
     }
-
-
 }
-

@@ -19,10 +19,16 @@ import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.LayerDrawable
+import android.os.Build
 import android.text.Editable
 import android.text.InputType
+import android.text.SpannableStringBuilder
 import android.text.TextWatcher
+import android.text.style.ForegroundColorSpan
+import android.text.style.RelativeSizeSpan
+import android.text.style.StyleSpan
 import android.util.Log
+import android.util.TypedValue
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewOutlineProvider
@@ -37,7 +43,6 @@ import android.view.animation.TranslateAnimation
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.DatePicker
-import android.widget.EditText
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.PopupMenu
@@ -59,7 +64,25 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
+import android.widget.EditText
+import android.widget.ScrollView
+import androidx.annotation.RequiresApi
+
 object ViewExtensions {
+
+    fun EditText.scrollByY(scrollView: ScrollView, byY: Int = 400) {
+        this.setOnFocusChangeListener { v, hasFocus ->
+            if (hasFocus) {
+                scrollView.scrollBy(0, byY)
+            }
+        }
+    }
+
+    fun ScrollView.scrollLittle(list: List<EditText>, byY: Int = 100) {
+        list.forEach {
+            it.scrollByY(this, byY)
+        }
+    }
 
     fun View.setCornerRadius(radius: Int = 10) {
         outlineProvider = object : ViewOutlineProvider() {
@@ -225,6 +248,62 @@ object ViewExtensions {
         }
     }
 
+
+    enum class TextStyle(
+        val style: Int
+    ) {
+        BOLD(Typeface.BOLD),
+        NORMAL(Typeface.NORMAL),
+        ITALIC(Typeface.ITALIC),
+        BOLD_ITALIC(Typeface.BOLD_ITALIC)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun TextView.enableAutoSizingWithPresetSizes(
+        presetSizes: IntArray,
+        unit: Int = TypedValue.COMPLEX_UNIT_SP
+    ) {
+        setAutoSizeTextTypeUniformWithPresetSizes(presetSizes, unit)
+    }
+
+    // Additional TextView extensions
+    fun TextView.spannableTextFormat(
+        wordToFormat: String,
+        colorResId: Int = android.R.color.black,
+        size: Float = 1f,
+        style: TextStyle = TextStyle.NORMAL
+    ) {
+        val fullText = text.toString()
+        val spannable = SpannableStringBuilder(fullText)
+        val pattern = "\\b${Regex.escape(wordToFormat)}\\b".toRegex()
+        val color = ContextCompat.getColor(context, colorResId)
+        pattern.findAll(fullText).forEach { result ->
+            val startIndex = result.range.first
+            val endIndex = result.range.last + 1
+
+            spannable.setSpan(
+                ForegroundColorSpan(color),
+                startIndex,
+                endIndex,
+                SpannableStringBuilder.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+            spannable.setSpan(
+                RelativeSizeSpan(size),
+                startIndex,
+                endIndex,
+                SpannableStringBuilder.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+            spannable.setSpan(
+                StyleSpan(style.style),
+                startIndex,
+                endIndex,
+                SpannableStringBuilder.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+
+        }
+
+        text = spannable
+    }
 
     fun TextView.setBold() {
         this.setTypeface(this.typeface, Typeface.BOLD)
@@ -683,6 +762,8 @@ object ViewExtensions {
         slideIn.start()
     }
 
+
+
     fun View.bounce(duration: Long = 1000) {
         var d = duration
         val scaleXDown = ObjectAnimator.ofFloat(this, "scaleX", 1f, 0.8f)
@@ -737,7 +818,7 @@ object ViewExtensions {
         this.isSelected = false
     }
 
-    fun View.attachDateTimePicker(
+    fun View.attachDateTimePicker=-0987654321`
         callback: (Calendar) -> Unit = {}
     ) {
 

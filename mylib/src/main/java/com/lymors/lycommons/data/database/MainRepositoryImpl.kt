@@ -11,8 +11,8 @@ import com.google.firebase.database.Query
 import com.google.firebase.database.ValueEventListener
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import com.lymors.lycommons.extensions.MyExtensions.logT
-import com.lymors.lycommons.extensions.MyExtensions.shrink
+import com.lymors.lycommons.extensions.DataExtensions.shrink
+import com.lymors.lycommons.utils.MyExtensions.logT
 import com.lymors.lycommons.utils.MyResult
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -23,7 +23,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.tasks.await
-import java.security.InvalidParameterException
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import kotlin.coroutines.resume
 import kotlin.random.Random
@@ -37,57 +37,105 @@ class MainRepositoryImpl @Inject constructor(
 ) : MainRepository {
 
     val gson: Gson = GsonBuilder().setPrettyPrinting().create()
+
+    private fun errorResult(op: String, path: String, message: String?): MyResult.Error {
+        val reason = message?.takeIf { it.isNotBlank() } ?: "Unknown error"
+        return MyResult.Error(
+            "RTDB $op failed | path='$path' | reason='$reason'"
+        )
+    }
+
+    private fun errorResult(op: String, path: String, e: Exception): MyResult.Error {
+        val reason = e.message?.takeIf { it.isNotBlank() } ?: "Unknown error"
+        return MyResult.Error(
+            "RTDB $op failed | path='$path' | ex='${e.javaClass.simpleName}' | reason='$reason'"
+        )
+    }
+
+    private fun errorResult(op: String, path: String, e: DatabaseError): MyResult.Error {
+        val msg = e.message?.takeIf { it.isNotBlank() } ?: "Unknown error"
+        val details = e.details?.takeIf { it.isNotBlank() }
+        return MyResult.Error(
+            buildString {
+                append("RTDB $op failed | path='$path' | code=${e.code} | message='$msg'")
+                if (details != null) append(" | details='$details'")
+            }
+        )
+    }
     override suspend fun <T : Any> uploadAllModelsAtOnce(
         path: String,
         models: List<T>
     ): MyResult<String> {
-        if (!path.isValidPath()) {
-            return MyResult.Error("$path path is invalid for firebase")
+        // Log the start of the method execution
+        val pathResult = path.isValidPath()
+        if (pathResult is MyResult.Error){
+            return pathResult
         }
-        path.logT("uploadAllModelsAtOnce->path", "path")
         return try {
-            val updates = models.associateBy { model ->
+            val updates = mutableMapOf<String, Any>()
+
+            for (model in models) {
+                val modelName = model::class.simpleName ?: "UnknownModel"
                 val keyProperty = model::class.declaredMemberProperties.find { it.name == "key" }
-                if (keyProperty != null) {
+
+                val keyToUse: String = if (keyProperty != null) {
                     keyProperty.isAccessible = true
-                    val key = keyProperty.call(model)?.toString() ?: ""
-                    val newKey = key.ifEmpty {
-                        databaseReference.push().key.toString().also { newKey ->
-                            if (keyProperty is KMutableProperty<*>) {
-                                (keyProperty as KMutableProperty<*>).setter.call(model, newKey)
-                            } else {
-                                throw IllegalStateException("The 'key' property is not mutable")
-                            }
+                    val existingKey = keyProperty.call(model)?.toString().orEmpty()
+                    if (existingKey.isNotBlank()) {
+                        existingKey
+                    } else {
+                        val generated = databaseReference.push().key
+                            ?: return errorResult(
+                                "Batch upload",
+                                path,
+                                "model='$modelName' | reason='Failed to generate new key (push().key returned null)'"
+                            )
+
+                        if (keyProperty is KMutableProperty<*>) {
+                            keyProperty.setter.call(model, generated)
+                            generated
+                        } else {
+                            return errorResult(
+                                "Batch upload",
+                                path,
+                                "model='$modelName' | reason='Model has key property but it is not mutable; cannot auto-assign generated key'"
+                            )
                         }
                     }
-                    newKey
                 } else {
                     databaseReference.push().key
-                        ?: throw IllegalStateException("Failed to generate a new key for model")
+                        ?: return errorResult(
+                            "Batch upload",
+                            path,
+                            "model='$modelName' | reason='Model has no key property and push().key returned null'"
+                        )
                 }
+
+                updates[keyToUse] = model.shrink()
             }
 
-            val updatesMap = updates.mapValues { it.value.shrink() }
-            databaseReference.child(path).updateChildren(updatesMap).await()
+            databaseReference.child(path).updateChildren(updates).await()
             MyResult.Success("All models uploaded successfully")
         } catch (e: Exception) {
-            MyResult.Error("Failed to upload models: ${e.message}")
+            Log.e("MainRepository", "Batch upload failed (path: $path)", e)
+            errorResult("Batch upload", path, e)
         }
     }
 
 
-
-
-    override fun <T> collectAnyModel(
+    override fun <T : Any> collectAnyModel(
         path: String,
         clazz: Class<T>,
         numberOfItems: Int,
-    ): Flow<List<T>> = callbackFlow {
+    ): Flow<MyResult<List<T>>> = callbackFlow {
         path.logT("collectAnyModel->path ", "path")
         numberOfItems.logT("numberOfItems", "path")
         clazz.simpleName.logT("clazz.simpleName" , "firebase")
-        if (!path.isValidPath()) {
-            throw InvalidParameterException("$path path is invalid for firebase")
+        val pathResult = path.isValidPath()
+        if (pathResult is MyResult.Error) {
+            trySend(MyResult.Error("Invalid path ($path): ${pathResult.msg}"))
+            close()
+            return@callbackFlow
         }
         val query: Query = if (numberOfItems == 0) {
             databaseReference.child(path)
@@ -109,16 +157,30 @@ class MainRepositoryImpl @Inject constructor(
                         }
                     } catch (e: DatabaseException) {
                         val jsonData = gson.toJson(childSnapshot.value)
-                        val errorMessage = "Error deserializing $clazz at path: $path. JSON: $jsonData. ${e.message}"
-                        Log.e("Firebase", errorMessage, e)
-                        // Handle error or rethrow if needed
+                        val jsonSnippet = jsonData.take(700)
+                        val exType = e.javaClass.simpleName
+                        val exMessage = e.message?.takeIf { it.isNotBlank() } ?: "Unknown deserialization error"
+                        Log.e(
+                            "MainRepository",
+                            "Deserialize failed | path='$path' | model='${clazz.simpleName}' | ex='$exType' | message='$exMessage' | json='$jsonSnippet'",
+                            e
+                        )
+                        trySend(
+                            errorResult(
+                                "Deserialize",
+                                path,
+                                "model='${clazz.simpleName}' | ex='$exType' | message='$exMessage' | json='$jsonSnippet'"
+                            )
+                        )
+                        return
                     }
                 }
-                trySend(messagesList).isSuccess
+                trySend(MyResult.Success(messagesList)).isSuccess
             }
 
             override fun onCancelled(databaseError: DatabaseError) {
-                close(databaseError.toException())
+                trySend(errorResult("Listen", path, databaseError))
+                close()
             }
         }
 
@@ -133,11 +195,9 @@ class MainRepositoryImpl @Inject constructor(
 
     override suspend fun <T : Any> uploadAnyModel(path: String, model: T): MyResult<String> {
         // Log the start of the method execution
-
-        // Validate path and log validation status
-        if (!path.isValidPath()) {
-            "$path is invalid".logT("uploadAnyModel->pathValidation", "error")
-            return MyResult.Error("$path path is invalid for firebase")
+        val pathResult = path.isValidPath()
+        if (pathResult is MyResult.Error){
+            return pathResult
         }
 
         // Log the valid path
@@ -156,23 +216,34 @@ class MainRepositoryImpl @Inject constructor(
                 keyProperty.isAccessible = true
                 val key = keyProperty.call(model)?.toString() ?: ""
 
-                // If the key is empty, generate a new key
-                val newKey = key.ifEmpty {
-                    databaseReference.push().key.toString().also { newKey ->
-                        "New key generated: $newKey".logT("uploadAnyModel->newKey", "debug")
-                        // Set the new key in the model if it's mutable
-                        if (keyProperty is KMutableProperty<*>) {
-                            keyProperty.setter.call(model, newKey)
-                        } else {
-                            throw IllegalStateException("The 'key' property is not mutable")
-                        }
+                // If the key is empty, generate a new key (without throwing)
+                val newKey = if (key.isNotBlank()) {
+                    key
+                } else {
+                    val generated = databaseReference.push().key
+                        ?: return errorResult(
+                            "Upload",
+                            path,
+                            "model='${model::class.simpleName ?: "UnknownModel"}' | reason='Failed to generate new key (push().key returned null)'"
+                        )
+
+                    "New key generated: $generated".logT("uploadAnyModel->newKey", "debug")
+                    if (keyProperty is KMutableProperty<*>) {
+                        keyProperty.setter.call(model, generated)
+                        generated
+                    } else {
+                        return errorResult(
+                            "Upload",
+                            path,
+                            "model='${model::class.simpleName ?: "UnknownModel"}' | reason='Model has key property but it is not mutable; cannot auto-assign generated key'"
+                        )
                     }
                 }
 
                 var shrinked = model.shrink()
                 shrinked.logT("uploadAnyModel->shrinked", "firebase")
 
-                databaseReference.child(path).child(newKey).setValue(shrinked)
+                databaseReference.child(path).child(newKey).setValue(shrinked).await()
 
                 "Model uploaded successfully with key: $newKey".logT(
                     "uploadAnyModel->success",
@@ -185,7 +256,7 @@ class MainRepositoryImpl @Inject constructor(
                     "uploadAnyModel->uploadNoKey",
                     "degub"
                 )
-                databaseReference.child(path).setValue(model)
+                databaseReference.child(path).setValue(model).await()
 
                 // Log successful upload
                 val uploadedKey = path.split("/").last()
@@ -198,7 +269,8 @@ class MainRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             // Log the error
             "Error uploading model: ${e.message}".logT("uploadAnyModel->error", "error")
-            MyResult.Error(e.message.toString())
+            Log.e("MainRepository", "Upload failed (path: $path)", e)
+            errorResult("Upload", path, e)
         } finally {
             // Log the end of the method
             "Finished uploadAnyModel execution".logT("uploadAnyModel->end", "debug")
@@ -209,11 +281,10 @@ class MainRepositoryImpl @Inject constructor(
     override suspend fun updateAnyModel(path: String, updatedMap: Map<String, Any>): MyResult<String> {
         // Log the start of the method execution
         "Started updateAnyModel execution".logT("updateAnyModel->start", "debug")
-
-        // Validate path and log validation status
-        if (!path.isValidPath()) {
-            "$path is invalid".logT("updateAnyModel->pathValidation", "error")
-            return MyResult.Error("$path path is invalid for firebase")
+        // Log the start of the method execution
+        val pathResult = path.isValidPath()
+        if (pathResult is MyResult.Error){
+            return pathResult
         }
 
         // Log the valid path
@@ -221,7 +292,7 @@ class MainRepositoryImpl @Inject constructor(
 
         return try {
             // Update Firebase data
-            databaseReference.child(path).updateChildren(updatedMap)
+            databaseReference.child(path).updateChildren(updatedMap).await()
 
             // Log successful update
             "Data updated successfully at path: $path".logT("updateAnyModel->success", "firebase")
@@ -229,7 +300,8 @@ class MainRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             // Log the error
             "Error updating data: ${e.message}".logT("updateAnyModel->error", "error")
-            MyResult.Error(e.message.toString())
+            Log.e("MainRepository", "Update failed (path: $path)", e)
+            errorResult("Update", path, e)
         } finally {
             // Log the end of the method
             "Finished updateAnyModel execution".logT("updateAnyModel->end", "debug")
@@ -238,48 +310,66 @@ class MainRepositoryImpl @Inject constructor(
 
 
     override suspend fun deleteAnyModel(path: String): MyResult<String> {
-        if (!path.isValidPath()) {
-            return MyResult.Error("$path path is invalid for firebase")
+        // Log the start of the method execution
+        val pathResult = path.isValidPath()
+        if (pathResult is MyResult.Error){
+            return pathResult
         }
         path.logT("deleteAnyModel->path", "path")
         return try {
             databaseReference.child(path).removeValue().await()
             MyResult.Success("deleted Successfully")
         } catch (e: Exception) {
-            MyResult.Error(e.message.toString())
+            Log.e("MainRepository", "Delete failed (path: $path)", e)
+            errorResult("Delete", path, e)
         }
     }
 
 
-    override suspend fun <T> getAllChildByKeys(
+    override suspend fun <T : Any> getAllChildByKeys(
         path: String,
         keys: List<String>,
         clazz: Class<T>
-    ): List<T> {
-        // Validate path
-        if (!path.isValidPath()) {
-            throw InvalidParameterException("$path path is invalid for firebase")
+    ): MyResult<List<T>> = withContext(Dispatchers.IO) {
+        val pathResult = path.isValidPath()
+        if (pathResult is MyResult.Error) {
+            return@withContext MyResult.Error("Invalid path ($path): ${pathResult.msg}")
         }
         path.logT("getAllChildByKeys->path", "path")
-        val results = mutableListOf<T>()
-        keys.forEach { key ->
-            try {
-                val snapshot = databaseReference.child(path).child(key).get().await()  // Asynchronously get data using await
-                snapshot.logT("getAllChildByKeys->snapshot", "firebase")
-                val value = snapshot.getValue(clazz)
-                if (value != null) {
-                    results.add(value)
+
+        if (keys.isEmpty()) return@withContext MyResult.Success(emptyList())
+
+        return@withContext try {
+            val results = mutableListOf<T>()
+            val firstError = mutableListOf<Exception>()
+
+            keys.forEach { key ->
+                try {
+                    val snapshot = databaseReference.child(path).child(key).get().await()
+                    snapshot.logT("getAllChildByKeys->snapshot-$key", "firebase")
+                    val value = snapshot.getValue(clazz)
+                    if (value != null) results.add(value)
+                } catch (e: Exception) {
+                    if (firstError.isEmpty()) firstError.add(e)
                 }
-            } catch (e: Exception) {
-                e.printStackTrace()
             }
+
+            if (results.isEmpty() && firstError.isNotEmpty()) {
+                errorResult("Get", path, firstError.first())
+            } else {
+                MyResult.Success(results)
+            }
+        } catch (e: Exception) {
+            errorResult("Get", path, e)
         }
-        return results
     }
 
-    override fun <T> collectAModel(path: String, clazz: Class<T>): Flow<T> = callbackFlow {
-        if (!path.isValidPath()) {
-            throw InvalidParameterException("$path path is invalid for firebase")
+    override fun <T : Any> collectAModel(path: String, clazz: Class<T>): Flow<MyResult<T>> = callbackFlow {
+        val pathResult = path.isValidPath()
+        if (pathResult is MyResult.Error){
+            trySend(MyResult.Error("Invalid path ($path): ${pathResult.msg}"))
+            close()
+            return@callbackFlow
         }
         path.logT("collectAModel->path", "path")
         val valueEventListener = object : ValueEventListener {
@@ -287,19 +377,35 @@ class MainRepositoryImpl @Inject constructor(
                 gson.toJson(dataSnapshot.value).logT("collectAModel->dataSnapshot", "firebase")
                 val message = try {
                     dataSnapshot.getValue(clazz)
-                }  catch (e: DatabaseException) {
-                        val jsonData = gson.toJson(dataSnapshot.value)
-                        val errorMessage = "Error deserializing $clazz at path: $path. JSON: $jsonData. ${e.message}"
-                        Log.e("Firebase", errorMessage, e)
-                    throw e
-                    }
+                } catch (e: DatabaseException) {
+                    val jsonData = gson.toJson(dataSnapshot.value)
+                    val jsonSnippet = jsonData.take(700)
+                    val exType = e.javaClass.simpleName
+                    val exMessage = e.message?.takeIf { it.isNotBlank() } ?: "Unknown deserialization error"
+                    Log.e(
+                        "MainRepository",
+                        "Deserialize failed | path='$path' | model='${clazz.simpleName}' | ex='$exType' | message='$exMessage' | json='$jsonSnippet'",
+                        e
+                    )
+                    trySend(
+                        errorResult(
+                            "Deserialize",
+                            path,
+                            "model='${clazz.simpleName}' | ex='$exType' | message='$exMessage' | json='$jsonSnippet'"
+                        )
+                    )
+                    return
+                }
                 if (message != null) {
-                    trySend(message).isSuccess
+                    trySend(MyResult.Success(message)).isSuccess
+                } else {
+                    trySend(MyResult.Error("Not found"))
                 }
             }
 
             override fun onCancelled(databaseError: DatabaseError) {
-                close(databaseError.toException())
+                trySend(errorResult("Listen", path, databaseError))
+                close()
             }
         }
         databaseReference.child(path).addValueEventListener(valueEventListener)
@@ -310,75 +416,108 @@ class MainRepositoryImpl @Inject constructor(
     }
 
 
-    override suspend fun <T> getAnyData(path: String, clazz: Class<T>): T? {
-        if (!path.isValidPath()) {
-            throw InvalidParameterException("$path path is invalid for firebase")
+    override suspend fun <T : Any> getAnyData(path: String, clazz: Class<T>): MyResult<T> {
+        val pathResult = path.isValidPath()
+        if (pathResult is MyResult.Error){
+            return MyResult.Error("Invalid path ($path): ${pathResult.msg}")
         }
         path.logT("getAnyData->path", "path")
         return try {
             val snapshot = databaseReference.child(path).get().await()
             gson.toJson(snapshot.value).logT("getAnyData->snapshot", "firebase")
-            snapshot.getValue(clazz)
+            val model = snapshot.getValue(clazz)
+            if (model != null) {
+                MyResult.Success(model)
+            } else {
+                MyResult.Error("Not found")
+            }
         } catch (e: Exception) {
             Log.e("TAG", "Failed to retrieve data: ${e.message}")
-            null
+            errorResult("Get", path, e)
         }
     }
 
-    override suspend fun <T> getDataList(path: String, clazz: Class<T>): List<T> {
-        if (!path.isValidPath()) {
-            throw InvalidParameterException("$path path is invalid for Firebase")
+    override suspend fun <T : Any> getDataList(path: String, clazz: Class<T>): MyResult<List<T>> {
+        val pathResult = path.isValidPath()
+        if (pathResult is MyResult.Error){
+            return MyResult.Error("Invalid path ($path): ${pathResult.msg}")
         }
         path.logT("getDataList->path", "path")
         return try {
             val snapshot = databaseReference.child(path).get().await()
             gson.toJson(snapshot.value).logT("getDataList->snapshot", "firebase")
-            // Check if the snapshot has children and map them to a list of the desired class type
-            snapshot.children.mapNotNull { it.getValue(clazz) }
+            MyResult.Success(snapshot.children.mapNotNull { it.getValue(clazz) })
         } catch (e: Exception) {
             Log.e("TAG", "Failed to retrieve data list: ${e.message}")
-            emptyList()
+            errorResult("Get", path, e)
         }
     }
 
 
-    override suspend fun <T> getModelsWithChildren(path: String, clazz: Class<T>): Flow<List<T>> =
-        callbackFlow {
-            if (!path.isValidPath()) {
-                throw InvalidParameterException("$path path is invalid for firebase")
-            }
+    override fun <T : Any> getModelsWithChildren(path: String, clazz: Class<T>): Flow<MyResult<List<T>>> = callbackFlow {
+        val pathResult = path.isValidPath()
+        if (pathResult is MyResult.Error){
+            trySend(MyResult.Error("Invalid path ($path): ${pathResult.msg}"))
+            close()
+            return@callbackFlow
+        }
 
-            path.logT("getModelsWithChildren->path", "path")
-            val valueEventListener = object : ValueEventListener {
-                override fun onDataChange(dataSnapshot: DataSnapshot) {
-                    val studentsList = mutableListOf<T>()
-                    for (classSnap in dataSnapshot.children.filterNotNull()) {
-                        gson.toJson(classSnap.value)
-                            .logT("getModelsWithChildren->classSnap", "firebase")
-                        for (studentSnap in classSnap.children) {
+        path.logT("getModelsWithChildren->path", "path")
+        val valueEventListener = object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                val studentsList = mutableListOf<T>()
+                for (classSnap in dataSnapshot.children.filterNotNull()) {
+                    gson.toJson(classSnap.value)
+                        .logT("getModelsWithChildren->classSnap", "firebase")
+                    for (studentSnap in classSnap.children) {
+                        try {
                             val studentModel = studentSnap.getValue(clazz)
-                            studentModel?.let {
-                                studentsList.add(it)
+                            studentModel?.let { studentsList.add(it) }
+                        } catch (e: DatabaseException) {
+                            val childPath = buildString {
+                                append(path)
+                                classSnap.key?.let { append("/").append(it) }
+                                studentSnap.key?.let { append("/").append(it) }
                             }
+                            val jsonSnippet = gson.toJson(studentSnap.value).take(700)
+                            val exType = e.javaClass.simpleName
+                            val exMessage = e.message?.takeIf { it.isNotBlank() } ?: "Unknown deserialization error"
+                            Log.e(
+                                "MainRepository",
+                                "Deserialize failed | path='$childPath' | model='${clazz.simpleName}' | ex='$exType' | message='$exMessage' | json='$jsonSnippet'",
+                                e
+                            )
+                            trySend(
+                                errorResult(
+                                    "Deserialize",
+                                    childPath,
+                                    "model='${clazz.simpleName}' | ex='$exType' | message='$exMessage' | json='$jsonSnippet'"
+                                )
+                            )
+                            return
                         }
                     }
-                    trySend(studentsList).isSuccess
                 }
-
-                override fun onCancelled(databaseError: DatabaseError) {
-                    close(databaseError.toException())
-                }
+                trySend(MyResult.Success(studentsList)).isSuccess
             }
-            databaseReference.child(path).addValueEventListener(valueEventListener)
-            awaitClose {
-                databaseReference.child(path).removeEventListener(valueEventListener)
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                trySend(errorResult("Listen", path, databaseError))
+                close()
             }
         }
+        databaseReference.child(path).addValueEventListener(valueEventListener)
+        awaitClose {
+            databaseReference.child(path).removeEventListener(valueEventListener)
+        }
+    }
 
 
     override suspend fun checkExists(path: String): MyResult<String> {
-        if (!path.isValidPath()) {
-            return MyResult.Error("$path path is invalid for firebase")
+        // Log the start of the method execution
+        val pathResult = path.isValidPath()
+        if (pathResult is MyResult.Error){
+            return pathResult
         }
         path.logT("checkExists->path", "path")
         return suspendCancellableCoroutine { continuation ->
@@ -395,7 +534,7 @@ class MainRepositoryImpl @Inject constructor(
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    continuation.resume(MyResult.Error("Failed to check path existence."))
+                    continuation.resume(errorResult("Check", path, error))
                     reference.removeEventListener(this) // Remove listener on error
                 }
             }
@@ -410,21 +549,46 @@ class MainRepositoryImpl @Inject constructor(
         property: String,
         value: String,
         clazz: Class<T>
-    ): T? {
+    ): MyResult<T> {
+        val pathResult = path.isValidPath()
+        if (pathResult is MyResult.Error){
+            return MyResult.Error("Invalid path ($path): ${pathResult.msg}")
+        }
         path.logT("queryModelByAProperty->path", "path")
         return try {
             val querySnapshot = databaseReference.child(path).orderByChild(property).equalTo(value).get().await()
-
             querySnapshot.logT("queryModelByAProperty->query", "firebase")
-
-            if (querySnapshot.exists()) {
-                querySnapshot.getValue(clazz)
+            val model = querySnapshot.children.firstOrNull()?.getValue(clazz)
+            if (model != null) {
+                MyResult.Success(model)
             } else {
-                null
+                MyResult.Error("Not found")
             }
         } catch (e: Exception) {
             Log.e("TAG", "Failed to retrieve data: ${e.message}")
-            null
+            errorResult("Query", path, e)
+        }
+    }
+
+    override suspend fun <T : Any> queryList(
+        path: String,
+        field: String,
+        value: String,
+        clazz: Class<T>
+    ): MyResult<List<T>> {
+        val pathResult = path.isValidPath()
+        if (pathResult is MyResult.Error){
+            return MyResult.Error("Invalid path ($path): ${pathResult.msg}")
+        }
+        if (field.isBlank()) {
+            return MyResult.Error("Field cannot be empty")
+        }
+        return try {
+            val querySnapshot = databaseReference.child(path).orderByChild(field).equalTo(value).get().await()
+            val list = querySnapshot.children.mapNotNull { it.getValue(clazz) }
+            MyResult.Success(list)
+        } catch (e: Exception) {
+            errorResult("Query", path, e)
         }
     }
 
@@ -442,25 +606,51 @@ class MainRepositoryImpl @Inject constructor(
             }
             MyResult.Success(newMap)
         } catch (e: Exception) {
-            MyResult.Error("Failed to retrieve map: ${e.message}")
+            Log.e("MainRepository", "Get map failed (path: $path)", e)
+            errorResult("Get map", path, e)
         }
     }
 
 
     // Flow-based function to collect the map from Firebase
-    override suspend fun <T : Any> collectMap(path: String): Flow<Map<String, T>> = callbackFlow {
+    override fun <T : Any> collectMap(path: String): Flow<MyResult<Map<String, T>>> = callbackFlow {
         path.logT("collectMap->path", "path")
+        val pathResult = path.isValidPath()
+        if (pathResult is MyResult.Error){
+            trySend(MyResult.Error("Invalid path ($path): ${pathResult.msg}"))
+            close()
+            return@callbackFlow
+        }
         val valueEventListener = object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
-                val map: Map<String, T> =
-                    dataSnapshot.getValue(object : GenericTypeIndicator<Map<String, T>>() {})
-                        ?: emptyMap()
-                map.logT("collectMap->snap.value", "firebase")
-                trySend(map)
+                try {
+                    val map: Map<String, T> =
+                        dataSnapshot.getValue(object : GenericTypeIndicator<Map<String, T>>() {})
+                            ?: emptyMap()
+                    map.logT("collectMap->snap.value", "firebase")
+                    trySend(MyResult.Success(map))
+                } catch (e: DatabaseException) {
+                    val jsonSnippet = gson.toJson(dataSnapshot.value).take(700)
+                    val exType = e.javaClass.simpleName
+                    val exMessage = e.message?.takeIf { it.isNotBlank() } ?: "Unknown deserialization error"
+                    Log.e(
+                        "MainRepository",
+                        "Deserialize failed | path='$path' | model='Map<String, T>' | ex='$exType' | message='$exMessage' | json='$jsonSnippet'",
+                        e
+                    )
+                    trySend(
+                        errorResult(
+                            "Deserialize",
+                            path,
+                            "model='Map<String, T>' | ex='$exType' | message='$exMessage' | json='$jsonSnippet'"
+                        )
+                    )
+                }
             }
 
             override fun onCancelled(databaseError: DatabaseError) {
-                trySend(emptyMap())
+                trySend(errorResult("Listen", path, databaseError))
+                close()
             }
         }
         val databaseReference = databaseReference.child(path)
@@ -473,9 +663,33 @@ class MainRepositoryImpl @Inject constructor(
     }.flowOn(Dispatchers.IO)
 
 
-    fun String.isValidPath(): Boolean {
+    fun String.isValidPath(): MyResult<Unit> {
+        // Check if the path is empty
+        if (this.isEmpty()) {
+            return MyResult.Error("Path cannot be empty")
+        }
+
+        // Split the path into components, ignoring leading slashes
+        val components = this.trimStart('/').split('/')
+
+        // Check for trailing slash (except for root "/")
+        if (this.endsWith('/') && this != "/") {
+            return MyResult.Error("Path cannot end with a slash")
+        }
+
+        // Check each component for forbidden characters and emptiness
         val forbiddenCharacters = listOf('.', '#', '$', '[', ']')
-        return forbiddenCharacters.none { this.contains(it) }
+        for (component in components) {
+            if (component.isEmpty() && this != "/") {
+                return MyResult.Error("Path contains empty components")
+            }
+            if (forbiddenCharacters.any { it in component }) {
+                return MyResult.Error("Component '$component' contains forbidden characters: . # $ [ ]")
+            }
+        }
+
+        // If all checks pass, return success
+        return MyResult.Success(Unit)
     }
 
 

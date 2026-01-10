@@ -1,5 +1,5 @@
 [versions]
-agp = "8.2.0"
+agp = "8.5.0"
 kotlin = "1.8.20"
 coreKtx = "1.12.0"
 junit = "4.13.2"
@@ -17,6 +17,8 @@ playServicesMaps = "19.0.0"
 playServicesLocation = "21.3.0"
 geofireAndroid = "3.2.0"
 firebaseFirestore = "25.1.1"
+firebaseMessagingKtx = "24.1.0"
+uiDesktop = "1.7.0"
 [libraries]
 
 
@@ -37,6 +39,8 @@ play-services-maps = { group = "com.google.android.gms", name = "play-services-m
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
 geofire-android = { group = "com.firebase", name = "geofire-android", version.ref = "geofireAndroid" }
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore", version.ref = "firebaseFirestore" }
+firebase-messaging-ktx = { group = "com.google.firebase", name = "firebase-messaging-ktx", version.ref = "firebaseMessagingKtx" }
+androidx-ui-desktop = { group = "androidx.compose.ui", name = "ui-desktop", version.ref = "uiDesktop" }
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 jetbrainsKotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }

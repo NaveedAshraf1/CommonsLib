@@ -30,3 +30,8 @@
 # Allow obfuscation only for com.lymors.lycommons.data.database.MainRepositoryImpl
 -keep,allowobfuscation class com.lymors.lycommons.data.database.MainRepositoryImpl { *; }
 
+# Keep StringConcatFactory for Java 9+ string concatenation
+-keep class java.lang.invoke.StringConcatFactory { *; }
+-keep class java.lang.invoke.** { *; }
+-dontwarn java.lang.invoke.StringConcatFactory
+

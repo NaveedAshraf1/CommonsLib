@@ -1,506 +1,103 @@
 package com.lymors.commonslib
 
-
-import android.content.Intent
+import android.app.Dialog
 import android.os.Bundle
-import android.view.View
-import android.view.inputmethod.EditorInfo
-import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat.getDrawable
+import android.view.LayoutInflater
+import android.widget.EditText
+import android.widget.ImageButton
+import android.widget.Button
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
-import com.firebase.geofire.GeoFire
-import com.firebase.geofire.GeoLocation
-import com.google.firebase.database.FirebaseDatabase
 import com.lymors.commonslib.databinding.ActivityMainBinding
-import com.lymors.commonslib.databinding.StudentSampleRowBinding
-import com.lymors.lycommons.data.viewmodels.AuthViewModel
+import com.lymors.lycommons.data.models.SampleModel
 import com.lymors.lycommons.data.viewmodels.MainViewModel
-import com.lymors.lycommons.data.viewmodels.StorageViewModel
+import com.lymors.lycommons.extensions.ContextExtensions.showToast
 import com.lymors.lycommons.extensions.ScreenExtensions.pickedImageUri
-import com.lymors.lycommons.extensions.TextEditTextExtensions.onTextChange
-import com.lymors.lycommons.extensions.ViewExtensions.setVisibleOrGone
-import com.lymors.lycommons.extensions.ViewExtensions.setVisibleOrInvisible
-import com.lymors.lycommons.extensions.MyExtensions.hideSoftKeyboard
-import com.lymors.lycommons.extensions.MyExtensions.logT
-import com.lymors.lycommons.extensions.MyExtensions.showSoftKeyboard
-import com.lymors.lycommons.extensions.MyExtensions.showToast
-import com.lymors.lycommons.extensions.MyExtensions.viewBinding
+import com.lymors.lycommons.utils.*
+import com.lymors.lycommons.utils.MyExtensions.viewBinding
+import com.lymors.lycommons.utils.MyImagePicker.pickImageByGallery
 import com.lymors.lycommons.utils.MyImagePicker.registerActivityForImageLauncher
-import com.lymors.lycommons.utils.Utils.hideSoftKeyboard
-import com.lymors.lycommons.utils.Utils.setData
+import com.lymors.lycommons.utils.MyResult
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import kotlin.reflect.KProperty
 import javax.inject.Inject
 
-
 @AndroidEntryPoint
-class MainActivity : AppCompatActivity() {
-
-    private var listOfSelectedViews = arrayListOf<View>()
-
-    // change your model
-    var listOfSelectedItems =
-        arrayListOf<UserModel>() // if selecting items you will have them in this@MainActivity list now you can delete them
-
-    private var allUsers: List<UserModel> = listOf()
+class MainActivity : FragmentActivity() {
 
     @Inject
     lateinit var mainViewModel: MainViewModel
-
-    @Inject
-    lateinit var storageViewModel: StorageViewModel
-
-    @Inject
-    lateinit var authViewModel: AuthViewModel
-
 
     private val binding by viewBinding(ActivityMainBinding::inflate)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        authViewModel.registerGoogleSignInLauncher(this)
-
-
-
-        val geoFire = GeoFire(FirebaseDatabase.getInstance().reference)
-        geoFire.setLocation("drivers_location/key2", GeoLocation(23.3522, 7.54377))
-
+        setContentView(binding.root)
 
         registerActivityForImageLauncher()
-//        binding.floating.pickImageByCamera(this) {
-//            pickedImageUri = it
-//        }
-
-lifecycleScope.launch {
-        mainViewModel.uploadAnyModel("testpath" , UserModel("","name","fullNumber","","")).whenSuccess {
-            it.logT("did")
-        }
-}
-
-//        binding.floating.pickImageByBothCropped(this){
-//            it.toString().showInToast(this@MainActivity)
-//
-//        }
-//        binding.floating.setOnClickListener{
-//            authViewModel.signOut(this ,"303214493289-n4fq8hss5ev8j2o75vbaa01103c148kd.apps.googleusercontent.com" ){
-//                it.toString().logT()
-//            }
-
-//        }
 
         binding.floating.setOnClickListener {
-//            showNewUserDialog("add new user" )
-        }
-
-
-        binding.searchIcon.setOnClickListener {
-
-            authViewModel.signInWithGoogle(this , "303214493289-n4fq8hss5ev8j2o75vbaa01103c148kd.apps.googleusercontent.com"){ account,e ->
-                account?.email?.logT()
-                account?.givenName?.logT()
-                e?.message?.logT("exception came")
-
-            }
-
-
-
-
-
-//            lifecycleScope.launch {
-//                storageViewModel.deleteImageToFirebaseStorage("https://firebasestorage.googleapis.com/v0/b/store-96542.appspot.com/o/images%2Fuploaded_image_1720202829822.jpg?alt=media&token=6ed7de05-1997-4508-b4f8-6f5059c1a0be") {
-//                            it.logT("delete-result")
-//                }
-//            }
-
-//            lifecycleScope.launch {
-//                storageViewModel.uploadImageToFirebaseStorage(pickedImageUri!!) { result ->
-//                    result.whenSuccess {
-//                        showToast(it)
-//                        it.logT("aagya")
-//                    }
-//                    result.whenError {
-//                        showToast(it.message.toString())
-//                    }
-//                }
-//            }
+            showToast("Opening upload dialog...")
+            showUploadDialog()
         }
 
         lifecycleScope.launch {
-            mainViewModel.collectAnyModels("users" , UserModel::class.java).collect { users ->
-                users::class.simpleName?.logT("users type")
-                "lodtop--size".logT(users.size.toString())
-                showToast(users.size.toString())
-                allUsers = users
-                setUpRecyclerView(allUsers.reversed())
+            mainViewModel.collectAnyModels("sampleModels", SampleModel::class.java).collect { models ->
+//                binding.statusTextView.text = "Uploaded models: ${models.size}\nFirst Item: ${models.firstOrNull()}"
+
             }
-        }
-
-
-        setupBackButton()
-
-//        handleDeleteItems()
-        handleUpdateItem()
-        handleLongClickState()
-        handleSearchState()
-
-
-
-        binding.searchVew.onTextChange { query ->
-            // filter by searchView
-            var filteredList = allUsers.filter { it.name.contains(query, ignoreCase = true) }
-            setUpRecyclerView(filteredList)
-        }
-
-//
-//
-
-
-//        binding.floating.setOnClickListener {
-//
-//            binding.floating.setVisibleOrInvisible(false)
-//            // load fragment
-//            binding.recyclerview.setVisibleOrInvisible(false)
-//            binding.frame.setVisibleOrInvisible(true)
-//
-//        }
-
-
-//            mainViewModel.setSearchingState(true)
-    }
-
-
-    override fun onBackPressed() {
-
-        if (mainViewModel.searchingState.value) {
-            mainViewModel.setSearchingState(false)
-        } else if (mainViewModel.longClickedState.value) {
-            resetViews()
-        } else {
-            super.onBackPressed()
-            finishAffinity()
         }
     }
 
-    private fun handleSearchState() {
-//        change the right bottom button on the soft keyboard
-        binding.searchVew.setOnEditorActionListener(TextView.OnEditorActionListener { v, actionId, event ->
-            if (actionId == EditorInfo.IME_ACTION_DONE) {
-                // Handle done action and close the keyboard
-                hideSoftKeyboard()
-                return@OnEditorActionListener true
+    private fun showUploadDialog() {
+        val dialog = Dialog(this)
+        val view = LayoutInflater.from(this).inflate(R.layout.dialog_upload, null)
+        dialog.setContentView(view)
+        dialog.window?.setLayout(
+            (resources.displayMetrics.widthPixels * 0.9).toInt(),
+            android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+
+        val nameEditText = view.findViewById<EditText>(R.id.nameEditText)
+        val imageButton = view.findViewById<ImageButton>(R.id.imageButton)
+        val uploadButton = view.findViewById<Button>(R.id.uploadButton)
+
+        imageButton.setOnClickListener {
+            imageButton.pickImageByGallery(this@MainActivity) { uri ->
+                pickedImageUri = uri
+                showToast("Image selected")
+                // Optionally, load the image into the imageButton
+                // Glide.with(this@MainActivity).load(uri).into(imageButton)
             }
-            false
-        })
+        }
 
-        lifecycleScope.launch {
+        uploadButton.setOnClickListener {
+            val name = nameEditText.text.toString().trim()
+            if (name.isEmpty() || pickedImageUri == null) {
+                showToast("Please enter a name and select an image")
+                return@setOnClickListener
+            }
 
-            // listen to the searching state
-            mainViewModel.searchingState.collect { isSearching ->
-                binding.apply {
-                    // handle visibility of the views here
-                    searchVew.setVisibleOrInvisible(isSearching)
-                    searchIcon.setVisibleOrGone(!isSearching)
-                    title.setVisibleOrGone(!isSearching)
-                    if (isSearching) {
-                        pickedImageUri
-                        searchVew.showSoftKeyboard()
-                    } else {
-                        binding.searchVew.setText("")
-                        searchVew.hideSoftKeyboard()
+            val model = SampleModel(name = name)
+            val realTimePath = "sampleModels"
+            val imageUris = listOf(pickedImageUri.toString())
+            val properties = listOf(SampleModel::imageUrl as KProperty<*>)
+
+            lifecycleScope.launch {
+                val result = mainViewModel.uploadModelWithImages(this@MainActivity, realTimePath, model, imageUris, properties)
+                when (result) {
+                    is MyResult.Success -> {
+                        showToast("Upload successful!")
+                        dialog.dismiss()
+                    }
+                    is MyResult.Error -> {
+                        showToast("Upload failed: ${result.msg}")
                     }
                 }
             }
         }
 
+        dialog.show()
     }
-
-    private fun handleLongClickState() {
-        // listen to the long clicked state
-        lifecycleScope.launch {
-            mainViewModel.longClickedState.collect {
-                binding.searchIcon.setVisibleOrInvisible(!it)
-                binding.more.setVisibleOrGone(!it)
-                binding.delete.setVisibleOrGone(it)
-                binding.update.setVisibleOrGone(it)
-            }
-        }
-    }
-
-    private fun handleUpdateItem() {
-        binding.update.setOnClickListener {
-//            if you want to update item then also pass the item to update and title is optional
-//            showNewUserDialog("Update User", listOfSelectedItems[0])
-        }
-    }
-
-//    private fun handleDeleteItems() {
-//        binding.delete.showInfoDialog(
-//                "Are you sure you want to delete selected items?",
-//                "be care full your are gong to delete ${listOfSelectedItems.size} items",
-//                "Delete",
-//                "Cancel",
-//                false,
-//                object : DialogUtil.DialogClickListener {
-//                    override fun onClickNo(d: DialogInterface) {
-//                        d.dismiss()
-//                    }
-//
-//                    override fun onClickYes(d: DialogInterface) {
-//                        lifecycleScope.launch {
-//                            // delete the selected items
-//                            listOfSelectedItems.forEach {
-//                                withContext(Dispatchers.Main) {
-//                                    val result = mainViewModel.deleteAnyModel("users/${it.key}")
-//
-//                                    result.showInToast(this@MainActivity)
-//                                }
-//                            }
-//                            resetViews()
-//                        }
-//                    }
-//
-//                })
-//    }
-
-    private fun setupBackButton() {
-        // <- top left button in tool bar
-        binding.back.setOnClickListener {
-            if (mainViewModel.searchingState.value) {
-                mainViewModel.setSearchingState(false)
-            } else if (mainViewModel.longClickedState.value) {
-                resetViews()
-            } else {
-                this@MainActivity.onBackPressed()
-            }
-        }
-    }
-
-    private fun resetViews() {
-        listOfSelectedViews.forEach {
-            it.background = null
-        }
-        listOfSelectedViews.clear()
-        listOfSelectedItems.clear()
-        mainViewModel.setLongClickedState(false)
-    }
-
-    private fun setUpRecyclerView(users: List<UserModel>, pageSize: Int = 20) {
-
-
-        binding.recyclerview.setData(users, StudentSampleRowBinding::inflate) { b, item, position ->
-
-            b.birth.text = position.toString()
-//
-
-//            b.profileImage.loadImageFromUrl(item.profileImage)
-//            b.name.text = item.name
-//            b.phone.text = item.phone
-//            b.birth.text = position.toString()
-
-            if (item in listOfSelectedItems) {
-                // if item is selected then set the background
-                b.cardView.background = getDrawable(
-                    this@MainActivity,
-                    com.lymors.lycommons.R.drawable.selected_background
-                )
-            } else {
-                b.cardView.background = null
-            }
-
-            b.cardView.setOnLongClickListener { view ->
-
-                b.cardView.background = getDrawable(
-                    this@MainActivity,
-                    com.lymors.lycommons.R.drawable.selected_background
-                )
-                listOfSelectedViews.add(view)
-                listOfSelectedItems.add(item)
-
-                mainViewModel.setLongClickedState(true)
-                true
-            }
-
-            b.cardView.setOnClickListener {
-
-                if (mainViewModel.longClickedState.value) {
-                    if (item in listOfSelectedItems) {
-                        listOfSelectedItems.remove(item)
-                        listOfSelectedViews.remove(it)
-                        b.cardView.background = null
-                        if (listOfSelectedItems.size == 0) {
-                            mainViewModel.setLongClickedState(false)
-                        }
-                    } else {
-                        listOfSelectedItems.add(item)
-                        listOfSelectedViews.add(it)
-                        b.cardView.background = getDrawable(
-                            this@MainActivity,
-                            com.lymors.lycommons.R.drawable.selected_background
-                        )
-                    }
-                    if (listOfSelectedItems.size == 1) {
-                        binding.update.setVisibleOrGone(true)
-                    } else {
-                        binding.update.setVisibleOrGone(false)
-                    }
-                } else {
-                    var intent = Intent(this@MainActivity, SecondActivity::class.java)
-                    intent.putExtra("data", "data")
-                    startActivity(intent)
-                }
-            }
-        }
-
-    }
-
-
-//    private fun showNewUserDialog(title: String = "", userModel: UserModel = UserModel()) {
-//
-//        showCustomLayoutDialogFragment(this, NewUserBinding::inflate) { dialogBinding, dialogFragment ->
-//            dialogBinding.apply {
-////                title.setTextOrGone(title)
-//                name.setText(userModel.name)
-//                phoneNumber.setText(userModel.phone)
-//                gender.setText(userModel.gender)
-//                birth.setText(userModel.birth)
-//                if (userModel.profileImage.isNotEmpty()) {
-//                    profileImage.loadImageFromUrl(userModel.profileImage)
-//                }
-//
-//                birth.attachDatePicker()
-//                gender.setOptions(listOf("Male", "Female"))
-////                profileImage.pickImageMagic(this@MainActivity){
-////                    showToast(it.toString())
-////                }
-//
-//                profileImage.pickImageByGallery(this@MainActivity) {
-//                    profileImage.setImageURI(pickedImageUri)
-//                }
-//
-//                cancelBtn.setOnClickListener { dialogFragment.dismiss() }
-//                saveBtn.setOnClickListener {
-//
-//                    resetViews()
-//                    dialogFragment.dismiss()
-//
-//                    val name = dialogBinding.name.text.toString().trim()
-//                    val phone = dialogBinding.phoneNumber.text.toString().trim()
-//                    val gender = dialogBinding.gender.text.toString().trim()
-//                    val birth = dialogBinding.birth.text.toString().trim()
-//                    var u = UserModel(userModel.key, name, phone, gender, birth, "")
-//
-//                    lifecycleScope.launch {
-//                        mainViewModel.uploadModelWithImage(
-//                            this@MainActivity,
-//                            "users",
-//                            u,
-//                            pickedImageUri.toString(),
-//                            UserModel::profileImage
-//                        )
-//                    }
-//                }
-//            }
-//            dialogBinding.cancelBtn.setOnClickListener {
-//                showToast("cancel button pressed")
-//                dialogFragment.dismiss()
-//            }
-//
-//            // Handle save action
-//        }
-//
-//
-////        dialogUtil.showCustomLayoutDialog(this , NewUserBinding::inflate ){ dBinding , dialog ->
-////            dBinding.apply {
-//////                title.setTextOrGone(title)
-////                name.setText(userModel.name)
-////                phoneNumber.setText(userModel.phone)
-////                gender.setText(userModel.gender)
-////                birth.setText(userModel.birth)
-////                if (userModel.profileImage.isNotEmpty()){
-////                    profileImage.loadImageFromUrl(userModel.profileImage)
-////                }
-////
-////                birth.attachDatePicker()
-////                gender.setOptions(listOf("Male", "Female"))
-//////                profileImage.pickImageMagic(this@MainActivity){
-//////                    showToast(it.toString())
-//////                }
-////
-////                profileImage.pickImage {
-////                  profileImage.setImageURI(it)
-////                }
-////
-////
-////
-////                cancelBtn.setOnClickListener { dialogUtil.dialog.dismiss() }
-////                saveBtn.setOnClickListener {
-////
-////                    resetViews()
-////                    dialogUtil.dialog.dismiss()
-////
-////                    val name = dBinding.name.text.toString().trim()
-////                    val phone = dBinding.phoneNumber.text.toString().trim()
-////                    val gender = dBinding.gender.text.toString().trim()
-////                    val birth = dBinding.birth.text.toString().trim()
-////                    var u = UserModel(userModel.key, name, phone, gender, birth,"")
-//////                        myPermissionHelper.requestReadStoragePermission {
-//////                            showToast("storage permission granted")
-//////                            if (it){
-//////                    lifecycleScope.launch {
-////////                        mainViewModel.uploadModelWithImage(this@MainActivity , "users", u, pickedImageUri.toString(),UserModel::profileImage)
-//////                            }
-//////                        }else{
-//////                            showToast("storage permission is required to upload image")
-//////                            }
-//////                    }
-////                }
-////            }
-////
-////        }
-//
-//
-//    }
-
-    override fun onResume() {
-        "onResume".logT()
-        super.onResume()
-        mainViewModel.setLongClickedState(false)
-        mainViewModel.setSearchingState(false)
-    }
-
-    override fun onStart() {
-        "onStart".logT()
-        super.onStart()
-        mainViewModel.setLongClickedState(false)
-        mainViewModel.setSearchingState(false)
-    }
-
-    override fun onPause() {
-        super.onPause()
-        "onPause".logT()
-    }
-
 }
-
-// Inside a separate file (ImagePickerViewModel.kt)
-//object ImagePickerViewModel{
-//
-//
-//    val AppCompatActivity.resultLauncher
-//    get() = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-//        if (result.resultCode == Activity.RESULT_OK) {
-//            val pickedUri = result.data?.data ?: Uri.EMPTY
-//            pickedImageUri = pickedUri
-//            onImagePicked?.invoke(pickedUri) // Call the callback with the URI
-//        }
-//    }
-//
-//    private var onImagePicked: ((Uri?) -> Unit)? = null
-//
-//    fun View.pickImageMagic(activity: AppCompatActivity , callback: (Uri?) -> Unit) {
-//        onImagePicked = callback
-//        val intent = Intent(Intent.ACTION_PICK).apply { type = "image/*" }
-//        activity.resultLauncher.launch(intent)
-//    }
-//}

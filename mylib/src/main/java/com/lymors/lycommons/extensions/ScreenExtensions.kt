@@ -18,6 +18,7 @@ import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowInsetsController
 import android.view.inputmethod.InputMethodManager
 import android.widget.CheckBox
 import android.widget.FrameLayout
@@ -27,9 +28,12 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.ui.window.Window
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
@@ -39,11 +43,13 @@ import com.lymors.lycommons.R
 import com.lymors.lycommons.utils.MyPermissionHelper
 import nl.joery.animatedbottombar.AnimatedBottomBar
 import java.util.WeakHashMap
+import android.view.Window
+import kotlin.jvm.java
 
 object ScreenExtensions {
 
 
-    fun Activity.refresh(){
+    fun Activity.refresh() {
         finish()
         overridePendingTransition(0, 0)
         startActivity(intent)
@@ -146,8 +152,6 @@ object ScreenExtensions {
     }
 
 
-
-
     fun AppCompatActivity.setupBottomNav(
         bottomNavigationView: AnimatedBottomBar,
         frameLayout: FrameLayout,
@@ -158,7 +162,12 @@ object ScreenExtensions {
             .commit()
 
         bottomNavigationView.setOnTabSelectListener(object : AnimatedBottomBar.OnTabSelectListener {
-            override fun onTabSelected(lastIndex: Int, lastTab: AnimatedBottomBar.Tab?, newIndex: Int, newTab: AnimatedBottomBar.Tab) {
+            override fun onTabSelected(
+                lastIndex: Int,
+                lastTab: AnimatedBottomBar.Tab?,
+                newIndex: Int,
+                newTab: AnimatedBottomBar.Tab
+            ) {
 
                 supportFragmentManager.beginTransaction()
                     .replace(frameLayout.id, fragmentsList[newIndex])
@@ -170,7 +179,11 @@ object ScreenExtensions {
     }
 
 
-    fun Activity.launchActivityClearNewTask(destination: Class<*>, key: String = "", data: String = "") {
+    fun Activity.launchActivityClearNewTask(
+        destination: Class<*>,
+        key: String = "",
+        data: String = ""
+    ) {
         val intent = Intent(this, destination)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         if (key.isNotEmpty()) {
@@ -180,14 +193,14 @@ object ScreenExtensions {
     }
 
 
-
-    fun Activity.launchActivity(destination: Class<*>, key: String , data: Parcelable? = null) {
+    fun Activity.launchActivity(destination: Class<*>, key: String, data: Parcelable? = null) {
         val intent = Intent(this, destination)
         if (key.isNotEmpty() && data != null) {
             intent.putExtra(key, data)
         }
         startActivity(intent)
     }
+
     fun Activity.launchActivity(destination: Class<*>, key: String = "", data: String = "") {
         val intent = Intent(this, destination)
         if (key.isNotEmpty()) {
@@ -197,16 +210,16 @@ object ScreenExtensions {
     }
 
 
-
-    fun CheckBox.toggle(){
+    fun CheckBox.toggle() {
         isChecked = !this.isChecked
     }
 
 
-
-
     // . setStatusBarColor(color: Int)
-    fun Activity.setStatusBarColor(backgroundColor: Int = R.color.white, darkTextColor: Boolean = true) {
+    fun Activity.setStatusBarColor(
+        backgroundColor: Int = R.color.white,
+        darkTextColor: Boolean = true
+    ) {
         // Set the status bar background color
         this.window.statusBarColor = ContextCompat.getColor(this, backgroundColor)
 
@@ -214,10 +227,12 @@ object ScreenExtensions {
         val decor = window.decorView
         if (darkTextColor) {
             // If lightTextColor is true, set the text color to dark
-            decor.systemUiVisibility = decor.systemUiVisibility or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+            decor.systemUiVisibility =
+                decor.systemUiVisibility or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
         } else {
             // Otherwise, set the text color to light
-            decor.systemUiVisibility = decor.systemUiVisibility and View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv()
+            decor.systemUiVisibility =
+                decor.systemUiVisibility and View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv()
         }
     }
 
@@ -225,19 +240,6 @@ object ScreenExtensions {
     // . setActionBarTitle(title: String)
     fun Activity.setActionBarTitle(title: String) {
         actionBar?.title = title
-    }
-
-    fun Activity.openAppSettings() {
-        startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$packageName")))
-    }
-
-    fun Activity.vibrate(milliseconds: Long) {
-        val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            vibrator.vibrate(VibrationEffect.createOneShot(milliseconds, VibrationEffect.DEFAULT_AMPLITUDE))
-        } else {
-            vibrator.vibrate(milliseconds)
-        }
     }
 
     // . startActivityWithAnimation(clazz: Class<*>, enterAnim: Int, exitAnim: Int)
@@ -248,49 +250,50 @@ object ScreenExtensions {
 
 
     fun Activity.setStatusBarTransparent() {
-        window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+        window.decorView.systemUiVisibility =
+            View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
         window.statusBarColor = Color.TRANSPARENT
     }
 
 
-    fun Activity.statusBarColor(color:Int= R.color.blue){
-        this.window.statusBarColor= ContextCompat.getColor(this,color)
+    fun Activity.statusBarColor(color: Int = R.color.blue) {
+        this.window.statusBarColor = ContextCompat.getColor(this, color)
     }
 
-    fun Activity.systemBottomNavigationColor(context: Context, color: Int=android.R.color.white) {
+    fun Activity.systemBottomNavigationColor(context: Context, color: Int = android.R.color.white) {
         this.window.navigationBarColor = ContextCompat.getColor(context, color)
     }
 
 
     @SuppressLint("ObsoleteSdkInt")
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-    fun Activity.turnOnFlash(){
-        val cameraManager : CameraManager =this.getSystemService(AppCompatActivity.CAMERA_SERVICE) as CameraManager
-        try{
-            var cameraId : String? = null
+    fun Activity.turnOnFlash() {
+        val cameraManager: CameraManager =
+            this.getSystemService(AppCompatActivity.CAMERA_SERVICE) as CameraManager
+        try {
+            var cameraId: String? = null
             cameraId = cameraManager.cameraIdList[0]
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                cameraManager.setTorchMode(cameraId,true)
+                cameraManager.setTorchMode(cameraId, true)
             }
-        }catch (e: CameraAccessException){
+        } catch (e: CameraAccessException) {
             Toast.makeText(this, "Something wrong", Toast.LENGTH_LONG).show()
         }
     }
 
 
-    fun Activity.turnOFFFlash(){
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
-            val cameraManage = this.getSystemService(AppCompatActivity.CAMERA_SERVICE) as CameraManager
+    fun Activity.turnOFFFlash() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val cameraManage =
+                this.getSystemService(AppCompatActivity.CAMERA_SERVICE) as CameraManager
             try {
                 val cameraId = cameraManage.cameraIdList[0]
-                cameraManage.setTorchMode(cameraId,false)
-            }catch (e: CameraAccessException){
+                cameraManage.setTorchMode(cameraId, false)
+            } catch (e: CameraAccessException) {
                 Toast.makeText(this, "Something wrong", Toast.LENGTH_LONG).show()
             }
         }
     }
-
-
 
 
     // fragments
@@ -298,7 +301,11 @@ object ScreenExtensions {
         Toast.makeText(requireContext(), message.toString(), duration).show()
     }
 
-    fun Fragment.navigateToFragment(frameLayoutId:Int ,fragment: Fragment, addToBackStack: Boolean = true) {
+    fun Fragment.navigateToFragment(
+        frameLayoutId: Int,
+        fragment: Fragment,
+        addToBackStack: Boolean = true
+    ) {
         val transaction = requireActivity().supportFragmentManager.beginTransaction()
         transaction.replace(frameLayoutId, fragment)
         if (addToBackStack) transaction.addToBackStack(null)
@@ -318,10 +325,10 @@ object ScreenExtensions {
     }
 
     fun Fragment.hideKeyboard() {
-        val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        val imm =
+            requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(requireView().windowToken, 0)
     }
-
 
 
     fun Activity.takeScreenshot() {
@@ -332,25 +339,82 @@ object ScreenExtensions {
         // Save or share the bitmap as needed
     }
 
+    fun Activity.setStatusBarTextColor(activity: Activity, isLight: Boolean) {
+        val window = activity.window
 
-    fun Activity.restart() {
-        startActivity(Intent(this, this::class.java))
-        finish()
+        when {
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.R -> {
+                // API 30+ (Android 11 and later)
+                window.insetsController?.setSystemBarsAppearance(
+                    if (isLight) WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS else 0,
+                    WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+                )
+            }
+
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.M -> {
+                // API 23-29 (Android 6.0 to Android 10)
+                val decorView = window.decorView
+                decorView.systemUiVisibility = if (isLight) {
+                    decorView.systemUiVisibility or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+                } else {
+                    decorView.systemUiVisibility and View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv()
+                }
+            }
+        }
     }
 
-    inline fun <reified T> Activity.getBinding(): T {
-        val bindingClass = T::class.java
-        val inflateMethod = bindingClass.getMethod("inflate", LayoutInflater::class.java)
-        val inflater = LayoutInflater.from(this)
-        @Suppress("UNCHECKED_CAST")
-        return inflateMethod.invoke(null, inflater) as T
+    /**
+     * Sets the color of the status bar icons (text and icons) to light or dark.
+     *
+     * This method ensures compatibility across various Android versions (API 23 and above).
+     *
+     * @param isLight If true, status bar icons will be dark (suitable for a light status bar background).
+     * If false, status bar icons will be light (suitable for a dark status bar background).
+     */
+    fun Activity.setStatusBarIconColor(isLight: Boolean) {
+        val window: Window = this.window
+        val decorView: View = window.decorView
+
+        // 1. Ensure the window is edge-to-edge for consistent system bar behavior.
+        // This allows the content to extend behind the system bars, and it's good practice
+        // when manipulating system bar appearance.
+
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
+        // 2. Get the WindowInsetsControllerCompat for cross-version compatibility.
+        // This is the primary mechanism for controlling system bar appearance from API 23 onwards.
+        val insetsController: WindowInsetsControllerCompat? =
+            WindowCompat.getInsetsController(window, decorView)
+
+        // Apply the light/dark appearance for status bar icons
+        insetsController?.isAppearanceLightStatusBars = isLight
+
+        // Optional: Set a default status bar background color.
+        // This is often handled by your app's theme (e.g., in themes.xml),
+        // but you might want to explicitly set it here if you need dynamic colors
+        // or to ensure visibility against the icon color.
+        // Example: If isLight=true, the icons are dark, so a light background like WHITE is suitable.
+        // If isLight=false, the icons are light, so a dark background like BLACK is suitable.
+        // window.statusBarColor = if (isLight) Color.WHITE else Color.BLACK
+
+        fun Activity.restart() {
+            startActivity(Intent(this, this::class.java))
+            finish()
+        }
+
+        fun <T> Activity.getBinding(clazz: Class<T>): T {
+            val inflateMethod = clazz.getMethod("inflate", LayoutInflater::class.java)
+            val inflater = LayoutInflater.from(this)
+            @Suppress("UNCHECKED_CAST")
+            return inflateMethod.invoke(null, inflater) as T
+        }
+
+        fun FragmentActivity.replaceFragment(frameLayoutId: Int, fragment: Fragment) {
+            val transaction = supportFragmentManager.beginTransaction()
+            transaction.replace(frameLayoutId, fragment)
+            transaction.commit()
+        }
+
+
     }
-
-    fun FragmentActivity.replaceFragment(frameLayoutId: Int, fragment: Fragment) {
-        val transaction = supportFragmentManager.beginTransaction()
-        transaction.replace(frameLayoutId, fragment)
-        transaction.commit()
-    }
-
-
 }

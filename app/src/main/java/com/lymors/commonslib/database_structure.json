@@ -1,0 +1,48 @@
+{
+  "roznamcha":{
+    "document_id1": {
+      "transaction_type": "customer",
+      "name": "Ali",
+      "phone": "03016826766",
+      "cashGiven": 2000
+    },
+    "document_id2": {
+      "transaction_type": "sale",
+      "name": "Ali",
+      "phone": "03016826766",
+      "cashGiven": 2000
+    }, "document_id3":
+    {
+      "key": "document_id3",
+      "customerKey": "c123",
+      "customerName": "Ali Traders",
+      "transactionType": "SALE or PURCHASE or MONEY_IN or MONEY_OUT",
+      "transactionCategory": "CUSTOMER",
+      "paymentMethod": "CASH",
+      "amount": 5000.0,
+      "note": "Sold LED bulbs",
+      "createdAt": 1731253200000,
+      "createdBy": "admin001",
+      "walletKey": "wallet_9h2927",
+      "walletName": "COUNTER_CASH",
+      "entityKey": "entity_001",
+      "entityLabel": "Shop Sales",
+      "invoiceNumber": "INV-2025-001",
+      "productKey": "p10",
+      "productName": "LED Bulb 12W",
+      "productType": "GRAIN or PESTICIDE or SEED or FERTILIZER",
+      "quantity": 50.0,
+      "unitKey": "pcs",
+      "unitName": "Pieces",
+      "unitPrice": 100.0,
+      "cost": 10.0,
+      "totalPrice": 5000.0,
+      "supplierKey": "",
+      "supplierName": "",
+      "isCreditSale": false,
+      "lastUpdatedAt": 1731253200000
+    }
+
+
+  }
+}

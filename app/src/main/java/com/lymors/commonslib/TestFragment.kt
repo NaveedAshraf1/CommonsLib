@@ -14,6 +14,7 @@ import androidx.lifecycle.lifecycleScope
 import com.lymors.commonslib.databinding.FragmentTestBinding
 import com.lymors.commonslib.databinding.NewUserBinding
 import com.lymors.lycommons.data.viewmodels.MainViewModel
+import com.lymors.lycommons.extensions.ContextExtensions.hideSoftKeyboard
 import com.lymors.lycommons.extensions.ImageViewExtensions.loadImageFromUrl
 import com.lymors.lycommons.extensions.ScreenExtensions.pickedImageUri
 import com.lymors.lycommons.extensions.ScreenExtensions.showToast
@@ -22,11 +23,10 @@ import com.lymors.lycommons.extensions.TextEditTextExtensions.onTextChange
 import com.lymors.lycommons.extensions.ViewExtensions.attachDatePicker
 import com.lymors.lycommons.extensions.ViewExtensions.setVisibleOrGone
 import com.lymors.lycommons.extensions.ViewExtensions.setVisibleOrInvisible
-import com.lymors.lycommons.extensions.MyExtensions.hideSoftKeyboard
-import com.lymors.lycommons.extensions.MyExtensions.logT
-import com.lymors.lycommons.extensions.MyExtensions.setOptions
-import com.lymors.lycommons.extensions.MyExtensions.showSoftKeyboard
-import com.lymors.lycommons.utils.Utils.hideSoftKeyboard
+import com.lymors.lycommons.utils.MyExtensions.hideSoftKeyboard
+import com.lymors.lycommons.utils.MyExtensions.logT
+import com.lymors.lycommons.utils.MyExtensions.setOptions
+import com.lymors.lycommons.utils.MyExtensions.showSoftKeyboard
 import com.lymors.lycommons.utils.Utils.showCustomLayoutDialogFragment
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -60,11 +60,13 @@ class TestFragment : Fragment() {
         "onCreate".logT()
 
         lifecycleScope.launch {
-            mainViewModel.collectAnyModels("users" , UserModel::class.java , 10).collect { users ->
-                "lodtop--size".logT(users.size.toString())
-                showToast(users.size.toString())
-                allUsers = users
-                setUpRecyclerView(allUsers.reversed(), 10)
+            mainViewModel.collectAnyModels("users" , UserModel::class.java , 10).collect { result ->
+                result.whenSuccess { users->
+                    "lodtop--size".logT(users.size.toString())
+                    showToast(users.size.toString())
+                    allUsers = users
+                    setUpRecyclerView(allUsers.reversed(), 10)
+                }
             }
         }
 

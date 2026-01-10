@@ -77,13 +77,25 @@ object MyPermissionHelper {
     }
 
     fun FragmentActivity.requestPermissionReadImages(callback: (Boolean) -> Unit = {}) {
-        val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            arrayOf(Manifest.permission.READ_MEDIA_IMAGES)
-        } else {
-            arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
+        val permissions = when {
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> {
+                // For Android 13 and above
+                arrayOf(Manifest.permission.READ_MEDIA_IMAGES)
+            }
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q -> {
+                // For Android 10 to 12, Scoped Storage is in place
+                arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
+            }
+            else -> {
+                // For Android versions below Android 10
+                arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
+            }
         }
+
+        // Request the permissions using your custom method
         requestPermission(permissions, callback)
     }
+
 
     fun FragmentActivity.requestPermissionReadStorage(callback: (Boolean) -> Unit = {}) {
         val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
