@@ -23,21 +23,21 @@ sealed class MyResult<out T : Any> {
         }
     }
 
-    fun whenResult(onSuccess: (T) -> Unit, onError: (Exception) -> Unit) {
+    inline fun whenResult(onSuccess: (T) -> Unit, onError: (Exception) -> Unit) {
         when (this) {
             is Success -> onSuccess(data)
             is Error -> onError(exception as? Exception ?: Exception(exception))
         }
     }
 
-    fun whenIt(isSuccessFull: (Boolean) -> Unit) {
+    inline fun whenIt(isSuccessFull: (Boolean) -> Unit) {
         when (this) {
             is Success -> isSuccessFull(true)
             is Error -> isSuccessFull(false)
         }
     }
 
-    fun whenSuccess(onSuccess: (T) -> Unit ): MyResult<T> {
+    inline fun whenSuccess(onSuccess: (T) -> Unit): MyResult<T> {
         if (this is Success) {
             onSuccess(data)
         }
@@ -45,7 +45,7 @@ sealed class MyResult<out T : Any> {
     }
 
 
-    fun whenError(onError: (Exception) -> Unit): MyResult<T> {
+    inline fun whenError(onError: (Exception) -> Unit): MyResult<T> {
         if (this is Error) {
             val ex = exception as? Exception ?: Exception(exception)
             Log.e("MyResult", "Error: ${ex.message}", ex)

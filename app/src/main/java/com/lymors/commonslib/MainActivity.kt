@@ -10,15 +10,17 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import com.lymors.commonslib.databinding.ActivityMainBinding
 import com.lymors.lycommons.data.models.SampleModel
+import com.lymors.lycommons.data.viewmodels.FirestoreViewModel
 import com.lymors.lycommons.data.viewmodels.MainViewModel
 import com.lymors.lycommons.extensions.ContextExtensions.showToast
 import com.lymors.lycommons.extensions.ScreenExtensions.pickedImageUri
-import com.lymors.lycommons.utils.*
 import com.lymors.lycommons.utils.MyExtensions.viewBinding
 import com.lymors.lycommons.utils.MyImagePicker.pickImageByGallery
 import com.lymors.lycommons.utils.MyImagePicker.registerActivityForImageLauncher
 import com.lymors.lycommons.utils.MyResult
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlin.reflect.KProperty
 import javax.inject.Inject
@@ -27,7 +29,7 @@ import javax.inject.Inject
 class MainActivity : FragmentActivity() {
 
     @Inject
-    lateinit var mainViewModel: MainViewModel
+    lateinit var mainViewModel: FirestoreViewModel
 
     private val binding by viewBinding(ActivityMainBinding::inflate)
 
@@ -41,7 +43,13 @@ class MainActivity : FragmentActivity() {
             showToast("Opening upload dialog...")
             showUploadDialog()
         }
+        CoroutineScope(Dispatchers.IO).launch {
+        mainViewModel.uploadAnyModel("sampleModels", SampleModel("test")).whenSuccess {
 
+        }.whenError {
+
+        }
+        }
         lifecycleScope.launch {
             mainViewModel.collectAnyModels("sampleModels", SampleModel::class.java).collect { models ->
 //                binding.statusTextView.text = "Uploaded models: ${models.size}\nFirst Item: ${models.firstOrNull()}"

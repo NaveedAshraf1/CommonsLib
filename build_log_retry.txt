@@ -1,0 +1,211 @@
+> Task :app:clean UP-TO-DATE
+> Task :mylib:clean
+> Task :mylib:preBuild UP-TO-DATE
+> Task :mylib:preReleaseBuild UP-TO-DATE
+> Task :mylib:mergeReleaseJniLibFolders
+> Task :mylib:mergeReleaseNativeLibs NO-SOURCE
+> Task :mylib:stripReleaseDebugSymbols NO-SOURCE
+> Task :mylib:copyReleaseJniLibsProjectAndLocalJars
+> Task :mylib:generateReleaseResValues
+> Task :mylib:extractDeepLinksForAarRelease
+> Task :mylib:checkKotlinGradlePluginConfigurationErrors
+
+> Task :mylib:dataBindingMergeDependencyArtifactsRelease
+WARNING: [Processor] Library 'C:\Users\DELL PRECISION\.gradle\caches\modules-2\files-2.1\com.google.android.exoplayer\exoplayer-ui\2.19.1\f2854c993ee7c931a9970c22ca8a35ace6b3d9af\exoplayer-ui-2.19.1.aar' contains references to both AndroidX and old support library. This seems like the library is partially migrated. Jetifier will try to rewrite the library anyway.
+ Example of androidX reference: 'androidx/core/app/NotificationCompat$Builder'
+ Example of support library reference: 'android/support/v4/media/session/MediaSessionCompat$Token'
+
+> Task :mylib:generateReleaseResources
+> Task :mylib:packageReleaseResources
+> Task :mylib:mergeReleaseShaders
+> Task :mylib:compileReleaseShaders NO-SOURCE
+> Task :mylib:generateReleaseAssets UP-TO-DATE
+> Task :mylib:packageReleaseAssets
+> Task :mylib:javaPreCompileRelease
+> Task :mylib:prepareLintJarForPublish
+> Task :mylib:prepareReleaseArtProfile
+> Task :mylib:extractProguardFiles
+> Task :mylib:writeReleaseAarMetadata
+> Task :mylib:processReleaseManifest
+> Task :mylib:mapReleaseSourceSetPaths
+> Task :mylib:generateReleaseLibraryProguardRules
+> Task :mylib:parseReleaseLocalResources
+> Task :mylib:mergeReleaseResources
+> Task :mylib:dataBindingGenBaseClassesRelease
+> Task :mylib:generateReleaseRFile
+> Task :mylib:verifyReleaseResources
+> Task :mylib:kaptGenerateStubsReleaseKotlin
+> Task :mylib:kaptReleaseKotlin
+> Task :mylib:compileReleaseKotlin
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/data/auth/googleauth/AuthRepositoryWithGoogle.kt:4:47 'GoogleSignInAccount' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/data/auth/googleauth/AuthRepositoryWithGoogle.kt:10:99 'GoogleSignInAccount' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/data/auth/googleauth/AuthRepositoryWithGoogle.kt:11:105 'GoogleSignInAccount' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/data/auth/googleauth/AuthRepositoryWithGoogleImpl.kt:8:47 'GoogleSignInAccount' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/data/auth/googleauth/AuthRepositoryWithGoogleImpl.kt:10:47 'GoogleSignInOptions' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/data/auth/googleauth/AuthRepositoryWithGoogleImpl.kt:21:45 'GoogleSignInAccount' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/data/auth/googleauth/AuthRepositoryWithGoogleImpl.kt:22:56 'GoogleSignInAccount' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/data/auth/googleauth/AuthRepositoryWithGoogleImpl.kt:24:68 'GoogleSignInOptions' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/data/auth/googleauth/AuthRepositoryWithGoogleImpl.kt:25:16 'GoogleSignInOptions' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/data/auth/googleauth/AuthRepositoryWithGoogleImpl.kt:25:44 'GoogleSignInOptions' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/data/auth/googleauth/AuthRepositoryWithGoogleImpl.kt:64:107 'GoogleSignInAccount' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/data/auth/googleauth/AuthRepositoryWithGoogleImpl.kt:75:36 'GoogleSignInAccount' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/data/auth/googleauth/AuthRepositoryWithGoogleImpl.kt:77:19 'GoogleSignInOptions' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/data/auth/googleauth/AuthRepositoryWithGoogleImpl.kt:77:47 'GoogleSignInOptions' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/data/auth/googleauth/AuthRepositoryWithGoogleImpl.kt:94:19 'GoogleSignInOptions' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/data/auth/googleauth/AuthRepositoryWithGoogleImpl.kt:94:47 'GoogleSignInOptions' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/data/auth/googleauth/AuthRepositoryWithGoogleImpl.kt:110:77 'GoogleSignInAccount' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/data/auth/phone/AuthRepositoryWithPhoneImpl.kt:77:31 'getInstance(): PhoneAuthProvider' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/data/auth/phone/AuthRepositoryWithPhoneImpl.kt:78:18 'verifyPhoneNumber(String, Long, TimeUnit, Activity, PhoneAuthProvider.OnVerificationStateChangedCallbacks, PhoneAuthProvider.ForceResendingToken?): Unit' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/data/database/MainRepositoryImpl.kt:56:32 Unnecessary safe call on a non-null receiver of type String
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/data/database/MainRepositoryImpl.kt:57:32 Unnecessary safe call on a non-null receiver of type String
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/data/storage/StorageRepositoryImpl.kt:141:37 'insertImage(ContentResolver!, Bitmap!, String!, String!): String!' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/data/viewmodels/AuthViewModel.kt:10:47 'GoogleSignInAccount' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/data/viewmodels/AuthViewModel.kt:111:99 'GoogleSignInAccount' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/data/viewmodels/AuthViewModel.kt:119:36 'GoogleSignInAccount' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/data/viewmodels/FirestoreViewModel.kt:68:25 Unchecked cast: StateFlow<Any> to StateFlow<T>
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/data/viewmodels/FirestoreViewModel.kt:90:59 Unchecked cast: StateFlow<MyResult<List<Any>>>? to StateFlow<MyResult<List<T>>>
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/data/viewmodels/FirestoreViewModel.kt:102:59 Unchecked cast: StateFlow<MyResult<List<Any>>>? to StateFlow<MyResult<List<T>>>
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/data/viewmodels/FirestoreViewModel.kt:167:45 Unchecked cast: StateFlow<MyResult<Any>>? to StateFlow<MyResult<T>>
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/data/viewmodels/FirestoreViewModel.kt:171:49 Unchecked cast: StateFlow<MyResult<Any>>? to StateFlow<MyResult<T>>
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/data/viewmodels/FirestoreViewModel.kt:180:70 Unchecked cast: StateFlow<MyResult<Any>>? to StateFlow<MyResult<T>>
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/data/viewmodels/FirestoreViewModel.kt:192:70 Unchecked cast: StateFlow<MyResult<Any>>? to StateFlow<MyResult<T>>
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/data/viewmodels/LocationModel.kt:18:21 Elvis operator (?:) always returns the left operand of non-nullable type LocationModel
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/data/viewmodels/MainViewModel.kt:52:25 Unchecked cast: StateFlow<Any> to StateFlow<T>
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/data/viewmodels/MainViewModel.kt:78:59 Unchecked cast: StateFlow<MyResult<List<Any>>>? to StateFlow<MyResult<List<T>>>
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/data/viewmodels/MainViewModel.kt:94:59 Unchecked cast: StateFlow<MyResult<List<Any>>>? to StateFlow<MyResult<List<T>>>
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/data/viewmodels/MainViewModel.kt:148:45 Unchecked cast: StateFlow<MyResult<Any>>? to StateFlow<MyResult<T>>
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/data/viewmodels/MainViewModel.kt:151:48 Unchecked cast: StateFlow<MyResult<Any>>? to StateFlow<MyResult<T>>
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/data/viewmodels/MainViewModel.kt:157:70 Unchecked cast: StateFlow<MyResult<Any>>? to StateFlow<MyResult<T>>
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/data/viewmodels/MainViewModel.kt:173:70 Unchecked cast: StateFlow<MyResult<Any>>? to StateFlow<MyResult<T>>
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/ContextExtensions.kt:226:23 'vibrate(Long): Unit' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/ContextExtensions.kt:305:63 'getDefault(): SmsManager!' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/ContextExtensions.kt:378:40 Parameter 'permission' is never used
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/ImageViewExtensions.kt:335:50 'toLowerCase(): String' is deprecated. Use lowercase() instead.
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/ImageViewExtensions.kt:337:81 'toLowerCase(): String' is deprecated. Use lowercase() instead.
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/ImageViewExtensions.kt:347:33 Type mismatch: inferred type is String? but String was expected
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/ImageViewExtensions.kt:355:66 'toLowerCase(): String' is deprecated. Use lowercase() instead.
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/NumbersExtensions.kt:21:13 Variable 'random' is never used
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/OldMyExtensionsFile.kt:979:32 'toggleSoftInput(Int, Int): Unit' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/OldMyExtensionsFile.kt:979:67 'SHOW_FORCED: Int' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/OldMyExtensionsFile.kt:1122:57 'getter for activeNetworkInfo: NetworkInfo?' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/OldMyExtensionsFile.kt:1123:69 'getter for isConnected: Boolean' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/OldMyExtensionsFile.kt:1231:18 Extension is shadowed by a member: public open fun toggle(): Unit
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/OldMyExtensionsFile.kt:1313:33 Unchecked cast: SpinnerAdapter! to ArrayAdapter<String>
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/OldMyExtensionsFile.kt:1375:62 'FragmentPagerAdapter' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/OldMyExtensionsFile.kt:1430:17 Extension is shadowed by a member: public open fun setOnItemSelectedListener(p0: AdapterView.OnItemSelectedListener?): Unit
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/OldMyExtensionsFile.kt:1450:17 Extension is shadowed by a member: public open fun getSelectedItemPosition(): Int
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/OldMyExtensionsFile.kt:1523:44 'insertImage(ContentResolver!, Bitmap!, String!, String!): String!' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/ScreenExtensions.kt:54:9 'overridePendingTransition(Int, Int): Unit' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/ScreenExtensions.kt:56:9 'overridePendingTransition(Int, Int): Unit' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/ScreenExtensions.kt:134:30 'setOnNavigationItemSelectedListener(BottomNavigationView.OnNavigationItemSelectedListener?): Unit' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/ScreenExtensions.kt:213:18 Extension is shadowed by a member: public open fun toggle(): Unit
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/ScreenExtensions.kt:230:19 'setter for systemUiVisibility: Int' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/ScreenExtensions.kt:231:23 'getter for systemUiVisibility: Int' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/ScreenExtensions.kt:231:50 'SYSTEM_UI_FLAG_LIGHT_STATUS_BAR: Int' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/ScreenExtensions.kt:234:19 'setter for systemUiVisibility: Int' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/ScreenExtensions.kt:235:23 'getter for systemUiVisibility: Int' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/ScreenExtensions.kt:235:51 'SYSTEM_UI_FLAG_LIGHT_STATUS_BAR: Int' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/ScreenExtensions.kt:248:9 'overridePendingTransition(Int, Int): Unit' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/ScreenExtensions.kt:253:26 'setter for systemUiVisibility: Int' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/ScreenExtensions.kt:254:18 'SYSTEM_UI_FLAG_LAYOUT_STABLE: Int' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/ScreenExtensions.kt:254:55 'SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN: Int' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/ScreenExtensions.kt:274:37 Variable 'cameraId' initializer is redundant
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/ScreenExtensions.kt:336:18 'setter for isDrawingCacheEnabled: Boolean' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/ScreenExtensions.kt:337:13 Variable 'bitmap' is never used
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/ScreenExtensions.kt:337:51 'getter for drawingCache: Bitmap!' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/ScreenExtensions.kt:338:18 'setter for isDrawingCacheEnabled: Boolean' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/ScreenExtensions.kt:357:27 'setter for systemUiVisibility: Int' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/ScreenExtensions.kt:358:31 'getter for systemUiVisibility: Int' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/ScreenExtensions.kt:358:58 'SYSTEM_UI_FLAG_LIGHT_STATUS_BAR: Int' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/ScreenExtensions.kt:360:31 'getter for systemUiVisibility: Int' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/ScreenExtensions.kt:360:59 'SYSTEM_UI_FLAG_LIGHT_STATUS_BAR: Int' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/TextEditTextExtensions.kt:147:9 Parameter 'onFinish' is never used
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/TextEditTextExtensions.kt:247:38 Unnecessary safe call on a non-null receiver of type String
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/TextEditTextExtensions.kt:247:47 Elvis operator (?:) always returns the left operand of non-nullable type Int
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/TextEditTextExtensions.kt:286:18 Extension is shadowed by a member: public open fun getText(): Editable!
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/UIExtensions.kt:196:23 'getter for defaultDisplay: Display!' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/UIExtensions.kt:196:38 'getMetrics(DisplayMetrics!): Unit' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/UIExtensions.kt:224:41 'getter for defaultDisplay: Display!' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/UIExtensions.kt:224:56 'getMetrics(DisplayMetrics!): Unit' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/UIExtensions.kt:252:78 'Theme_Holo_Light_Dialog_NoActionBar: Int' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/UIExtensions.kt:253:82 'Theme_Holo_Light_Dialog_NoActionBar: Int' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/UIExtensions.kt:289:78 'Theme_Holo_Light_Dialog_NoActionBar: Int' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/UIExtensions.kt:321:78 'Theme_Holo_Light_Dialog_NoActionBar: Int' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/UtilityExtensions.kt:45:53 'getDefault(): SmsManager!' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/ViewExtensions.kt:74:41 Parameter 'v' is never used, could be renamed to _
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/ViewExtensions.kt:537:13 Variable 'translationX' is never used
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/ViewExtensions.kt:546:13 Variable 'translationX' is never used
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/ViewExtensions.kt:577:13 Variable 'translationX' is never used
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/ViewExtensions.kt:582:13 Variable 'translationY' is never used
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/ViewExtensions.kt:588:13 Variable 'translationX' is never used
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/ViewExtensions.kt:768:13 Variable 'd' is assigned but never accessed
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/ViewExtensions.kt:836:25 'Theme_Holo_Light_Dialog_NoActionBar: Int' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/ViewExtensions.kt:840:33 'Theme_Holo_Light_Dialog_NoActionBar: Int' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/ViewExtensions.kt:889:25 'Theme_Holo_Light_Dialog_NoActionBar: Int' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/ViewExtensions.kt:936:25 'Theme_Holo_Light_Dialog_NoActionBar: Int' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/extensions/ViewExtensions.kt:984:48 'toUpperCase(): Char' is deprecated. Use uppercaseChar() instead.
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/managers/DataStoreManager.kt:26:58 Parameter 'clazz' is never used
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/managers/DataStoreManager.kt:32:53 Parameter 'clazz' is never used
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/managers/MyAlarmManager.kt:41:18 Parameter 'data' is never used
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/managers/MyNotificationManager.kt:123:32 'constructor Builder(Context)' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/managers/MyNotificationManager.kt:179:32 'constructor Builder(Context)' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/managers/MyWorkManager.kt:44:13 Parameter 'workerId' is never used
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/managers/WorkManagerDocs.kt:33:21 Variable 'status' is never used
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/managers/WorkManagerDocs.kt:34:21 Variable 'outputData' is never used
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/utils/DialogUtil.kt:4:20 'ProgressDialog' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/utils/DialogUtil.kt:64:60 Parameter 'dialog' is never used, could be renamed to _
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/utils/DialogUtil.kt:70:60 Parameter 'dialog' is never used, could be renamed to _
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/utils/DialogUtil.kt:76:56 Parameter 'dialog' is never used, could be renamed to _
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/utils/DialogUtil.kt:82:60 Parameter 'dialog' is never used, could be renamed to _
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/utils/DialogUtil.kt:91:8 'ProgressDialog' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/utils/DialogUtil.kt:92:30 'constructor ProgressDialog(Context!)' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/utils/DialogUtil.kt:92:30 'ProgressDialog' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/utils/DialogUtil.kt:97:24 'setMessage(CharSequence!): Unit' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/utils/JsonDataRepository.kt:127:81 Unchecked cast: Any to MutableMap<String, Any>
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/utils/LocaleManager.kt:40:27 'updateConfiguration(Configuration!, DisplayMetrics!): Unit' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/utils/MediaSlider.kt:28:38 'MediaItem' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/utils/MediaSlider.kt:29:38 'Player' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/utils/MediaSlider.kt:30:38 'SimpleExoPlayer' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/utils/MediaSlider.kt:31:41 'PlayerView' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/utils/MediaSlider.kt:50:28 'SimpleExoPlayer' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/utils/MediaSlider.kt:52:38 'PlayerView' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/utils/MediaSlider.kt:93:22 'PlayerView' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/utils/MediaSlider.kt:203:21 'SimpleExoPlayer' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/utils/MediaSlider.kt:203:37 'constructor Builder(Context)' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/utils/MediaSlider.kt:203:37 'Builder' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/utils/MediaSlider.kt:203:63 'build(): SimpleExoPlayer' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/utils/MediaSlider.kt:209:41 'MediaItem' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/utils/MediaSlider.kt:212:41 'MediaItem' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/utils/MediaSlider.kt:218:37 'MediaItem' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/utils/MediaSlider.kt:226:41 'Player' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/utils/MediaSlider.kt:230:34 'Player' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/utils/MyImagePicker.kt:128:36 'getter for defaultDisplay: Display!' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/utils/MyImagePicker.kt:128:51 'getMetrics(DisplayMetrics!): Unit' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/utils/MyImagePicker.kt:250:36 'getter for defaultDisplay: Display!' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/utils/MyImagePicker.kt:250:51 'getMetrics(DisplayMetrics!): Unit' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/utils/Utils.kt:391:53 'getDefault(): SmsManager!' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/utils/Utils.kt:495:30 'setOnNavigationItemSelectedListener(BottomNavigationView.OnNavigationItemSelectedListener?): Unit' is deprecated. Deprecated in Java
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/utils/Utils.kt:539:44 Unchecked cast: RecyclerView.Adapter<(raw) RecyclerView.ViewHolder!>? to Utils.GenericPagingAdapter<T, VB>
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/utils/Utils.kt:666:44 Unchecked cast: RecyclerView.Adapter<(raw) RecyclerView.ViewHolder!>? to Utils.GenericAdapter<T, VB>
+w: file:///C:/Users/DELL%20PRECISION/AndroidStudioProjects/mylib/mylib/src/main/java/com/lymors/lycommons/utils/Utils.kt:691:44 Unchecked cast: RecyclerView.Adapter<(raw) RecyclerView.ViewHolder!>? to Utils.GenericAdapter<T, VB>
+
+> Task :mylib:extractReleaseAnnotations
+> Task :mylib:compileReleaseJavaWithJavac
+> Task :mylib:processReleaseJavaRes
+> Task :mylib:mergeReleaseJavaResource
+> Task :mylib:transformReleaseClassesWithAsm
+> Task :mylib:mergeReleaseGeneratedProguardFiles
+> Task :mylib:mergeReleaseConsumerProguardFiles
+> Task :mylib:minifyReleaseWithR8
+> Task :mylib:syncReleaseLibJars
+> Task :mylib:bundleReleaseAar
+> Task :mylib:assembleRelease
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.9/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 6m 12s
+38 actionable tasks: 37 executed, 1 up-to-date
