@@ -81,17 +81,32 @@ class AuthRepositoryWithEmailImpl @Inject constructor(private val auth:FirebaseA
         }.addOnFailureListener { exception ->
             when (exception) {
                 is FirebaseAuthInvalidUserException -> {
-                    cont.resume(MyResult.Error("This user does not exit."))
+                    cont.resume(MyResult.Error("This user does not exist. ${exception.message}"))
                 }
                 is FirebaseAuthInvalidCredentialsException -> {
-                    cont.resume(MyResult.Error("Wrong email or password."))
+                    cont.resume(MyResult.Error("Wrong email or password. ${exception.message}"))
+                }
+                is FirebaseAuthEmailException -> {
+                    cont.resume(MyResult.Error("Invalid email address. ${exception.message}"))
+                }
+                is FirebaseAuthRecentLoginRequiredException -> {
+                    cont.resume(MyResult.Error("Recent authentication required. Please re-authenticate."))
+                }
+                is FirebaseAuthActionCodeException -> {
+                    cont.resume(MyResult.Error("Invalid action code. ${exception.message}"))
+                }
+                is FirebaseAuthUserCollisionException -> {
+                    cont.resume(MyResult.Error("User collision. ${exception.message}"))
+                }
+                is FirebaseAuthWeakPasswordException -> {
+                    cont.resume(MyResult.Error("Weak password. ${exception.message}"))
                 }
                 else -> {
-                    cont.resume(MyResult.Error("Something wrong or check email or password."))
+                    cont.resume(MyResult.Error("Login failed: ${exception.message}"))
                 }
             }
         }.addOnCanceledListener {
-            cont.resume(MyResult.Error("Something wrong or check internet."))
+            cont.resume(MyResult.Error("Login cancelled. Check your internet connection."))
         }
     }
 
